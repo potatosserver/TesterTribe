@@ -1,0 +1,1623 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TesterTribe - Android & iOS 測試員互助平台</title>
+  <!-- Google Fonts & Material Symbols -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0..1,0" />
+
+  <style>
+    :root {
+      --md-sys-color-primary: #00639b;
+      --md-sys-color-on-primary: #ffffff;
+      --md-sys-color-primary-container: #ceebff;
+      --md-sys-color-on-primary-container: #001e33;
+      --md-sys-color-secondary: #51606f;
+      --md-sys-color-secondary-container: #d5e4f6;
+      --md-sys-color-surface: #f7f9ff;
+      --md-sys-color-surface-container: #edeef6;
+      --md-sys-color-surface-container-high: #e7e8f0;
+      --md-sys-color-on-surface: #181c20;
+      --md-sys-color-on-surface-variant: #41474d;
+      --md-sys-color-outline: #72777f;
+      --md-sys-color-outline-variant: #c2c7cf;
+      --md-sys-color-error: #ba1a1a;
+      
+      --color-like: #e11d48;
+      --color-like-bg: #ffe4e6;
+      --color-star: #d97706;
+      --color-star-bg: #fef3c7;
+      --color-join: #059669;
+
+      --md-shape-corner-small: 8px;
+      --md-shape-corner-medium: 16px;
+      --md-shape-corner-large: 24px;
+      --md-shape-corner-full: 9999px;
+
+      --md-elevation-1: 0px 2px 8px rgba(0,0,0,0.06);
+      --md-elevation-2: 0px 8px 24px rgba(0,0,0,0.12);
+    }
+
+    * { box-sizing: border-box; font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; }
+    body { background-color: var(--md-sys-color-surface); color: var(--md-sys-color-on-surface); margin: 0; padding-bottom: 60px; }
+    .container { max-width: 1000px; margin: 0 auto; padding: 0 16px; }
+
+    header { background: rgba(247, 249, 255, 0.92); position: sticky; top: 0; z-index: 100; backdrop-filter: blur(16px); border-bottom: 1px solid var(--md-sys-color-outline-variant); margin-bottom: 20px; }
+    .header-content { max-width: 1000px; margin: 0 auto; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; position: relative; }
+    .logo { font-size: 1.35rem; font-weight: 800; color: var(--md-sys-color-primary); display: flex; align-items: center; gap: 8px; cursor: pointer; }
+
+    .hero-banner { background: linear-gradient(135deg, #00639b, #004b77); color: white; border-radius: var(--md-shape-corner-large); padding: 28px 32px; margin-bottom: 24px; box-shadow: var(--md-elevation-1); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+    .hero-title { font-size: 1.6rem; font-weight: 800; margin: 0 0 8px 0; display: flex; align-items: center; gap: 8px; }
+    .hero-subtitle { font-size: 0.95rem; opacity: 0.9; margin: 0; line-height: 1.5; }
+
+    .avatar-btn { width: 42px; height: 42px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; object-fit: cover; }
+    .avatar-btn:hover { border-color: var(--md-sys-color-primary); transform: scale(1.05); }
+
+    .profile-dropdown { position: absolute; top: 60px; right: 16px; width: 320px; background: #ffffff; border-radius: var(--md-shape-corner-large); padding: 20px; box-shadow: var(--md-elevation-2); border: 1px solid var(--md-sys-color-outline-variant); display: none; z-index: 1000; }
+    .profile-dropdown.active { display: block; }
+    .dropdown-header { text-align: center; padding-bottom: 16px; border-bottom: 1px solid var(--md-sys-color-outline-variant); margin-bottom: 12px; }
+    .dropdown-avatar { width: 64px; height: 64px; border-radius: 50%; margin-bottom: 8px; }
+
+    .menu-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: var(--md-shape-corner-medium); cursor: pointer; font-size: 0.92rem; font-weight: 600; }
+    .menu-item:hover { background: var(--md-sys-color-surface-container-high); }
+
+    .btn { padding: 8px 18px; border: none; border-radius: var(--md-shape-corner-full); font-weight: 700; font-size: 0.88rem; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; }
+    .btn-primary { background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); box-shadow: var(--md-elevation-1); }
+    .btn-primary:hover { opacity: 0.92; }
+    .btn-tonal { background: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-surface); }
+    .btn-tonal:hover { background: #c1d3e8; }
+    .btn-outline { border: 1px solid var(--md-sys-color-outline); background: transparent; color: var(--md-sys-color-on-surface); }
+    .btn-error { background: var(--md-sys-color-error-container); color: var(--md-sys-color-error); }
+    .btn-like-active { background: var(--color-like-bg); color: var(--color-like); }
+
+    .filter-section { display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px; }
+    .search-box { background: #ffffff; border-radius: var(--md-shape-corner-full); padding: 6px 20px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--md-sys-color-outline-variant); box-shadow: var(--md-elevation-1); }
+    .search-input { border: none; background: transparent; width: 100%; padding: 10px 0; font-size: 0.95rem; outline: none; }
+    
+    .chips-group { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+    .chip-btn { background: #ffffff; border: 1px solid var(--md-sys-color-outline-variant); padding: 8px 16px; border-radius: var(--md-shape-corner-full); font-size: 0.85rem; font-weight: 700; color: var(--md-sys-color-secondary); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+    .chip-btn.active { background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); border-color: var(--md-sys-color-primary); }
+
+    .app-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 20px; }
+    .app-card { background: #ffffff; border-radius: var(--md-shape-corner-large); padding: 22px; border: 1px solid var(--md-sys-color-outline-variant); display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; position: relative; }
+    .app-card:hover { transform: translateY(-3px); box-shadow: var(--md-elevation-2); }
+    
+    .urgent-tag { position: absolute; top: 18px; right: 18px; background: #fef2f2; color: #dc2626; font-size: 0.75rem; font-weight: 800; padding: 4px 10px; border-radius: var(--md-shape-corner-full); border: 1px solid #fecaca; display: flex; align-items: center; gap: 2px; }
+
+    .platform-badge { font-size: 0.75rem; font-weight: 800; padding: 2px 8px; border-radius: var(--md-shape-corner-full); display: inline-flex; align-items: center; gap: 2px; }
+    .platform-android { background: #e6f4ea; color: #137333; }
+    .platform-ios { background: #f1f3f4; color: #3c4043; }
+
+    .app-header { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+    .app-icon { width: 58px; height: 58px; border-radius: var(--md-shape-corner-medium); object-fit: cover; box-shadow: var(--md-elevation-1); }
+    .app-title { font-weight: 800; font-size: 1.15rem; margin: 0; }
+    .author-link { color: var(--md-sys-color-primary); text-decoration: none; font-weight: 600; }
+
+    .app-meta-time { font-size: 0.75rem; color: var(--md-sys-color-secondary); margin-bottom: 12px; display: flex; align-items: center; gap: 4px; }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .spinner { animation: spin 1s linear infinite; }
+
+    .progress-section { margin-bottom: 14px; }
+    .progress-text { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; color: var(--md-sys-color-secondary); margin-bottom: 6px; }
+    .progress-bar-bg { background: var(--md-sys-color-surface-container-high); height: 8px; border-radius: var(--md-shape-corner-full); overflow: hidden; }
+    .progress-bar-fill { background: linear-gradient(90deg, #10b981, #059669); height: 100%; border-radius: var(--md-shape-corner-full); transition: width 0.3s; }
+
+    .stats-row { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+    .badge-pill { padding: 4px 10px; border-radius: var(--md-shape-corner-full); font-size: 0.8rem; font-weight: 800; display: inline-flex; align-items: center; gap: 4px; }
+    .badge-star { background: var(--color-star-bg); color: var(--color-star); }
+    .badge-like { background: var(--color-like-bg); color: var(--color-like); }
+
+    .gp-layout { display: flex; gap: 28px; align-items: flex-start; }
+    @media (max-width: 768px) { .gp-layout { flex-direction: column; } }
+    .gp-main { flex: 2; width: 100%; }
+    .gp-sidebar { flex: 1; width: 100%; position: sticky; top: 80px; }
+    
+    .gp-sidebar-card { background: #ffffff; padding: 24px; border-radius: var(--md-shape-corner-large); border: 1px solid var(--md-sys-color-outline-variant); box-shadow: var(--md-elevation-1); }
+    .gp-header { display: flex; align-items: center; gap: 18px; margin-bottom: 24px; }
+    .gp-icon { width: 80px; height: 80px; border-radius: 20px; object-fit: cover; box-shadow: var(--md-elevation-1); }
+    .gp-title { font-size: 1.6rem; font-weight: 800; margin: 0 0 6px 0; }
+    
+    .gp-section { margin-bottom: 28px; }
+    .gp-section-title { font-size: 1.1rem; font-weight: 800; margin: 0 0 12px 0; color: var(--md-sys-color-on-surface); display: flex; align-items: center; gap: 6px; }
+    .gp-description { line-height: 1.7; white-space: pre-line; color: var(--md-sys-color-on-surface-variant); font-size: 0.95rem; }
+    .gp-action-buttons { display: flex; flex-direction: column; gap: 10px; }
+    .gp-btn-link { padding: 14px; font-size: 0.95rem; text-align: center; width: 100%; }
+
+    .gp-sidebar-item { margin-bottom: 16px; }
+    .gp-sidebar-label { font-size: 0.85rem; font-weight: 800; color: var(--md-sys-color-secondary); margin-bottom: 8px; }
+    .gp-divider { border: none; border-top: 1px solid var(--md-sys-color-outline-variant); margin: 16px 0; }
+    
+    .timestamp-box { background: var(--md-sys-color-surface-container); padding: 12px 16px; border-radius: var(--md-shape-corner-medium); font-size: 0.82rem; color: var(--md-sys-color-secondary); line-height: 1.6; margin-bottom: 16px; border: 1px solid var(--md-sys-color-outline-variant); }
+
+    .bottom-reviews-section { background: #ffffff; padding: 28px; border-radius: var(--md-shape-corner-large); border: 1px solid var(--md-sys-color-outline-variant); margin-top: 32px; box-shadow: var(--md-elevation-1); }
+
+    .card { background: #ffffff; padding: 24px; border-radius: var(--md-shape-corner-large); border: 1px solid var(--md-sys-color-outline-variant); margin-bottom: 24px; }
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 6px; }
+    .form-control { width: 100%; padding: 12px 16px; border: 1px solid var(--md-sys-color-outline); border-radius: var(--md-shape-corner-medium); outline: none; }
+
+    .detail-screenshots { display: flex; gap: 12px; margin: 12px 0; overflow-x: auto; padding-bottom: 8px; }
+    .detail-screenshot-img { width: 140px; height: 250px; border-radius: 12px; object-fit: cover; border: 1px solid var(--md-sys-color-outline-variant); cursor: pointer; }
+
+    .feedback-item { background: var(--md-sys-color-surface-container); border-radius: var(--md-shape-corner-medium); padding: 18px; margin-bottom: 12px; border: 1px solid var(--md-sys-color-outline-variant); position: relative; }
+    .feedback-item.pinned { border: 2px solid var(--md-sys-color-primary); background: #f0f9ff; }
+    .pinned-badge { background: var(--md-sys-color-primary); color: white; font-size: 0.75rem; font-weight: 800; padding: 2px 8px; border-radius: var(--md-shape-corner-full); display: inline-flex; align-items: center; gap: 4px; margin-bottom: 8px; }
+
+    .type-badge { font-size: 0.75rem; font-weight: 800; padding: 2px 8px; border-radius: var(--md-shape-corner-full); display: inline-flex; align-items: center; gap: 2px; }
+    .type-review { background: var(--color-star-bg); color: var(--color-star); border: 1px solid #fde68a; }
+    .type-bug { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    .type-suggestion { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+
+    .gp-star-container { display: flex; gap: 6px; font-size: 28px; }
+    .gp-star-btn { cursor: pointer; color: #cbd5e1; transition: color 0.2s; user-select: none; }
+    .gp-star-btn.active { color: #f59e0b; }
+
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 2000; }
+    .modal-card { background: #ffffff; border-radius: var(--md-shape-corner-large); padding: 28px; width: 90%; max-width: 500px; box-shadow: var(--md-elevation-2); border: 1px solid var(--md-sys-color-outline-variant); max-height: 85vh; overflow-y: auto; }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+  </style>
+</head>
+<body>
+
+  <!-- Header Navbar -->
+  <header>
+    <div class="header-content">
+      <div class="logo" onclick="switchTab('market')">
+        <span class="material-symbols-outlined" style="font-size: 28px;">android</span>
+        TesterTribe PRO
+      </div>
+      
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <button id="btn-login" class="btn btn-primary">
+          <span class="material-symbols-outlined">login</span> Google 登入
+        </button>
+
+        <img id="header-avatar" class="avatar-btn" src="" alt="Profile" style="display: none;" onclick="toggleProfileDropdown(event)" onerror="this.onerror=null; this.src=window.DEFAULT_AVATAR;">
+
+        <div id="profile-dropdown" class="profile-dropdown" onclick="event.stopPropagation()">
+          <div class="dropdown-header">
+            <img id="menu-user-photo" class="dropdown-avatar" src="" alt="Avatar" onerror="this.onerror=null; this.src=window.DEFAULT_AVATAR;">
+            <div id="menu-user-name" style="font-weight: 800;">--</div>
+            <div id="menu-user-email" style="font-size: 0.85rem; color: #666;">--</div>
+          </div>
+          <div class="menu-item" onclick="switchTab('publish'); closeProfileDropdown();">
+            <span class="material-symbols-outlined" style="color: var(--md-sys-color-primary);">add_circle</span> 刊登新 App
+          </div>
+          <div class="menu-item" onclick="switchTab('account'); closeProfileDropdown();">
+            <span class="material-symbols-outlined" style="color: var(--md-sys-color-primary);">account_circle</span> 帳號與管理
+          </div>
+          <div class="menu-item" style="color: var(--md-sys-color-error);" onclick="handleLogout()">
+            <span class="material-symbols-outlined">logout</span> 登出帳號
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- 頁面 1：App 市集 -->
+    <div id="view-market" class="tab-content active">
+      <div class="hero-banner">
+        <div>
+          <h1 class="hero-title">
+            <span class="material-symbols-outlined" style="font-size: 32px;">rocket_launch</span>
+            互助測試，輕鬆通過 20 人門檻
+          </h1>
+          <p class="hero-subtitle">加入 Android & iOS 開發者社群，互相測試，讓專案順利公開發布！</p>
+        </div>
+        <button class="btn btn-tonal" onclick="switchTab('publish')" style="background: white; color: var(--md-sys-color-primary);">
+          <span class="material-symbols-outlined">add</span> 刊登我的 App
+        </button>
+      </div>
+
+      <div class="filter-section">
+        <div class="search-box">
+          <span class="material-symbols-outlined" style="color: var(--md-sys-color-outline);">search</span>
+          <input type="text" id="search-input" class="search-input" placeholder="搜尋專案名稱、包名或開發者...">
+        </div>
+
+        <div class="chips-group">
+          <button class="chip-btn active" onclick="filterPlatform('all', this)">
+            <span class="material-symbols-outlined" style="font-size: 18px;">grid_view</span> 全部平台
+          </button>
+          <button class="chip-btn" onclick="filterPlatform('android', this)">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: #137333;">android</span> Android 專區
+          </button>
+          <button class="chip-btn" onclick="filterPlatform('ios', this)">
+            <span class="material-symbols-outlined" style="font-size: 18px; color: #3c4043;">phone_iphone</span> iOS 專區
+          </button>
+        </div>
+      </div>
+
+      <div id="market-app-list" class="app-grid"></div>
+
+      <div style="text-align: center; margin-top: 36px;">
+        <button id="btn-load-more" class="btn btn-tonal" style="padding: 12px 32px;">
+          <span class="material-symbols-outlined">expand_more</span> 載入更多專案
+        </button>
+        <div id="no-more-msg" style="display: none; color: #888; margin-top: 12px; font-size: 0.9rem;">已載入全部專案！</div>
+      </div>
+    </div>
+
+    <!-- 頁面 2：Google Play 風格雙欄詳情頁 -->
+    <div id="view-app-detail" class="tab-content">
+      <button class="btn btn-tonal" onclick="switchTab('market')" style="margin-bottom: 20px;">
+        <span class="material-symbols-outlined">arrow_back</span> 返回市集
+      </button>
+
+      <div id="detail-content">載入中...</div>
+    </div>
+
+    <!-- 頁面 3：開發者主頁 -->
+    <div id="view-dev-profile" class="tab-content">
+      <div id="dev-profile-content">
+        <button class="btn btn-tonal" onclick="switchTab('market')" style="margin-bottom: 20px;">
+          <span class="material-symbols-outlined">arrow_back</span> 返回市集
+        </button>
+
+        <!-- 開發者資訊載入中狀態 -->
+        <div id="dev-profile-loading" style="text-align: center; padding: 60px 20px;">
+          <div class="spinner" style="width: 40px; height: 40px; border: 3px solid var(--md-sys-color-outline-variant); border-top-color: var(--md-sys-color-primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px;"></div>
+          <p style="color: var(--md-sys-color-secondary);">載入開發者資料中...</p>
+        </div>
+
+        <!-- 開發者主頁內容 -->
+        <div id="dev-profile-main" style="display: none;">
+          <!-- Hero Section -->
+          <div class="dev-hero" style="
+            background: linear-gradient(135deg, var(--md-sys-color-primary) 0%, #004b77 100%);
+            border-radius: var(--md-shape-corner-large);
+            padding: 32px;
+            margin-bottom: 24px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--md-elevation-2);
+          ">
+            <div style="position: absolute; top: -50%; right: -10%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);"></div>
+            <div style="position: absolute; bottom: -30px; left: -30px; width: 120px; height: 120px; border-radius: 50%; background: rgba(255,255,255,0.05);"></div>
+            <div style="position: absolute; top: -40px; right: -40px; width: 100px; height: 100px; border-radius: 50%; background: rgba(255,255,255,0.05);"></div>
+            
+            <div style="display: flex; align-items: center; gap: 24px; position: relative; z-index: 1; flex-wrap: wrap;">
+              <img id="dev-profile-avatar" src="" alt="開發者大頭照" style="
+                width: 96px; height: 96px; border-radius: 50%; 
+                border: 4px solid rgba(255,255,255,0.3);
+                box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+                object-fit: cover;
+                background: var(--md-sys-color-surface-container-high);
+              " onerror="this.onerror=null; this.src=window.DEFAULT_AVATAR;">
+              
+              <div style="flex: 1; min-width: 200px;">
+                <h1 id="dev-profile-name" style="margin: 0 0 8px 0; font-size: 2rem; font-weight: 800;">--</h1>
+                <p id="dev-profile-email" style="margin: 0 0 16px 0; opacity: 0.9; font-size: 1rem;">--</p>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                  <span class="dev-badge" style="
+                    background: rgba(255,255,255,0.2); 
+                    backdrop-filter: blur(10px);
+                    padding: 6px 16px; 
+                    border-radius: var(--md-shape-corner-full);
+                    font-size: 0.85rem;
+                    font-weight: 600;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    border: 1px solid rgba(255,255,255,0.3);
+                  ">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">verified</span>
+                    開發者認證
+                  </span>
+                  <span id="dev-join-date" class="dev-badge" style="
+                    background: rgba(255,255,255,0.15); 
+                    padding: 6px 16px; 
+                    border-radius: var(--md-shape-corner-full);
+                    font-size: 0.85rem;
+                    font-weight: 600;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                  ">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">calendar_today</span>
+                    <span>加入日期</span>
+                  </span>
+                </div>
+              </div>
+              
+              <!-- 統計數據卡片 -->
+              <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-left: auto;">
+                <div class="dev-stat-card" style="
+                  background: rgba(255,255,255,0.15);
+                  backdrop-filter: blur(10px);
+                  border: 1px solid rgba(255,255,255,0.2);
+                  border-radius: var(--md-shape-corner-medium);
+                  padding: 16px 24px;
+                  min-width: 100px;
+                  text-align: center;
+                ">
+                  <div id="dev-stat-apps" style="font-size: 2rem; font-weight: 800; line-height: 1;">0</div>
+                  <div style="font-size: 0.8rem; opacity: 0.9; margin-top: 4px;">發布專案</div>
+                </div>
+                <div class="dev-stat-card" style="
+                  background: rgba(255,255,255,0.15);
+                  backdrop-filter: blur(10px);
+                  border: 1px solid rgba(255,255,255,0.2);
+                  border-radius: var(--md-shape-corner-medium);
+                  padding: 16px 24px;
+                  min-width: 100px;
+                  text-align: center;
+                ">
+                  <div id="dev-stat-testers" style="font-size: 2rem; font-weight: 800; line-height: 1;">0</div>
+                  <div style="font-size: 0.8rem; opacity: 0.9; margin-top: 4px;">累積測試員</div>
+                </div>
+                <div class="dev-stat-card" style="
+                  background: rgba(255,255,255,0.15);
+                  backdrop-filter: blur(10px);
+                  border: 1px solid rgba(255,255,255,0.2);
+                  border-radius: var(--md-shape-corner-medium);
+                  padding: 16px 24px;
+                  min-width: 100px;
+                  text-align: center;
+                ">
+                  <div id="dev-stat-likes" style="font-size: 2rem; font-weight: 800; line-height: 1;">0</div>
+                  <div style="font-size: 0.8rem; opacity: 0.9; margin-top: 4px;">獲得讚數</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 專案列表區塊 -->
+          <div class="dev-apps-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+              <h2 style="margin: 0; font-size: 1.4rem; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                <span class="material-symbols-outlined" style="color: var(--md-sys-color-primary);">apps</span>
+                發布的專案
+              </h2>
+              <div id="dev-apps-count" style="font-size: 0.9rem; color: var(--md-sys-color-secondary); background: var(--md-sys-color-surface-container); padding: 6px 12px; border-radius: var(--md-shape-corner-full);">
+                共 <span id="dev-total-apps">0</span> 個專案
+              </div>
+            </div>
+            
+            <div id="dev-apps-grid" class="app-grid"></div>
+            
+            <!-- 空狀態 -->
+            <div id="dev-empty-state" style="display: none; text-align: center; padding: 60px 20px; background: var(--md-sys-color-surface-container); border-radius: var(--md-shape-corner-large); border: 1px solid var(--md-sys-color-outline-variant);">
+              <span class="material-symbols-outlined" style="font-size: 64px; color: var(--md-sys-color-outline); margin-bottom: 16px; display: block;">folder_open</span>
+              <h3 style="margin: 0 0 8px 0; font-size: 1.2rem;">目前沒有發布任何專案</h3>
+              <p style="color: var(--md-sys-color-secondary); margin: 0 0 20px 0;">這位開發者尚未在 TesterTribe 刊登封閉測試專案</p>
+              <button class="btn btn-primary" onclick="switchTab('market')">
+                <span class="material-symbols-outlined">explore</span> 瀏覽市集其他專案
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 頁面 4：刊登專頁 -->
+    <div id="view-publish" class="tab-content">
+      <div class="card" style="max-width: 680px; margin: 0 auto;">
+        <h2 style="display: flex; align-items: center; gap: 8px; margin-top: 0;">
+          <span class="material-symbols-outlined" style="color: var(--md-sys-color-primary);">add_circle</span>
+          刊登新測試 App 專案
+        </h2>
+        
+        <form id="app-form">
+          <div class="form-group">
+            <label>選擇 App 平台</label>
+            <select id="app-platform" class="form-control" onchange="togglePlatformFields('publish')">
+              <option value="android">Android App</option>
+              <option value="ios">iOS App (TestFlight)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>App 名稱</label>
+            <input type="text" id="app-name" class="form-control" placeholder="例如：記帳小助手 Beta" required>
+          </div>
+
+          <div class="form-group">
+            <label id="label-package-name">Android 應用程式包名 (Package Name)</label>
+            <input type="text" id="app-package-name" class="form-control" placeholder="例如：com.example.myapp" required>
+          </div>
+
+          <div id="android-fields">
+            <div class="form-group">
+              <label>Google 群組連結</label>
+              <input type="url" id="group-url" class="form-control" placeholder="https://groups.google.com/g/...">
+            </div>
+            <p style="font-size: 0.8rem; color: var(--md-sys-color-primary); margin-top: -10px; margin-bottom: 16px;">
+              成為測試人員與 Google Play 商店連結將根據包名自動生成！
+            </p>
+          </div>
+
+          <div id="ios-fields" style="display: none;">
+            <div class="form-group">
+              <label>TestFlight 加入測試連結</label>
+              <input type="url" id="testflight-url" class="form-control" placeholder="https://testflight.apple.com/join/...">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>1. App 圖示 (Icon)</label>
+            <input type="file" id="app-icon-file" class="form-control" accept="image/*" required>
+          </div>
+
+          <div class="form-group">
+            <label>2. App 畫面截圖 (最多 3 張)</label>
+            <input type="file" id="app-screenshots-files" class="form-control" accept="image/*" multiple>
+          </div>
+
+          <div class="form-group">
+            <label>簡介與測試需求</label>
+            <textarea id="app-desc" class="form-control" rows="4" placeholder="詳細描述您的 App 特色與測試需求..." required></textarea>
+          </div>
+
+          <button type="submit" id="btn-submit" class="btn btn-primary" style="width: 100%;">發布 App 至市集</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- 頁面 5：個人檔案與管理 -->
+    <div id="view-account" class="tab-content">
+      <div class="card">
+        <div style="display: flex; align-items: center; gap: 16px;">
+          <img id="acc-user-photo" style="width:72px; height:72px; border-radius:50%;" src="" alt="Avatar" onerror="this.onerror=null; this.src=window.DEFAULT_AVATAR;">
+          <div>
+            <div id="acc-user-name" style="font-size: 1.3rem; font-weight: 800;">--</div>
+            <div id="acc-user-email" style="color: #666;">--</div>
+          </div>
+        </div>
+      </div>
+      <h2 style="display: flex; align-items: center; gap: 8px;">
+        <span class="material-symbols-outlined">inventory_2</span> 我發布的專案管理
+      </h2>
+      <div id="my-app-list" class="app-grid"></div>
+    </div>
+
+  </div>
+
+  <!-- Modal 1：發表/編輯評論、評分與 Bug 回報對話框 -->
+  <div id="feedback-modal" class="modal-overlay">
+    <div class="modal-card">
+      <h3 id="modal-feedback-title" style="margin: 0 0 8px 0; display: flex; align-items: center; gap: 8px;">
+        <span class="material-symbols-outlined" style="color: var(--md-sys-color-primary);">rate_review</span>
+        發表社群評論或回報問題
+      </h3>
+      
+      <div class="form-group" style="text-align: left; margin-top: 16px;">
+        <label>反饋標籤</label>
+        <select id="feedback-type" class="form-control" onchange="toggleRatingStarBox()">
+          <option value="review" id="opt-review">⭐ 評分與公開心得</option>
+          <option value="bug">🐛 Bug 錯誤回報</option>
+          <option value="suggestion">💡 功能優化建議</option>
+        </select>
+      </div>
+
+      <div id="modal-star-box" class="form-group" style="text-align: center;">
+        <label>請選擇星級評分</label>
+        <div class="gp-star-container" style="justify-content: center; margin-top: 8px;">
+          <span class="gp-star-btn modal-star" onclick="selectModalStar(1)">★</span>
+          <span class="gp-star-btn modal-star" onclick="selectModalStar(2)">★</span>
+          <span class="gp-star-btn modal-star" onclick="selectModalStar(3)">★</span>
+          <span class="gp-star-btn modal-star" onclick="selectModalStar(4)">★</span>
+          <span class="gp-star-btn modal-star" onclick="selectModalStar(5)">★</span>
+        </div>
+      </div>
+
+      <div class="form-group" style="text-align: left;">
+        <label>評論 / 問題內容</label>
+        <textarea id="feedback-content" class="form-control" rows="4" placeholder="請填寫您的測試心得或發現的 Bug 細節..." required></textarea>
+      </div>
+
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button class="btn btn-tonal" onclick="closeFeedbackModal()">取消</button>
+        <button class="btn btn-primary" id="btn-submit-feedback" onclick="submitFeedback()">送出反饋</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2：✏️ 編輯 App 專案資料對話框 -->
+  <div id="edit-app-modal" class="modal-overlay">
+    <div class="modal-card">
+      <h3 style="margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
+        <span class="material-symbols-outlined" style="color: var(--md-sys-color-primary);">edit</span>
+        編輯 App 專案資訊
+      </h3>
+
+      <form id="edit-app-form">
+        <input type="hidden" id="edit-app-id">
+
+        <div class="form-group" style="text-align: left;">
+          <label>App 平台</label>
+          <select id="edit-app-platform" class="form-control" onchange="togglePlatformFields('edit')">
+            <option value="android">Android App</option>
+            <option value="ios">iOS App (TestFlight)</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="text-align: left;">
+          <label>App 名稱</label>
+          <input type="text" id="edit-app-name" class="form-control" required>
+        </div>
+
+        <div class="form-group" style="text-align: left;">
+          <label id="edit-label-package-name">Android 包名 (Package Name)</label>
+          <input type="text" id="edit-app-package-name" class="form-control" required>
+        </div>
+
+        <div id="edit-android-fields">
+          <div class="form-group" style="text-align: left;">
+            <label>Google 群組連結</label>
+            <input type="url" id="edit-group-url" class="form-control">
+          </div>
+        </div>
+
+        <div id="edit-ios-fields" style="display: none;">
+          <div class="form-group" style="text-align: left;">
+            <label>TestFlight 測試連結</label>
+            <input type="url" id="edit-testflight-url" class="form-control">
+          </div>
+        </div>
+
+        <div class="form-group" style="text-align: left;">
+          <label>簡介與測試需求</label>
+          <textarea id="edit-app-desc" class="form-control" rows="4" required></textarea>
+        </div>
+
+        <div class="form-group" style="text-align: left;">
+          <label>替換 App Icon (若不修改請留空)</label>
+          <input type="file" id="edit-app-icon-file" class="form-control" accept="image/*">
+        </div>
+
+        <div class="form-group" style="text-align: left;">
+          <label>替換截圖照片 (若不修改請留空)</label>
+          <input type="file" id="edit-app-screenshots-files" class="form-control" accept="image/*" multiple>
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+          <button type="button" class="btn btn-tonal" onclick="closeEditAppModal()">取消</button>
+          <button type="submit" class="btn btn-primary" id="btn-submit-edit">儲存修改</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, deleteDoc, doc, getDoc, setDoc, getDocs, updateDoc, increment, query, where, orderBy, limit, startAfter, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // 防護萬無一失的 Data URI 預設圖 (0 網路 Request)
+    const DEFAULT_AVATAR = window.DEFAULT_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 24 24' fill='%23666'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-3.8-.85-5.05-2.2.03-1.68 3.37-2.6 5.05-2.6s5.02.92 5.05 2.6C15.8 19.15 14.03 20 12 20z'/%3E%3C/svg%3E";
+    const DEFAULT_ICON = window.DEFAULT_ICON = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 24 24' fill='%2300639b'%3E%3Cpath d='M17.6 9.48l1.84-3.18c.16-.31.04-.69-.27-.85-.29-.15-.68-.04-.84.26l-1.88 3.24C14.88 8.35 13.5 8 12 8s-2.88.35-4.45.95L5.67 5.71c-.16-.3-.55-.41-.84-.26-.31.16-.43.54-.27.85l1.84 3.18C3.81 11.05 2 13.79 2 17h20c0-3.21-1.81-5.95-4.4-7.52zM7 14.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm10 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z'/%3E%3C/svg%3E";
+
+    // 安全轉義 HTML 特殊字元 (防 XSS 注入攻擊)
+    function escapeHTML(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDqbzXsf5zMTnddV4DNyws3fuOOA6QacaQ",
+      authDomain: "testertribe-eb02a.firebaseapp.com",
+      projectId: "testertribe-eb02a",
+      storageBucket: "testertribe-eb02a.firebasestorage.app",
+      messagingSenderId: "26372711857",
+      appId: "1:26372711857:web:b543d4e5e1659e7f1c4990",
+      measurementId: "G-PR6EBNSZH7"
+    };
+
+    const IMGBB_API_KEY = "fa16b12a73afb53dc215999cc62d2e33";
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+
+    let currentUser = null;
+    let loadedMarketApps = [];
+    let currentPlatformFilter = 'all';
+    let lastVisibleDoc = null;
+    const PAGE_SIZE = 6;
+    let activeFeedbackAppId = null;
+    let selectedModalStarScore = 0;
+
+    function formatDate(timestamp) {
+      if (!timestamp) return '近期';
+      let date;
+      if (timestamp.toDate) date = timestamp.toDate();
+      else if (timestamp.seconds) date = new Date(timestamp.seconds * 1000);
+      else date = new Date(timestamp);
+
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}/${month}/${day}`;
+    }
+
+    async function uploadImagesToImgBB(iconFile, screenshotFiles) {
+      const uploadSingle = async (file) => {
+        const formData = new FormData();
+        formData.append('image', file);
+        const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData });
+        const data = await res.json();
+        if (!data.success) throw new Error('圖片上傳失敗');
+        return data.data.url;
+      };
+
+      const iconPromise = iconFile ? uploadSingle(iconFile) : Promise.resolve(null);
+      const screenshotPromises = screenshotFiles && screenshotFiles.length > 0 
+        ? Array.from(screenshotFiles).slice(0, 3).map(uploadSingle)
+        : Promise.resolve([]);
+
+      const [iconUrl, screenshotUrls] = await Promise.all([iconPromise, Promise.all(screenshotPromises)]);
+      return { iconUrl, screenshotUrls };
+    }
+
+    window.togglePlatformFields = (prefix = 'publish') => {
+      const isEdit = prefix === 'edit';
+      const platform = document.getElementById(isEdit ? 'edit-app-platform' : 'app-platform').value;
+      const androidFields = document.getElementById(isEdit ? 'edit-android-fields' : 'android-fields');
+      const iosFields = document.getElementById(isEdit ? 'edit-ios-fields' : 'ios-fields');
+      const pkgLabel = document.getElementById(isEdit ? 'edit-label-package-name' : 'label-package-name');
+
+      if (platform === 'android') {
+        androidFields.style.display = 'block';
+        iosFields.style.display = 'none';
+        pkgLabel.innerText = 'Android 應用程式包名 (Package Name)';
+      } else {
+        androidFields.style.display = 'none';
+        iosFields.style.display = 'block';
+        pkgLabel.innerText = 'iOS Bundle ID (包名)';
+      }
+    };
+
+    window.handleToggleLikeDetail = async (appId) => {
+      if (!currentUser) return alert('請先登入帳號後再按讚！');
+
+      const appSnap = await getDoc(doc(db, "apps", appId));
+      if (appSnap.exists() && appSnap.data().authorUid === currentUser.uid) {
+        return alert('身為此 App 的開發者，您無法對自己的專案按讚喔！');
+      }
+
+      const likeDocRef = doc(db, "apps", appId, "likes", currentUser.uid);
+      const appRef = doc(db, "apps", appId);
+
+      try {
+        const likeSnap = await getDoc(likeDocRef);
+        const heartBtn = document.getElementById(`btn-detail-like-${appId}`);
+        const likeTextEl = document.getElementById(`detail-like-text`);
+        const likeCountEl = document.getElementById(`detail-like-count`);
+
+        if (likeSnap.exists()) {
+          await deleteDoc(likeDocRef);
+          await updateDoc(appRef, { likeCount: increment(-1) });
+
+          if (heartBtn) heartBtn.className = "btn btn-tonal";
+          if (likeTextEl) likeTextEl.innerText = "點擊按讚";
+          if (likeCountEl) likeCountEl.innerText = Math.max(0, parseInt(likeCountEl.innerText || 1) - 1);
+        } else {
+          await setDoc(likeDocRef, { likedAt: serverTimestamp() });
+          await updateDoc(appRef, { likeCount: increment(1) });
+
+          if (heartBtn) heartBtn.className = "btn btn-like-active";
+          if (likeTextEl) likeTextEl.innerText = "已按讚";
+          if (likeCountEl) likeCountEl.innerText = parseInt(likeCountEl.innerText || 0) + 1;
+        }
+      } catch (err) { console.error(err); }
+    };
+
+    window.toggleJoinTestDetail = async (appId, isCurrentlyJoined) => {
+      if (!currentUser) return alert('請先登入帳號！');
+
+      const testerDocRef = doc(db, "apps", appId, "testers", currentUser.uid);
+      const appRef = doc(db, "apps", appId);
+
+      try {
+        if (!isCurrentlyJoined) {
+          const confirmed = confirm("您是否已完成測試步驟，並成功下載與開啟 App？");
+          if (!confirmed) return;
+
+          await setDoc(testerDocRef, { joinedAt: serverTimestamp() });
+          await updateDoc(appRef, { joinCount: increment(1) });
+          alert("已成功回報加入測試！感謝您的協助！");
+        } else {
+          const confirmed = confirm("確認要退出此 App 的測試嗎？");
+          if (!confirmed) return;
+
+          await deleteDoc(testerDocRef);
+          await updateDoc(appRef, { joinCount: increment(-1) });
+          alert("已退出該專案的測試。");
+        }
+
+        openAppDetail(appId);
+      } catch (err) { console.error(err); }
+    };
+
+    window.openFeedbackModal = async (appId) => {
+      if (!currentUser) return alert('請先登入帳號後再發表反饋！');
+
+      const appSnap = await getDoc(doc(db, "apps", appId));
+      if (!appSnap.exists()) return;
+      const appData = appSnap.data();
+
+      if (currentUser.uid === appData.authorUid) {
+        return alert('身為此 App 的開發者，您無法對自己的專案進行評論與評分喔！');
+      }
+
+      activeFeedbackAppId = appId;
+      const myFbSnap = await getDoc(doc(db, "apps", appId, "feedbacks", currentUser.uid));
+
+      const typeSelect = document.getElementById('feedback-type');
+      const contentEl = document.getElementById('feedback-content');
+      const optReview = document.getElementById('opt-review');
+
+      optReview.disabled = false;
+      optReview.innerText = '⭐ 評分與公開心得';
+
+      if (myFbSnap.exists()) {
+        const myData = myFbSnap.data();
+        typeSelect.value = myData.type || 'review';
+        contentEl.value = myData.content || '';
+        selectedModalStarScore = myData.rating || 0;
+        document.getElementById('modal-feedback-title').innerText = '編輯我的社群評論';
+      } else {
+        typeSelect.value = 'review';
+        contentEl.value = '';
+        selectedModalStarScore = 0;
+        document.getElementById('modal-feedback-title').innerText = '發表社群評論或回報問題';
+      }
+
+      toggleRatingStarBox();
+      selectModalStar(selectedModalStarScore);
+      document.getElementById('feedback-modal').style.display = 'flex';
+    };
+
+    window.closeFeedbackModal = () => {
+      document.getElementById('feedback-modal').style.display = 'none';
+    };
+
+    window.toggleRatingStarBox = () => {
+      const type = document.getElementById('feedback-type').value;
+      document.getElementById('modal-star-box').style.display = type === 'review' ? 'block' : 'none';
+    };
+
+    window.selectModalStar = (score) => {
+      selectedModalStarScore = score;
+      document.querySelectorAll('.modal-star').forEach((star, idx) => {
+        if (idx < score) star.classList.add('active');
+        else star.classList.remove('active');
+      });
+    };
+
+    window.submitFeedback = async () => {
+      if (!currentUser || !activeFeedbackAppId) return;
+
+      const type = document.getElementById('feedback-type').value;
+      const content = document.getElementById('feedback-content').value.trim();
+
+      if (!content) return alert('請填寫內容！');
+      if (type === 'review' && selectedModalStarScore === 0) return alert('請選擇星級評分！');
+
+      const submitBtn = document.getElementById('btn-submit-feedback');
+      submitBtn.disabled = true;
+
+      try {
+        const fbDocRef = doc(db, "apps", activeFeedbackAppId, "feedbacks", currentUser.uid);
+        const myFbSnap = await getDoc(fbDocRef);
+        const appRef = doc(db, "apps", activeFeedbackAppId);
+
+        const newRating = type === 'review' ? selectedModalStarScore : 0;
+
+        if (myFbSnap.exists()) {
+          const oldData = myFbSnap.data();
+          const oldRating = oldData.type === 'review' ? (oldData.rating || 0) : 0;
+          const scoreDiff = newRating - oldRating;
+
+          await setDoc(fbDocRef, {
+            type: type,
+            rating: newRating,
+            content: content,
+            authorName: currentUser.displayName || '匿名測試員',
+            authorUid: currentUser.uid,
+            updatedAt: serverTimestamp(),
+            isPinned: oldData.isPinned || false
+          }, { merge: true });
+
+          if (scoreDiff !== 0) {
+            await updateDoc(appRef, { ratingSum: increment(scoreDiff) });
+          }
+
+          alert('留言與評分更新成功！');
+        } else {
+          await setDoc(fbDocRef, {
+            type: type,
+            rating: newRating,
+            content: content,
+            authorName: currentUser.displayName || '匿名測試員',
+            authorUid: currentUser.uid,
+            createdAt: serverTimestamp(),
+            isPinned: false
+          });
+
+          if (type === 'review') {
+            await updateDoc(appRef, {
+              ratingSum: increment(newRating),
+              ratingCount: increment(1)
+            });
+          }
+
+          alert('留言發表成功！');
+        }
+
+        closeFeedbackModal();
+        openAppDetail(activeFeedbackAppId);
+      } catch (err) {
+        alert('發布失敗：' + err.message);
+      } finally {
+        submitBtn.disabled = false;
+      }
+    };
+
+    window.togglePinFeedback = async (appId, feedbackUid, currentPinnedState) => {
+      if (!currentUser) return;
+      try {
+        const fbRef = doc(db, "apps", appId, "feedbacks", feedbackUid);
+        await updateDoc(fbRef, { isPinned: !currentPinnedState });
+        alert(!currentPinnedState ? '已將該留言置頂！' : '已取消置頂！');
+        openAppDetail(appId);
+      } catch (err) {
+        alert('置頂操作失敗：' + err.message);
+      }
+    };
+
+    window.openEditAppModal = async (appId) => {
+      if (!currentUser) return;
+      const appSnap = await getDoc(doc(db, "apps", appId));
+      if (!appSnap.exists()) return alert('找不到該專案');
+
+      const data = appSnap.data();
+      if (data.authorUid !== currentUser.uid) return alert('您不是此專案的開發者！');
+
+      document.getElementById('edit-app-id').value = appId;
+      document.getElementById('edit-app-platform').value = data.platform || 'android';
+      document.getElementById('edit-app-name').value = data.name || '';
+      document.getElementById('edit-app-package-name').value = data.packageName || '';
+      document.getElementById('edit-group-url').value = data.groupUrl || '';
+      document.getElementById('edit-testflight-url').value = data.storeUrl || '';
+      document.getElementById('edit-app-desc').value = data.description || '';
+
+      togglePlatformFields('edit');
+      document.getElementById('edit-app-modal').style.display = 'flex';
+    };
+
+    window.closeEditAppModal = () => {
+      document.getElementById('edit-app-modal').style.display = 'none';
+    };
+
+    document.getElementById('edit-app-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const appId = document.getElementById('edit-app-id').value;
+      const platform = document.getElementById('edit-app-platform').value;
+      const packageName = document.getElementById('edit-app-package-name').value.trim();
+
+      const iconFile = document.getElementById('edit-app-icon-file').files[0];
+      const screenshotFiles = document.getElementById('edit-app-screenshots-files').files;
+
+      const submitBtn = document.getElementById('btn-submit-edit');
+      submitBtn.disabled = true;
+      submitBtn.innerText = '儲存修改中...';
+
+      try {
+        const appRef = doc(db, "apps", appId);
+        const appSnap = await getDoc(appRef);
+        const oldData = appSnap.data();
+
+        let newIconUrl = oldData.iconUrl;
+        let newScreenshotUrls = oldData.screenshotUrls || [];
+
+        if (iconFile || (screenshotFiles && screenshotFiles.length > 0)) {
+          const uploaded = await uploadImagesToImgBB(iconFile, screenshotFiles);
+          if (uploaded.iconUrl) newIconUrl = uploaded.iconUrl;
+          if (uploaded.screenshotUrls && uploaded.screenshotUrls.length > 0) newScreenshotUrls = uploaded.screenshotUrls;
+        }
+
+        let groupUrl = '';
+        let storeUrl = '';
+
+        if (platform === 'android') {
+          groupUrl = document.getElementById('edit-group-url').value.trim();
+          storeUrl = `https://play.google.com/apps/testing/${packageName}`;
+        } else {
+          storeUrl = document.getElementById('edit-testflight-url').value.trim();
+        }
+
+        await updateDoc(appRef, {
+          name: document.getElementById('edit-app-name').value.trim(),
+          platform: platform,
+          packageName: packageName,
+          groupUrl: groupUrl,
+          storeUrl: storeUrl,
+          description: document.getElementById('edit-app-desc').value.trim(),
+          iconUrl: newIconUrl,
+          screenshotUrls: newScreenshotUrls,
+          updatedAt: serverTimestamp()
+        });
+
+        alert('專案資訊修改成功！');
+        closeEditAppModal();
+        fetchMarketApps(true);
+        if (document.getElementById('view-app-detail').classList.contains('active')) {
+          openAppDetail(appId);
+        }
+      } catch (err) {
+        alert('修改失敗：' + err.message);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = '儲存修改';
+      }
+    });
+
+    window.filterPlatform = (platform, btnEl) => {
+      document.querySelectorAll('.chip-btn').forEach(btn => btn.classList.remove('active'));
+      btnEl.classList.add('active');
+      currentPlatformFilter = platform;
+
+      if (platform === 'all') renderMarketApps(loadedMarketApps);
+      else renderMarketApps(loadedMarketApps.filter(app => app.platform === platform));
+    };
+
+    window.switchTab = (tabName) => {
+      if ((tabName === 'account' || tabName === 'publish') && !currentUser) return alert('請先登入 Google 帳號！');
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+
+      if (tabName === 'market') document.getElementById('view-market').classList.add('active');
+      else if (tabName === 'publish') document.getElementById('view-publish').classList.add('active');
+      else if (tabName === 'account') { document.getElementById('view-account').classList.add('active'); loadMyApps(); }
+      else if (tabName === 'appDetail') document.getElementById('view-app-detail').classList.add('active');
+      else if (tabName === 'devProfile') document.getElementById('view-dev-profile').classList.add('active');
+    };
+
+    window.openDevProfile = async (devUid, devName) => {
+      switchTab('devProfile');
+      
+      // 顯示載入狀態
+      document.getElementById('dev-profile-loading').style.display = 'block';
+      document.getElementById('dev-profile-main').style.display = 'none';
+      document.getElementById('dev-apps-grid').innerHTML = '';
+      document.getElementById('dev-empty-state').style.display = 'none';
+
+      try {
+        // 並行獲取開發者資料和專案列表
+        const [userSnap, appsSnap] = await Promise.all([
+          getDoc(doc(db, "users", devUid)),
+          getDocs(query(collection(db, "apps"), where("authorUid", "==", devUid)))
+        ]);
+
+        const userData = userSnap.exists() ? userSnap.data() : {};
+        const apps = [];
+        appsSnap.forEach(docSnap => {
+          apps.push({ id: docSnap.id, ...docSnap.data() });
+        });
+
+        // 隱藏載入狀態，顯示主內容
+        document.getElementById('dev-profile-loading').style.display = 'none';
+        document.getElementById('dev-profile-main').style.display = 'block';
+
+        // 填入開發者基本資料
+        const displayName = userData.displayName || devName || '匿名開發者';
+        const email = userData.email || '未公開';
+        const photoURL = userData.photoURL || '';
+        const createdAt = userData.createdAt?.toDate ? userData.createdAt.toDate() : null;
+
+        document.getElementById('dev-profile-name').innerText = escapeHTML(displayName);
+        document.getElementById('dev-profile-email').innerText = escapeHTML(email);
+        document.getElementById('dev-profile-avatar').src = photoURL || DEFAULT_AVATAR;
+        
+        // 加入日期
+        if (createdAt) {
+          document.getElementById('dev-join-date').innerHTML = `
+            <span class="material-symbols-outlined" style="font-size: 18px;">calendar_today</span>
+            ${formatDate(createdAt)} 加入
+          `;
+        } else {
+          document.getElementById('dev-join-date').innerHTML = `
+            <span class="material-symbols-outlined" style="font-size: 18px;">calendar_today</span>
+            日期未知
+          `;
+        }
+
+        // 計算統計數據
+        let totalTesters = 0;
+        let totalLikes = 0;
+        apps.forEach(app => {
+          totalTesters += app.joinCount || 0;
+          totalLikes += app.likeCount || 0;
+        });
+
+        document.getElementById('dev-stat-apps').innerText = apps.length;
+        document.getElementById('dev-stat-testers').innerText = totalTesters;
+        document.getElementById('dev-stat-likes').innerText = totalLikes;
+        document.getElementById('dev-total-apps').innerText = apps.length;
+
+        // 渲染專案列表
+        const gridEl = document.getElementById('dev-apps-grid');
+        gridEl.innerHTML = '';
+
+        if (apps.length === 0) {
+          document.getElementById('dev-empty-state').style.display = 'block';
+          return;
+        }
+
+        // 按更新時間排序（最新在前）
+        apps.sort((a, b) => {
+          const timeA = (a.updatedAt || a.createdAt)?.toMillis?.() || 0;
+          const timeB = (b.updatedAt || b.createdAt)?.toMillis?.() || 0;
+          return timeB - timeA;
+        });
+
+        apps.forEach((appData) => {
+          const avgRating = appData.ratingCount ? (appData.ratingSum / appData.ratingCount).toFixed(1) : '尚無';
+          const joinCount = appData.joinCount || 0;
+          const progressPercent = Math.min(100, Math.round((joinCount / 20) * 100));
+          const isUrgent = joinCount < 20;
+          const platform = appData.platform || 'android';
+
+          const card = document.createElement('div');
+          card.className = 'app-card';
+          card.onclick = () => openAppDetail(appData.id);
+          card.innerHTML = `
+            ${isUrgent ? `<div class="urgent-tag"><span class="material-symbols-outlined" style="font-size:14px;">bolt</span> 急需測試</div>` : ''}
+
+            <div>
+              <div class="app-header">
+                <img class="app-icon" src="${escapeHTML(appData.iconUrl)}" onerror="this.onerror=null; this.src=window.DEFAULT_ICON;">
+                <div>
+                  <div style="display:flex; align-items:center; gap:6px;">
+                    <h3 class="app-title">${escapeHTML(appData.name)}</h3>
+                    <span class="platform-badge ${platform === 'android' ? 'platform-android' : 'platform-ios'}">
+                      <span class="material-symbols-outlined" style="font-size:12px;">${platform === 'android' ? 'android' : 'phone_iphone'}</span>
+                      ${platform === 'android' ? 'Android' : 'iOS'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="stats-row">
+                <span class="badge-pill badge-star"><span class="material-symbols-outlined" style="font-size:14px;">star</span> ${avgRating}</span>
+                <span class="badge-pill badge-like"><span class="material-symbols-outlined" style="font-size:14px;">favorite</span> ${appData.likeCount || 0}</span>
+              </div>
+
+              <div class="progress-section">
+                <div class="progress-text">
+                  <span>測試進度</span>
+                  <span>${joinCount} / 20 人 (${progressPercent}%)</span>
+                </div>
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill" style="width: ${progressPercent}%;"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--md-sys-color-outline-variant);">
+              <div class="app-meta-time" style="margin: 0;">
+                <span class="material-symbols-outlined" style="font-size:14px;">schedule</span>
+                更新於：${formatDate(appData.updatedAt || appData.createdAt)}
+              </div>
+              <button class="btn btn-primary" style="width: auto; min-width: 120px; flex-shrink: 0;">查看專案詳情</button>
+            </div>
+          `;
+          gridEl.appendChild(card);
+        });
+      } catch (err) { 
+        console.error(err);
+        document.getElementById('dev-profile-loading').style.display = 'none';
+        document.getElementById('dev-profile-main').style.display = 'block';
+        document.getElementById('dev-apps-grid').innerHTML = '<div style="color: var(--md-sys-color-error); text-align: center; padding: 40px;">載入失敗，請稍後再試</div>';
+      }
+    };
+
+    window.openAppDetail = async (appId) => {
+      switchTab('appDetail');
+      const detailContent = document.getElementById('detail-content');
+      detailContent.innerHTML = '<div style="text-align:center; padding:40px;">載入專案資訊中...</div>';
+
+      try {
+        const appSnap = await getDoc(doc(db, "apps", appId));
+        if (!appSnap.exists()) return detailContent.innerHTML = '找不到該專案。';
+
+        const appData = appSnap.data();
+        const screenshots = appData.screenshotUrls || [];
+        const avgRating = appData.ratingCount ? (appData.ratingSum / appData.ratingCount).toFixed(1) : '尚無';
+        const joinCount = appData.joinCount || 0;
+        const progressPercent = Math.min(100, Math.round((joinCount / 20) * 100));
+        const platform = appData.platform || 'android';
+        const isAppAuthor = currentUser && (currentUser.uid === appData.authorUid);
+
+        let isLiked = false;
+        let isJoined = false;
+
+        if (currentUser) {
+          const [likeSnap, testerSnap] = await Promise.all([
+            getDoc(doc(db, "apps", appId, "likes", currentUser.uid)),
+            getDoc(doc(db, "apps", appId, "testers", currentUser.uid))
+          ]);
+          isLiked = likeSnap.exists();
+          isJoined = testerSnap.exists();
+        }
+
+        const feedbackQ = query(collection(db, "apps", appId, "feedbacks"));
+        const feedbackSnap = await getDocs(feedbackQ);
+        let rawFeedbacks = [];
+
+        feedbackSnap.forEach(fSnap => {
+          rawFeedbacks.push({ id: fSnap.id, ...fSnap.data() });
+        });
+
+        rawFeedbacks.sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0));
+
+        const myExistingFeedback = currentUser ? rawFeedbacks.find(fb => fb.authorUid === currentUser.uid) : null;
+
+        let feedbackListHtml = '';
+        if (rawFeedbacks.length === 0) {
+          feedbackListHtml = '<div style="color: #888; text-align: center; padding: 20px 0;">目前尚無社群評論，成為第一個發表評論的人吧！</div>';
+        } else {
+          rawFeedbacks.forEach((fb) => {
+            const isPinned = fb.isPinned || false;
+
+            let typeBadge = '';
+            if (fb.type === 'review') {
+              const starsHtml = '★'.repeat(fb.rating || 5) + '☆'.repeat(5 - (fb.rating || 5));
+              typeBadge = `<span class="type-badge type-review"><span style="color:#f59e0b;">${starsHtml}</span> (${fb.rating} 星)</span>`;
+            } else if (fb.type === 'bug') {
+              typeBadge = `<span class="type-badge type-bug"><span class="material-symbols-outlined" style="font-size:12px;">bug_report</span> Bug 回報</span>`;
+            } else {
+              typeBadge = `<span class="type-badge type-suggestion"><span class="material-symbols-outlined" style="font-size:12px;">lightbulb</span> 功能建議</span>`;
+            }
+
+            feedbackListHtml += `
+              <div class="feedback-item ${isPinned ? 'pinned' : ''}">
+                ${isPinned ? `<div class="pinned-badge"><span class="material-symbols-outlined" style="font-size:14px;">push_pin</span> 開發者置頂留言</div>` : ''}
+                
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+                  <div>${typeBadge} <span style="font-size:0.8rem; color:#888; margin-left:8px;">來自：${escapeHTML(fb.authorName)}</span></div>
+                  
+                  <div style="display:flex; gap:8px;">
+                    ${isAppAuthor ? `
+                      <button onclick="togglePinFeedback('${appId}', '${fb.id}', ${isPinned})" class="btn btn-outline" style="padding:2px 8px; font-size:0.75rem;">
+                        <span class="material-symbols-outlined" style="font-size:14px;">push_pin</span> ${isPinned ? '取消置頂' : '置頂此留言'}
+                      </button>
+                    ` : ''}
+                  </div>
+                </div>
+
+                <div style="font-size:0.92rem; line-height:1.5; white-space:pre-line;">${escapeHTML(fb.content)}</div>
+              </div>
+            `;
+          });
+        }
+
+        const testingOptInUrl = `https://play.google.com/apps/testing/${escapeHTML(appData.packageName)}`;
+        const playStoreUrl = `https://play.google.com/store/apps/details?id=${escapeHTML(appData.packageName)}`;
+
+        detailContent.innerHTML = `
+          <div class="gp-layout">
+            
+            <div class="gp-main">
+              <div class="gp-header">
+                <img class="gp-icon" src="${escapeHTML(appData.iconUrl)}" onerror="this.onerror=null; this.src=window.DEFAULT_ICON;">
+                <div>
+                  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                    <h1 style="font-size: 1.6rem; font-weight: 800; margin: 0;">${escapeHTML(appData.name)}</h1>
+                    <span class="platform-badge ${platform === 'android' ? 'platform-android' : 'platform-ios'}">
+                      <span class="material-symbols-outlined" style="font-size:14px;">${platform === 'android' ? 'android' : 'phone_iphone'}</span>
+                      ${platform === 'android' ? 'Android' : 'iOS'}
+                    </span>
+                  </div>
+                  <div style="font-size: 0.9rem; color: #666;">
+                    包名：<code>${escapeHTML(appData.packageName) || '無'}</code> | 開發者：<a href="javascript:void(0)" onclick="openDevProfile('${appData.authorUid}', '${escapeHTML(appData.authorName)}')" class="author-link">${escapeHTML(appData.authorName) || '匿名'}</a>
+                    ${isAppAuthor ? `<button onclick="openEditAppModal('${appId}')" class="btn btn-tonal" style="padding:2px 10px; font-size:0.8rem; margin-left:8px;">✏️ 編輯專案</button>` : ''}
+                  </div>
+                </div>
+              </div>
+
+              ${screenshots.length > 0 ? `
+                <div class="gp-section">
+                  <h3 class="gp-section-title">
+                    <span class="material-symbols-outlined">smartphone</span> 畫面截圖
+                  </h3>
+                  <div class="detail-screenshots">
+                    ${screenshots.map(url => `<img src="${escapeHTML(url)}" class="detail-screenshot-img" onclick="window.open('${escapeHTML(url)}', '_blank')">`).join('')}
+                  </div>
+                </div>
+              ` : ''}
+
+              <div class="gp-section">
+                <h3 class="gp-section-title">
+                  <span class="material-symbols-outlined">description</span> 簡介與測試需求
+                </h3>
+                <p class="gp-description">${escapeHTML(appData.description)}</p>
+              </div>
+
+              <div class="gp-section">
+                <h3 class="gp-section-title">
+                  <span class="material-symbols-outlined">link</span> 測試步驟連結
+                </h3>
+                <div class="gp-action-buttons">
+                  ${platform === 'android' ? `
+                    <a href="${escapeHTML(appData.groupUrl)}" target="_blank" class="btn btn-tonal gp-btn-link">1. 加入 Google 測試群組</a>
+                    <a href="${testingOptInUrl}" target="_blank" class="btn btn-tonal gp-btn-link">2. 成為測試人員 (Opt-in)</a>
+                    <a href="${playStoreUrl}" target="_blank" class="btn btn-primary gp-btn-link">3. 前往 Google Play 商店下載測試版 App</a>
+                  ` : `
+                    <a href="${escapeHTML(appData.storeUrl)}" target="_blank" class="btn btn-primary gp-btn-link">加入 TestFlight 測試</a>
+                  `}
+                </div>
+              </div>
+            </div>
+
+            <!-- 右側邊欄 -->
+            <div class="gp-sidebar">
+              <div class="gp-sidebar-card">
+                
+                <div class="timestamp-box">
+                  <div>📅 <strong>上架時間：</strong>${formatDate(appData.createdAt)}</div>
+                  <div>✏️ <strong>最後編輯：</strong>${formatDate(appData.updatedAt || appData.createdAt)}</div>
+                </div>
+
+                <div class="gp-sidebar-item">
+                  <div class="gp-sidebar-label">愛心收藏</div>
+                  <button onclick="handleToggleLikeDetail('${appId}')" class="btn ${isLiked ? 'btn-like-active' : 'btn-tonal'}" id="btn-detail-like-${appId}" style="width:100%; padding:10px;">
+                    <span class="material-symbols-outlined">favorite</span>
+                    <span id="detail-like-text">${isLiked ? '已按讚' : '點擊按讚'}</span> (<span id="detail-like-count">${appData.likeCount || 0}</span>)
+                  </button>
+                </div>
+
+                <hr class="gp-divider">
+
+                <div class="gp-sidebar-item">
+                  <div class="gp-sidebar-label">Google 封閉測試進度 (${joinCount} / 20 人)</div>
+                  <div class="progress-bar-bg" style="margin-bottom:12px;">
+                    <div class="progress-bar-fill" style="width: ${progressPercent}%;"></div>
+                  </div>
+                  <button onclick="toggleJoinTestDetail('${appId}', ${isJoined})" class="btn ${isJoined ? 'btn-error' : 'btn-primary'}" style="width:100%; padding:12px;">
+                    <span class="material-symbols-outlined">${isJoined ? 'cancel' : 'check_circle'}</span>
+                    ${isJoined ? '已加入測試 (點擊退出)' : '回報已加入測試'}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- 最下方獨立區塊：社群評價 -->
+          <div class="bottom-reviews-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap:wrap; gap:12px;">
+              <div>
+                <h3 style="font-size: 1.25rem; font-weight: 800; margin: 0; display:flex; align-items:center; gap:8px;">
+                  <span class="material-symbols-outlined" style="color:var(--md-sys-color-primary);">forum</span>
+                  社群評價與反饋 (平均 <span class="material-symbols-outlined" style="font-size:20px; color:#f59e0b;">star</span> ${avgRating})
+                </h3>
+                <p style="font-size: 0.85rem; color: #666; margin: 4px 0 0 0;">共有 ${appData.ratingCount || 0} 位測試人員評價</p>
+              </div>
+
+              ${isAppAuthor ? `
+                <button class="btn btn-tonal" disabled style="opacity:0.7;">開發者無法評分</button>
+              ` : `
+                <button onclick="openFeedbackModal('${appId}')" class="btn btn-primary">
+                  <span class="material-symbols-outlined">${myExistingFeedback ? 'edit_note' : 'rate_review'}</span> 
+                  ${myExistingFeedback ? '更新我的評論 / 反饋' : '發表評論 / 回報 Bug'}
+                </button>
+              `}
+            </div>
+
+            <div>${feedbackListHtml}</div>
+          </div>
+        `;
+      } catch (err) { console.error("載入詳情失敗:", err); }
+    };
+
+    window.toggleProfileDropdown = (e) => { e.stopPropagation(); document.getElementById('profile-dropdown').classList.toggle('active'); };
+    window.closeProfileDropdown = () => document.getElementById('profile-dropdown').classList.remove('active');
+    window.addEventListener('click', closeProfileDropdown);
+
+    document.getElementById('btn-login').onclick = () => signInWithPopup(auth, provider);
+    window.handleLogout = async () => { closeProfileDropdown(); if (confirm('確定登出？')) { await signOut(auth); switchTab('market'); } };
+
+    onAuthStateChanged(auth, async (user) => {
+      currentUser = user;
+      const btnLogin = document.getElementById('btn-login');
+      const headerAvatar = document.getElementById('header-avatar');
+      if (user) {
+        btnLogin.style.display = 'none';
+        headerAvatar.style.display = 'block';
+        headerAvatar.src = user.photoURL || DEFAULT_AVATAR;
+        document.getElementById('menu-user-photo').src = user.photoURL || DEFAULT_AVATAR;
+        document.getElementById('menu-user-name').innerText = user.displayName;
+        document.getElementById('menu-user-email').innerText = user.email;
+        document.getElementById('acc-user-photo').src = user.photoURL || DEFAULT_AVATAR;
+        document.getElementById('acc-user-name').innerText = user.displayName;
+        document.getElementById('acc-user-email').innerText = user.email;
+
+        // 同步用戶資料到 Firestore users 集合
+        try {
+          const userRef = doc(db, "users", user.uid);
+          const userSnap = await getDoc(userRef);
+          if (!userSnap.exists()) {
+            // 新用戶，創建文檔
+            await setDoc(userRef, {
+              displayName: user.displayName,
+              email: user.email,
+              photoURL: user.photoURL,
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp()
+            });
+          } else {
+            // 現有用戶，更新資料
+            await setDoc(userRef, {
+              displayName: user.displayName,
+              email: user.email,
+              photoURL: user.photoURL,
+              updatedAt: serverTimestamp()
+            }, { merge: true });
+          }
+        } catch (err) {
+          console.error("同步用戶資料失敗:", err);
+        }
+      } else {
+        btnLogin.style.display = 'inline-flex';
+        headerAvatar.style.display = 'none';
+        closeProfileDropdown();
+        switchTab('market');
+      }
+    });
+
+    async function fetchMarketApps(isInitial = false) {
+      const btnLoadMore = document.getElementById('btn-load-more');
+      const noMoreMsg = document.getElementById('no-more-msg');
+
+      if (isInitial) {
+        loadedMarketApps = [];
+        lastVisibleDoc = null;
+        btnLoadMore.style.display = 'inline-flex';
+        noMoreMsg.style.display = 'none';
+      }
+
+      btnLoadMore.disabled = true;
+
+      try {
+        let q = lastVisibleDoc 
+          ? query(collection(db, "apps"), orderBy("createdAt", "desc"), startAfter(lastVisibleDoc), limit(PAGE_SIZE))
+          : query(collection(db, "apps"), orderBy("createdAt", "desc"), limit(PAGE_SIZE));
+
+        const snapshot = await getDocs(q);
+
+        if (snapshot.empty) {
+          btnLoadMore.style.display = 'none';
+          noMoreMsg.style.display = 'block';
+          return;
+        }
+
+        lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1];
+        snapshot.forEach((docSnap) => loadedMarketApps.push({ id: docSnap.id, ...docSnap.data() }));
+        renderMarketApps(loadedMarketApps);
+
+        if (snapshot.docs.length < PAGE_SIZE) {
+          btnLoadMore.style.display = 'none';
+          noMoreMsg.style.display = 'block';
+        } else {
+          btnLoadMore.style.display = 'inline-flex';
+          noMoreMsg.style.display = 'none';
+        }
+      } catch (err) { console.error(err); }
+      finally { btnLoadMore.disabled = false; }
+    }
+
+    document.getElementById('btn-load-more').onclick = () => fetchMarketApps(false);
+
+    function renderMarketApps(appsList) {
+      const marketList = document.getElementById('market-app-list');
+      marketList.innerHTML = '';
+
+      if (appsList.length === 0) {
+        marketList.innerHTML = '<div style="color: #888; grid-column: 1/-1; text-align: center; padding: 40px 0;">沒有找到相關的專案。</div>';
+        return;
+      }
+
+      appsList.forEach((appData) => {
+        const avgRating = appData.ratingCount ? (appData.ratingSum / appData.ratingCount).toFixed(1) : '尚無';
+        const joinCount = appData.joinCount || 0;
+        const progressPercent = Math.min(100, Math.round((joinCount / 20) * 100));
+        const isUrgent = joinCount < 20;
+        const platform = appData.platform || 'android';
+
+        const card = document.createElement('div');
+        card.className = 'app-card';
+        card.onclick = () => openAppDetail(appData.id);
+
+        card.innerHTML = `
+          ${isUrgent ? `<div class="urgent-tag"><span class="material-symbols-outlined" style="font-size:14px;">bolt</span> 急需測試</div>` : ''}
+
+          <div>
+            <div class="app-header">
+              <img class="app-icon" src="${escapeHTML(appData.iconUrl)}" onerror="this.onerror=null; this.src=window.DEFAULT_ICON;">
+              <div>
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <h3 class="app-title">${escapeHTML(appData.name)}</h3>
+                  <span class="platform-badge ${platform === 'android' ? 'platform-android' : 'platform-ios'}">
+                    <span class="material-symbols-outlined" style="font-size:12px;">${platform === 'android' ? 'android' : 'phone_iphone'}</span>
+                    ${platform === 'android' ? 'Android' : 'iOS'}
+                  </span>
+                </div>
+                <div style="font-size: 0.8rem; color:#666; margin-top: 2px;">
+                  開發者：<a href="javascript:void(0)" onclick="event.stopPropagation(); openDevProfile('${appData.authorUid}', '${escapeHTML(appData.authorName)}')" class="author-link">${escapeHTML(appData.authorName) || '匿名'}</a>
+                </div>
+              </div>
+            </div>
+
+            <div class="stats-row">
+              <span class="badge-pill badge-star"><span class="material-symbols-outlined" style="font-size:14px;">star</span> ${avgRating}</span>
+              <span class="badge-pill badge-like"><span class="material-symbols-outlined" style="font-size:14px;">favorite</span> ${appData.likeCount || 0}</span>
+            </div>
+
+            <div class="progress-section">
+              <div class="progress-text">
+                <span>測試進度</span>
+                <span>${joinCount} / 20 人 (${progressPercent}%)</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill" style="width: ${progressPercent}%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--md-sys-color-outline-variant);">
+            <div class="app-meta-time" style="margin: 0;">
+              <span class="material-symbols-outlined" style="font-size:14px;">schedule</span>
+              更新於：${formatDate(appData.updatedAt || appData.createdAt)}
+            </div>
+            <button class="btn btn-primary" style="width: auto; min-width: 120px; flex-shrink: 0;">查看專案詳情</button>
+          </div>
+        `;
+        marketList.appendChild(card);
+      });
+    }
+
+    async function loadMyApps() {
+      if (!currentUser) return;
+      const myList = document.getElementById('my-app-list');
+      myList.innerHTML = '載入中...';
+
+      const q = query(collection(db, "apps"), where("authorUid", "==", currentUser.uid));
+      const snapshot = await getDocs(q);
+      
+      myList.innerHTML = '';
+      if (snapshot.empty) return myList.innerHTML = '<div style="color: #888;">你尚未刊登任何 App 專案。</div>';
+
+      snapshot.forEach((docSnap) => {
+        const appData = docSnap.data();
+        const card = document.createElement('div');
+        card.className = 'app-card';
+        card.innerHTML = `
+          <div>
+            <div style="display: flex; justify-content: space-between;">
+              <div class="app-header">
+                <img class="app-icon" src="${escapeHTML(appData.iconUrl)}" onerror="this.onerror=null; this.src=window.DEFAULT_ICON;">
+                <div>
+                  <h3 class="app-title">${escapeHTML(appData.name)}</h3>
+                  <div style="font-size: 0.8rem; color:#666;">刊登中 (${appData.platform === 'android' ? 'Android' : 'iOS'})</div>
+                </div>
+              </div>
+              <button onclick="event.stopPropagation(); deleteApp('${docSnap.id}')" class="btn btn-error" style="padding: 6px 12px; font-size: 0.8rem;">下架刪除</button>
+            </div>
+          </div>
+          <div class="card-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--md-sys-color-outline-variant);">
+            <div class="app-meta-time" style="margin: 0;">
+              <span class="material-symbols-outlined" style="font-size:14px;">schedule</span>
+              更新於：${formatDate(appData.updatedAt || appData.createdAt)}
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button onclick="openEditAppModal('${docSnap.id}')" class="btn btn-tonal" style="flex:1;">✏️ 編輯專案</button>
+              <button onclick="openAppDetail('${docSnap.id}')" class="btn btn-primary" style="flex:1;">詳情頁</button>
+            </div>
+          </div>
+        `;
+        myList.appendChild(card);
+      });
+    }
+
+    const appForm = document.getElementById('app-form');
+    appForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!currentUser) return alert('請先登入！');
+
+      const platform = document.getElementById('app-platform').value;
+      const packageName = document.getElementById('app-package-name').value.trim();
+      const iconFile = document.getElementById('app-icon-file').files[0];
+      const screenshotFiles = document.getElementById('app-screenshots-files').files;
+
+      if (!iconFile) return alert('請選擇 App 圖示！');
+
+      let groupUrl = '';
+      let storeUrl = '';
+
+      if (platform === 'android') {
+        groupUrl = document.getElementById('group-url').value.trim();
+        storeUrl = `https://play.google.com/apps/testing/${packageName}`;
+      } else {
+        storeUrl = document.getElementById('testflight-url').value.trim();
+      }
+
+      const submitBtn = document.getElementById('btn-submit');
+      submitBtn.disabled = true;
+      submitBtn.innerText = '圖片上傳中...';
+
+      try {
+        const { iconUrl, screenshotUrls } = await uploadImagesToImgBB(iconFile, screenshotFiles);
+
+        await addDoc(collection(db, "apps"), {
+          name: document.getElementById('app-name').value,
+          platform: platform,
+          packageName: packageName,
+          iconUrl: iconUrl,
+          screenshotUrls: screenshotUrls,
+          description: document.getElementById('app-desc').value,
+          groupUrl: groupUrl,
+          storeUrl: storeUrl,
+          authorName: currentUser.displayName,
+          authorUid: currentUser.uid,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+          likeCount: 0,
+          joinCount: 0,
+          ratingSum: 0,
+          ratingCount: 0
+        });
+
+        alert('App 專案刊登成功！');
+        appForm.reset();
+        fetchMarketApps(true);
+        switchTab('market');
+      } catch (err) { alert("發布失敗：" + err.message); }
+      finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = '發布 App 至市集';
+      }
+    });
+
+    window.deleteApp = async (docId) => {
+      if (confirm('確定要下架刪除這個 App 嗎？')) {
+        await deleteDoc(doc(db, "apps", docId));
+        alert('刪除成功！');
+        loadMyApps();
+        fetchMarketApps(true);
+      }
+    };
+
+    document.getElementById('search-input').addEventListener('input', (e) => {
+      const keyword = e.target.value.toLowerCase().trim();
+      if (!keyword) return renderMarketApps(loadedMarketApps);
+      renderMarketApps(loadedMarketApps.filter(app => 
+        app.name.toLowerCase().includes(keyword) || 
+        app.description.toLowerCase().includes(keyword) ||
+        (app.packageName && app.packageName.toLowerCase().includes(keyword))
+      ));
+    });
+
+    fetchMarketApps(true);
+  </script>
+</body>
+</html>
