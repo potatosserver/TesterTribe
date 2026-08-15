@@ -1,8 +1,9 @@
 // Authentication module
-import { signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
+import { doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { auth, db, provider } from './firebase-config.js';
 import { DEFAULT_AVATAR } from './constants.js';
+import { navigate, getStoreFromUrl } from './router.js';
 
 export function setupAuth() {
   // Login button
@@ -28,7 +29,8 @@ export function setupAuth() {
   // Open my own dev profile
   window.openMyProfile = () => {
     if (window.currentUser) {
-      window.switchTab('devProfile', { authorUid: window.currentUser.uid });
+      const store = getStoreFromUrl(); // Get current store from URL
+      window.navigate('dev-profile', { store, authorIdentifier: window.currentUser.uid });
     }
   };
 
@@ -37,29 +39,29 @@ export function setupAuth() {
     window.currentUser = user;
     const btnLogin = document.getElementById('btn-login');
     const headerAvatar = document.getElementById('header-avatar');
-    
+
     if (user) {
       if (btnLogin) btnLogin.style.display = 'none';
       if (headerAvatar) {
         headerAvatar.style.display = 'block';
         headerAvatar.src = user.photoURL || DEFAULT_AVATAR;
       }
-      
+
       const menuPhoto = document.getElementById('menu-user-photo');
       if (menuPhoto) menuPhoto.src = user.photoURL || DEFAULT_AVATAR;
-      
+
       const menuName = document.getElementById('menu-user-name');
       if (menuName) menuName.innerText = user.displayName;
-      
+
       const menuEmail = document.getElementById('menu-user-email');
       if (menuEmail) menuEmail.innerText = user.email;
-      
+
       const accPhoto = document.getElementById('acc-user-photo');
       if (accPhoto) accPhoto.src = user.photoURL || DEFAULT_AVATAR;
-      
+
       const accName = document.getElementById('acc-user-name');
       if (accName) accName.innerText = user.displayName;
-      
+
       const accEmail = document.getElementById('acc-user-email');
       if (accEmail) accEmail.innerText = user.email;
 
@@ -87,7 +89,7 @@ export function setupAuth() {
         console.error('同步用戶資料失敗:', err);
       }
 
-      // Show "我的開發者頁面" menu item
+      // Show \"我的開發者頁面\" menu item
       const menuMyProfile = document.getElementById('menu-my-profile');
       if (menuMyProfile) menuMyProfile.style.display = 'flex';
     } else {

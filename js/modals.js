@@ -1,5 +1,5 @@
 // Modals module - feedback modal and edit app modal
-import { addDoc, updateDoc, doc, getDoc, collection, serverTimestamp, deleteDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { addDoc, updateDoc, doc, getDoc, collection, serverTimestamp, deleteDoc, setDoc } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { db } from './firebase-config.js';
 import { uploadImagesToImgBB } from './utils.js';
 

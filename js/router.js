@@ -22,6 +22,11 @@ let routeParams = {};
 
 export function initRouter() {
   window.navigate = navigate; // Mount to window for global access
+  window.getStoreFromUrl = getStoreFromUrl;
+  window.getPlatformFromUrl = getPlatformFromUrl;
+  window.getPackageNameFromUrl = getPackageNameFromUrl;
+  window.getAppIdFromUrl = getAppIdFromUrl;
+  window.getAuthorIdentifierFromUrl = getAuthorIdentifierFromUrl;
   window.addEventListener('hashchange', handleHashChange);
   handleHashChange(); // Handle initial load
 }
@@ -70,6 +75,13 @@ function handleHashChange() {
   routeParams = newParams;
   currentRoute = routeName;
   switchTab(routeName, newParams);
+  
+  // Load data for detail and dev-profile tabs when navigating via URL
+  if (routeName === 'app-detail') {
+    window.openAppDetail();
+  } else if (routeName === 'dev-profile') {
+    window.openDevProfile();
+  }
 }
 
 export function navigate(routeName, params = {}) {
@@ -134,3 +146,10 @@ export function platformToStore(platform) {
 export function storeToPlatform(store) {
   return STORE_MAPPING[store] || 'android';
 }
+
+// Attach to window for global use in inline event handlers
+window.getStoreFromUrl = getStoreFromUrl;
+window.getPlatformFromUrl = getPlatformFromUrl;
+window.getPackageNameFromUrl = getPackageNameFromUrl;
+window.getAppIdFromUrl = getAppIdFromUrl;
+window.getAuthorIdentifierFromUrl = getAuthorIdentifierFromUrl;

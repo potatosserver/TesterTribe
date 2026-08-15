@@ -11,7 +11,7 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    function getApp(appId) {
+    function getAppData(appId) {
       return get(/databases/$(database)/documents/apps/$(appId)).data;
     }
 
@@ -51,7 +51,7 @@ service cloud.firestore {
       match /likes/{userId} {
         allow read: if true;
         allow write: if isOwner(userId)
-          && getApp(appId).authorUid != request.auth.uid;
+          && getAppData(appId).authorUid != request.auth.uid;
       }
 
       match /testers/{userId} {
@@ -62,7 +62,7 @@ service cloud.firestore {
       match /ratings/{userId} {
         allow read: if true;
         allow write: if isOwner(userId)
-          && getApp(appId).authorUid != request.auth.uid
+          && getAppData(appId).authorUid != request.auth.uid
           && request.resource.data.score >= 1
           && request.resource.data.score <= 5;
       }
@@ -71,15 +71,15 @@ service cloud.firestore {
         allow read: if true;
 
         allow create: if isOwner(userId)
-          && (request.resource.data.type != 'review' || getApp(appId).authorUid != request.auth.uid);
+          && (request.resource.data.type != 'review' || getAppData(appId).authorUid != request.auth.uid);
 
         allow update: if isSignedIn() && (
-          (isOwner(userId) && (request.resource.data.type != 'review' || getApp(appId).authorUid != request.auth.uid))
-          || isOwner(getApp(appId).authorUid)
+          (isOwner(userId) && (request.resource.data.type != 'review' || getAppData(appId).authorUid != request.auth.uid))
+          || isOwner(getAppData(appId).authorUid)
         );
 
         allow delete: if isSignedIn()
-          && (isOwner(userId) || isOwner(getApp(appId).authorUid));
+          && (isOwner(userId) || isOwner(getAppData(appId).authorUid));
       }
     }
 

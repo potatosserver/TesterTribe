@@ -1,5 +1,5 @@
 // Detail module - app detail view with Google Play style layout
-import { doc, getDoc, collection, query, getDocs, updateDoc, deleteDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { doc, getDoc, collection, query, getDocs, updateDoc, deleteDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { db } from './firebase-config.js';
 import { escapeHTML, formatDate } from './utils.js';
 import { getAppIdFromUrl, getStoreFromUrl, platformToStore } from './router.js';
@@ -90,7 +90,7 @@ async function openAppDetail(appId) {
               
               <div style="display:flex; gap:8px;">
                 ${isAppAuthor ? `
-                  <button onclick="window.togglePinFeedback('${appId}', '${fb.id}', ${isPinned})" class="btn btn-outline" style="padding:2px 8px; font-size:0.75rem;">
+                  <button onclick="window.togglePinFeedback('${id}', '${fb.id}', ${isPinned})" class="btn btn-outline" style="padding:2px 8px; font-size:0.75rem;">
                     <span class="material-symbols-outlined" style="font-size:14px;">push_pin</span> ${isPinned ? '取消置頂' : '置頂此留言'}
                   </button>
                 ` : ''}
@@ -172,7 +172,7 @@ async function openAppDetail(appId) {
 
             <div class="gp-sidebar-item">
               <div class="gp-sidebar-label">愛心收藏</div>
-              <button onclick="window.handleToggleLikeDetail('${appId}')" class="btn ${isLiked ? 'btn-like-active' : 'btn-tonal'}" id="btn-detail-like-${appId}" style="width:100%; padding:10px;">
+              <button onclick="window.handleToggleLikeDetail('${id}')" class="btn ${isLiked ? 'btn-like-active' : 'btn-tonal'}" id="btn-detail-like-${id}" style="width:100%; padding:10px;">
                 <span class="material-symbols-outlined">favorite</span>
                 <span id="detail-like-text">${isLiked ? '已按讚' : '點擊按讚'}</span> (<span id="detail-like-count">${appData.likeCount || 0}</span>)
               </button>
@@ -185,7 +185,7 @@ async function openAppDetail(appId) {
               <div class="progress-bar-bg" style="margin-bottom:12px;">
                 <div class="progress-bar-fill" style="width: ${progressPercent}%;"></div>
               </div>
-              <button onclick="window.toggleJoinTestDetail('${appId}', ${isJoined})" class="btn ${isJoined ? 'btn-error' : 'btn-primary'}" style="width:100%; padding:12px;">
+              <button onclick="window.toggleJoinTestDetail('${id}', ${isJoined})" class="btn ${isJoined ? 'btn-error' : 'btn-primary'}" style="width:100%; padding:12px;">
                 <span class="material-symbols-outlined">${isJoined ? 'cancel' : 'check_circle'}</span>
                 ${isJoined ? '已加入測試 (點擊退出)' : '回報已加入測試'}
               </button>
@@ -209,7 +209,7 @@ async function openAppDetail(appId) {
           ${isAppAuthor ? `
             <button class="btn btn-tonal" disabled style="opacity:0.7;">開發者無法評分</button>
           ` : `
-            <button onclick="window.openFeedbackModal('${appId}')" class="btn btn-primary">
+            <button onclick="window.openFeedbackModal('${id}')" class="btn btn-primary">
               <span class="material-symbols-outlined">${myExistingFeedback ? 'edit_note' : 'rate_review'}</span> 
               ${myExistingFeedback ? '更新我的評論 / 反饋' : '發表評論 / 回報 Bug'}
             </button>
@@ -226,10 +226,19 @@ async function openAppDetail(appId) {
 
 async function handleToggleLikeDetail(appId) {
   if (!window.currentUser) return alert('請先登入！');
-  
+
+  // Check if current user is the app author
+  const appRef = doc(db, 'apps', appId);
+  const appSnap = await getDoc(appRef);
+  const appData = appSnap.data();
+  console.log('Author check:', { appId, exists: appSnap.exists(), appData, authorUid: appData?.authorUid, currentUid: window.currentUser?.uid });
+  if (appSnap.exists() && appData && appData.authorUid === window.currentUser.uid) {
+    alert('開發者無法為自己的專案按讚！');
+    return;
+  }
+
   const likeRef = doc(db, 'apps', appId, 'likes', window.currentUser.uid);
   const likeSnap = await getDoc(likeRef);
-  const appRef = doc(db, 'apps', appId);
 
   if (likeSnap.exists()) {
     // Unlike

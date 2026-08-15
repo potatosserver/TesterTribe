@@ -1,5 +1,5 @@
 // Publish module - handle new app submission
-import { addDoc, collection, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { addDoc, collection, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { db } from './firebase-config.js';
 import { IMGBB_API_KEY } from './constants.js';
 import { uploadImagesToImgBB } from './utils.js';

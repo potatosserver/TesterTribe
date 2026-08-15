@@ -1,10 +1,10 @@
 // Firebase configuration and initialization
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getAuth } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js';
+import { getAuth } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
+import { getFirestore } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyDqbzXsf5zMTnddV4DNyws3fuOOA6QacaQ',
+  apiKey: "AIzaSyDqbzXsf5zMTnddV4DNyws3fuOOA6QacaQ",
   authDomain: 'testertribe-eb02a.firebaseapp.com',
   projectId: 'testertribe-eb02a',
   storageBucket: 'testertribe-eb02a.firebasestorage.app',
@@ -17,5 +17,5 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-import { GoogleAuthProvider } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { GoogleAuthProvider } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
 export const provider = new GoogleAuthProvider();

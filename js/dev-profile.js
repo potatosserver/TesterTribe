@@ -1,11 +1,28 @@
 // Developer profile module
-import { collection, query, where, getDocs, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { collection, query, where, getDocs, doc, getDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { db } from './firebase-config.js';
 import { escapeHTML, formatDate } from './utils.js';
 import { getStoreFromUrl, getPlatformFromUrl, getAuthorIdentifierFromUrl } from './router.js';
 
 export function setupDevProfile() {
   window.openDevProfile = openDevProfile;
+  window.deleteApp = deleteApp;
+}
+
+async function deleteApp(appId) {
+  if (!window.currentUser) return alert('請先登入！');
+  if (!confirm('確定要下架並刪除此專案嗎？此操作無法復原。')) return;
+
+  try {
+    await deleteDoc(doc(db, 'apps', appId));
+    alert('專案已刪除');
+    // Refresh the dev profile
+    window.openDevProfile(window.currentUser.uid);
+    window.fetchMarketApps?.(true);
+  } catch (err) {
+    console.error('刪除失敗:', err);
+    alert('刪除失敗：' + err.message);
+  }
 }
 
 async function openDevProfile(authorUid, authorName) {
@@ -134,7 +151,6 @@ async function openDevProfile(authorUid, authorName) {
             <span class="material-symbols-outlined" style="font-size:14px;">schedule</span>
             更新於：${formatDate(appData.updatedAt || appData.createdAt)}
           </div>
-          <button class="btn btn-primary" style="width: auto; min-width: 120px; flex-shrink: 0;">查看專案詳情</button>
         </div>
       `;
 
