@@ -122,6 +122,49 @@ header { background: rgba(247, 249, 255, 0.92); position: sticky; top: 0; z-inde
 .gp-action-buttons { display: flex; flex-direction: column; gap: 10px; }
 .gp-btn-link { padding: 14px; font-size: 0.95rem; text-align: center; width: 100%; }
 
+/* Step buttons with checkboxes */
+.gp-step-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: #ffffff;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-shape-corner-medium);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+.gp-step-btn:hover {
+  border-color: var(--md-sys-color-primary);
+  background: var(--md-sys-color-primary-container);
+}
+.gp-step-btn:has(.gp-step-check:checked) {
+  border-color: var(--md-sys-color-primary);
+  background: var(--md-sys-color-primary-container);
+}
+.gp-step-check {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--md-sys-color-primary);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.gp-step-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+}
+.gp-step-link-icon {
+  font-size: 18px;
+  color: var(--md-sys-color-secondary);
+  margin-left: auto;
+}
+
 .gp-sidebar-item { margin-bottom: 16px; }
 .gp-sidebar-label { font-size: 0.85rem; font-weight: 800; color: var(--md-sys-color-secondary); margin-bottom: 8px; }
 .gp-divider { border: none; border-top: 1px solid var(--md-sys-color-outline-variant); margin: 16px 0; }

@@ -13,6 +13,28 @@ export function setupDetail() {
   window.openFeedbackModal = openFeedbackModal;
 }
 
+function getStepChecks(appId) {
+  if (!window.currentUser) return {};
+  try {
+    const key = `stepChecks_${appId}_${window.currentUser.uid}`;
+    return JSON.parse(localStorage.getItem(key) || '{}');
+  } catch { return {}; }
+}
+
+function setStepCheck(appId, stepNum, checked) {
+  if (!window.currentUser) return;
+  const key = `stepChecks_${appId}_${window.currentUser.uid}`;
+  const checks = getStepChecks(appId);
+  checks[stepNum] = checked;
+  localStorage.setItem(key, JSON.stringify(checks));
+}
+
+function clearStepChecks(appId) {
+  if (!window.currentUser) return;
+  const key = `stepChecks_${appId}_${window.currentUser.uid}`;
+  localStorage.removeItem(key);
+}
+
 async function openAppDetail(appId) {
   const store = getStoreFromUrl();
   const id = appId || getAppIdFromUrl();
@@ -21,18 +43,18 @@ async function openAppDetail(appId) {
     window.switchTab('market');
     return;
   }
-
+  
   window.navigate('app-detail', { store, appId: id });
   
   window.currentDetailAppId = id;
   
   const detailContent = document.getElementById('detail-content');
   detailContent.innerHTML = '<div style="text-align:center; padding:40px;">載入專案資訊中...</div>';
-
+  
   try {
     const appSnap = await getDoc(doc(db, 'apps', id));
     if (!appSnap.exists()) return detailContent.innerHTML = '找不到該專案。';
-
+    
     const appData = appSnap.data();
     const screenshots = appData.screenshotUrls || [];
     const avgRating = appData.ratingCount ? (appData.ratingSum / appData.ratingCount).toFixed(1) : '尚無';
@@ -40,10 +62,10 @@ async function openAppDetail(appId) {
     const progressPercent = Math.min(100, Math.round((joinCount / 20) * 100));
     const platform = appData.platform || 'android';
     const isAppAuthor = window.currentUser && (window.currentUser.uid === appData.authorUid);
-
+    
     let isLiked = false;
     let isJoined = false;
-
+    
     if (window.currentUser) {
       const [likeSnap, testerSnap] = await Promise.all([
         getDoc(doc(db, 'apps', id, 'likes', window.currentUser.uid)),
@@ -52,7 +74,14 @@ async function openAppDetail(appId) {
       isLiked = likeSnap.exists();
       isJoined = testerSnap.exists();
     }
-
+    
+    // Get step checks from localStorage
+    const stepChecks = getStepChecks(id);
+    
+    function getStepChecked(stepNum, appId) {
+      return stepChecks[stepNum] || false;
+    }
+    
     const feedbackQ = query(collection(db, 'apps', id, 'feedbacks'));
     const feedbackSnap = await getDocs(feedbackQ);
     let rawFeedbacks = [];
@@ -152,11 +181,39 @@ async function openAppDetail(appId) {
             </h3>
             <div class="gp-action-buttons">
               ${platform === 'android' ? `
-                <a href="${escapeHTML(appData.groupUrl)}" target="_blank" class="btn btn-tonal gp-btn-link">1. 加入 Google 測試群組</a>
-                <a href="${testingOptInUrl}" target="_blank" class="btn btn-tonal gp-btn-link">2. 成為測試人員 (Opt-in)</a>
-                <a href="${playStoreUrl}" target="_blank" class="btn btn-primary gp-btn-link">3. 前往 Google Play 商店下載測試版 App</a>
+                <label class="gp-step-btn" data-step="1" data-url="${escapeHTML(appData.groupUrl)}">
+                  <input type="checkbox" class="gp-step-check" data-step="1" ${getStepChecked(1, id) ? 'checked' : ''}>
+                  <span class="gp-step-content">
+                    <span class="material-symbols-outlined">group_add</span>
+                    <span>加入 Google 測試群組</span>
+                    <span class="material-symbols-outlined gp-step-link-icon">open_in_new</span>
+                  </span>
+                </label>
+                <label class="gp-step-btn" data-step="2" data-url="${escapeHTML(testingOptInUrl)}">
+                  <input type="checkbox" class="gp-step-check" data-step="2" ${getStepChecked(2, id) ? 'checked' : ''}>
+                  <span class="gp-step-content">
+                    <span class="material-symbols-outlined">person_add</span>
+                    <span>成為測試人員 (Opt-in)</span>
+                    <span class="material-symbols-outlined gp-step-link-icon">open_in_new</span>
+                  </span>
+                </label>
+                <label class="gp-step-btn" data-step="3" data-url="${escapeHTML(playStoreUrl)}">
+                  <input type="checkbox" class="gp-step-check" data-step="3" ${getStepChecked(3, id) ? 'checked' : ''}>
+                  <span class="gp-step-content">
+                    <span class="material-symbols-outlined">download</span>
+                    <span>前往 Google Play 商店下載測試版 App</span>
+                    <span class="material-symbols-outlined gp-step-link-icon">open_in_new</span>
+                  </span>
+                </label>
               ` : `
-                <a href="${escapeHTML(appData.storeUrl)}" target="_blank" class="btn btn-primary gp-btn-link">加入 TestFlight 測試</a>
+                <label class="gp-step-btn" data-step="1" data-url="${escapeHTML(appData.storeUrl)}">
+                  <input type="checkbox" class="gp-step-check" data-step="1" ${getStepChecked(1, id) ? 'checked' : ''}>
+                  <span class="gp-step-content">
+                    <span class="material-symbols-outlined">flight_takeoff</span>
+                    <span>加入 TestFlight 測試</span>
+                    <span class="material-symbols-outlined gp-step-link-icon">open_in_new</span>
+                  </span>
+                </label>
               `}
             </div>
           </div>
@@ -220,6 +277,70 @@ async function openAppDetail(appId) {
         <div>${feedbackListHtml}</div>
       </div>
     `;
+
+    // Attach click handlers for step buttons
+    setTimeout(() => {
+      document.querySelectorAll('.gp-step-btn').forEach(btn => {
+        const step = btn.dataset.step;
+        const url = btn.dataset.url;
+        const checkbox = btn.querySelector('.gp-step-check');
+        const stepNum = parseInt(step);
+        
+        // Check if step is already completed
+        const isCompleted = () => {
+          const stepChecks = getStepChecks(id);
+          return stepChecks[stepNum] === true;
+        };
+        
+        // Check if previous step is completed
+        const isPrevCompleted = () => {
+          if (stepNum <= 1) return true;
+          const stepChecks = getStepChecks(id);
+          return stepChecks[stepNum - 1] === true;
+        };
+        
+        // Click on label (not checkbox) - opens link if order allows
+        btn.addEventListener('click', (e) => {
+          if (e.target === checkbox) return; // Let checkbox handle its own click
+          
+          // Already completed - just open link
+          if (isCompleted()) {
+            if (url) window.open(url, '_blank');
+            return;
+          }
+          
+          // Not completed - check sequential order before opening link
+          if (!isPrevCompleted()) {
+            m3Alert(`請先完成步驟 ${stepNum - 1} 再開啟此步驟連結。`, '順序錯誤');
+            return;
+          }
+          
+          if (url) window.open(url, '_blank');
+        });
+        
+        // Checkbox change - enforce sequential order
+        checkbox.addEventListener('change', (e) => {
+          // Prevent unchecking - once checked, cannot be unchecked
+          // Only exception: leaving test (handled in toggleJoinTestDetail)
+          if (!checkbox.checked) {
+            // Re-check the box and prevent the change
+            checkbox.checked = true;
+            e.preventDefault();
+            return;
+          }
+          
+          // If checking - check order
+          if (!isPrevCompleted()) {
+            m3Alert(`請先完成步驟 ${stepNum - 1} 再勾選此步驟。`, '順序錯誤');
+            checkbox.checked = false;
+            e.preventDefault();
+            return;
+          }
+          
+          setStepCheck(id, stepNum, true);
+        });
+      });
+    }, 0);
   } catch (err) { 
     console.error('載入詳情失敗:', err); 
   }
@@ -255,6 +376,34 @@ async function handleToggleLikeDetail(appId) {
 
 async function toggleJoinTestDetail(appId, isJoined) {
   if (!window.currentUser) return m3Alert('請先登入！');
+  
+  if (!isJoined) {
+    // Check if all 3 steps are completed in order
+    const stepChecks = getStepChecks(appId);
+    const allStepsCompleted = stepChecks[1] === true && stepChecks[2] === true && stepChecks[3] === true;
+    
+    if (!allStepsCompleted) {
+      // Find the first incomplete step
+      let nextStep = 1;
+      if (stepChecks[1] === true) nextStep = 2;
+      if (stepChecks[1] === true && stepChecks[2] === true) nextStep = 3;
+      
+      m3Alert(`請先按順序完成所有測試步驟（步驟 ${nextStep} 尚未完成），再回報已加入測試。`, '步驟未完成');
+      return;
+    }
+    
+    // Confirm download completion
+    const confirmed = await m3Confirm('確定已完成所有步驟並下載測試版 App？', '確認加入測試', {
+      confirmText: '已下載完成',
+      cancelText: '取消',
+      destructive: false
+    });
+    
+    if (!confirmed) return;
+  } else {
+    // Leaving test - clear step checks
+    clearStepChecks(appId);
+  }
   
   const testerRef = doc(db, 'apps', appId, 'testers', window.currentUser.uid);
   
