@@ -1,7 +1,6 @@
 // Modals module - feedback modal and edit app modal
-import { addDoc, updateDoc, doc, getDoc, collection, serverTimestamp, deleteDoc, setDoc } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
+import { addDoc, updateDoc, doc, getDoc, collection, serverTimestamp, deleteDoc, setDoc, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { db } from './firebase-config.js';
-import { uploadImagesToImgBB } from './utils.js';
 import { m3Alert, m3Error, m3Success } from './m3-dialog.js';
 
 export function setupModals() {
@@ -124,7 +123,12 @@ async function loadAppDataForEdit(docId) {
     document.getElementById('edit-app-name').value = appData.name || '';
     document.getElementById('edit-app-package-name').value = appData.packageName || '';
     document.getElementById('edit-group-url').value = appData.groupUrl || '';
-    document.getElementById('edit-testflight-url').value = appData.storeUrl || '';
+    document.getElementById('edit-testflight-url').value = appData.testFlightUrl || appData.storeUrl || '';
+    document.getElementById('edit-app-icon-url').value = appData.iconUrl || '';
+    const screenshots = appData.screenshotUrls || [];
+    document.getElementById('edit-app-screenshot-url-1').value = screenshots[0] || '';
+    document.getElementById('edit-app-screenshot-url-2').value = screenshots[1] || '';
+    document.getElementById('edit-app-screenshot-url-3').value = screenshots[2] || '';
     document.getElementById('edit-app-desc').value = appData.description || '';
 
     togglePlatformFields('edit');
@@ -157,17 +161,31 @@ async function handleEditAppSubmit(e) {
   const appId = window.currentEditingAppId;
   const platform = document.getElementById('edit-app-platform').value;
   const packageName = document.getElementById('edit-app-package-name').value.trim();
-  const iconFile = document.getElementById('edit-app-icon-file').files[0];
-  const screenshotFiles = document.getElementById('edit-app-screenshots-files').files;
+  const iconUrl = document.getElementById('edit-app-icon-url').value.trim();
+  const screenshotUrl1 = document.getElementById('edit-app-screenshot-url-1').value.trim();
+  const screenshotUrl2 = document.getElementById('edit-app-screenshot-url-2').value.trim();
+  const screenshotUrl3 = document.getElementById('edit-app-screenshot-url-3').value.trim();
+
+  // Check for duplicate packageName (excluding current app)
+  const appsRef = collection(db, 'apps');
+  const dupQuery = query(appsRef, where('packageName', '==', packageName), where('platform', '==', platform));
+  const dupSnap = await getDocs(dupQuery);
+  const existingApp = dupSnap.docs.find(doc => doc.id !== appId);
+  if (existingApp) {
+    const data = existingApp.data();
+    return m3Alert(`此包名已被使用！\n已存在：${data.name} (${data.platform})`, '包名重複');
+  }
 
   let groupUrl = '';
   let storeUrl = '';
+  let testFlightUrl = '';
 
   if (platform === 'android') {
     groupUrl = document.getElementById('edit-group-url').value.trim();
     storeUrl = `https://play.google.com/apps/testing/${packageName}`;
   } else {
-    storeUrl = document.getElementById('edit-testflight-url').value.trim();
+    testFlightUrl = document.getElementById('edit-testflight-url').value.trim();
+    storeUrl = testFlightUrl;
   }
 
   const submitBtn = document.getElementById('edit-btn-submit');
@@ -175,22 +193,20 @@ async function handleEditAppSubmit(e) {
   submitBtn.innerText = '更新中...';
 
   try {
+    const screenshotUrls = [screenshotUrl1, screenshotUrl2, screenshotUrl3].filter(url => url);
+    
     const updateData = {
       name: document.getElementById('edit-app-name').value,
       platform: platform,
       packageName: packageName,
+      iconUrl: iconUrl,
+      screenshotUrls: screenshotUrls,
       description: document.getElementById('edit-app-desc').value,
       groupUrl: groupUrl,
       storeUrl: storeUrl,
+      testFlightUrl: testFlightUrl,
       updatedAt: serverTimestamp()
     };
-
-    // Upload new images if provided
-    if (iconFile || screenshotFiles.length > 0) {
-      const { iconUrl, screenshotUrls } = await uploadImagesToImgBB(iconFile, screenshotFiles);
-      if (iconUrl) updateData.iconUrl = iconUrl;
-      if (screenshotUrls.length > 0) updateData.screenshotUrls = screenshotUrls;
-    }
 
     await updateDoc(doc(db, 'apps', appId), updateData);
     m3Success('專案更新成功！');

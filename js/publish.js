@@ -1,8 +1,6 @@
 // Publish module - handle new app submission
-import { addDoc, collection, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
+import { addDoc, collection, serverTimestamp, query, where, getDocs, doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { db } from './firebase-config.js';
-import { IMGBB_API_KEY } from './constants.js';
-import { uploadImagesToImgBB } from './utils.js';
 import { m3Alert, m3Error, m3Success } from './m3-dialog.js';
 
 export function setupPublish() {
@@ -15,28 +13,42 @@ export function setupPublish() {
 
     const platform = document.getElementById('app-platform').value;
     const packageName = document.getElementById('app-package-name').value.trim();
-    const iconFile = document.getElementById('app-icon-file').files[0];
-    const screenshotFiles = document.getElementById('app-screenshots-files').files;
+    const iconUrl = document.getElementById('app-icon-url').value.trim();
+    const screenshotUrl1 = document.getElementById('app-screenshot-url-1').value.trim();
+    const screenshotUrl2 = document.getElementById('app-screenshot-url-2').value.trim();
+    const screenshotUrl3 = document.getElementById('app-screenshot-url-3').value.trim();
 
-    if (!iconFile) return m3Alert('請選擇 App 圖示！');
+    if (!iconUrl) return m3Alert('請輸入 App 圖示網址！');
+    if (!screenshotUrl1) return m3Alert('至少需輸入 1 張截圖網址！');
 
     let groupUrl = '';
     let storeUrl = '';
+    let testFlightUrl = '';
 
     if (platform === 'android') {
       groupUrl = document.getElementById('group-url').value.trim();
       storeUrl = `https://play.google.com/apps/testing/${packageName}`;
     } else {
-      storeUrl = document.getElementById('testflight-url').value.trim();
+      testFlightUrl = document.getElementById('testflight-url').value.trim();
+      storeUrl = testFlightUrl;
+    }
+
+    // Check for duplicate packageName
+    const appsRef = collection(db, 'apps');
+    const dupQuery = query(appsRef, where('packageName', '==', packageName), where('platform', '==', platform));
+    const dupSnap = await getDocs(dupQuery);
+    if (!dupSnap.empty) {
+      const existingApp = dupSnap.docs[0].data();
+      return m3Alert(`此包名已被使用！\n已存在：${existingApp.name} (${existingApp.platform})`, '包名重複');
     }
 
     const submitBtn = document.getElementById('btn-submit');
     submitBtn.disabled = true;
-    submitBtn.innerText = '圖片上傳中...';
+    submitBtn.innerText = '發布中...';
 
     try {
-      const { iconUrl, screenshotUrls } = await uploadImagesToImgBB(iconFile, screenshotFiles);
-
+      const screenshotUrls = [screenshotUrl1, screenshotUrl2, screenshotUrl3].filter(url => url);
+      
       await addDoc(collection(db, 'apps'), {
         name: document.getElementById('app-name').value,
         platform: platform,
@@ -47,6 +59,7 @@ export function setupPublish() {
         description: document.getElementById('app-desc').value,
         groupUrl: groupUrl,
         storeUrl: storeUrl,
+        testFlightUrl: testFlightUrl,
         authorName: window.currentUser.displayName,
         authorUid: window.currentUser.uid,
         createdAt: serverTimestamp(),
@@ -60,7 +73,7 @@ export function setupPublish() {
       m3Success('App 專案刊登成功！');
       appForm.reset();
       window.fetchMarketApps?.(true);
-      window.switchTab('market');
+      window.switchTab('market-android');
     } catch (err) { 
       m3Error('發布失敗：' + err.message); 
     }

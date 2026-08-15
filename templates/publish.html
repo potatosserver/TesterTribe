@@ -42,13 +42,15 @@
       </div>
 
       <div class="form-group">
-        <label>1. App 圖示 (Icon)</label>
-        <input type="file" id="app-icon-file" class="form-control" accept="image/*" required>
+        <label>1. App 圖示網址 (必填)</label>
+        <input type="url" id="app-icon-url" class="form-control" placeholder="https://example.com/icon.png" required>
       </div>
 
       <div class="form-group">
-        <label>2. App 畫面截圖 (最多 3 張)</label>
-        <input type="file" id="app-screenshots-files" class="form-control" accept="image/*" multiple>
+        <label>2. App 畫面截圖網址 (至少 1 張，最多 3 張)</label>
+        <input type="url" id="app-screenshot-url-1" class="form-control" placeholder="https://example.com/screenshot1.png" required>
+        <input type="url" id="app-screenshot-url-2" class="form-control" placeholder="https://example.com/screenshot2.png (選填)" style="margin-top: 8px;">
+        <input type="url" id="app-screenshot-url-3" class="form-control" placeholder="https://example.com/screenshot3.png (選填)" style="margin-top: 8px;">
       </div>
 
       <div class="form-group">
