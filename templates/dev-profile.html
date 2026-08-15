@@ -1,0 +1,142 @@
+<div id="view-dev-profile" class="tab-content">
+  <div id="dev-profile-content">
+    <button class="btn btn-tonal" onclick="switchTab('market')" style="margin-bottom: 20px;">
+      <span class="material-symbols-outlined">arrow_back</span> 返回市集
+    </button>
+
+    <!-- 開發者資訊載入中狀態 -->
+    <div id="dev-profile-loading" style="text-align: center; padding: 60px 20px;">
+      <div class="spinner" style="width: 40px; height: 40px; border: 3px solid var(--md-sys-color-outline-variant); border-top-color: var(--md-sys-color-primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px;"></div>
+      <p style="color: var(--md-sys-color-secondary);">載入開發者資料中...</p>
+    </div>
+
+    <!-- 開發者主頁內容 -->
+    <div id="dev-profile-main" style="display: none;">
+      <!-- Hero Section -->
+      <div class="dev-hero" style="
+        background: linear-gradient(135deg, var(--md-sys-color-primary) 0%, #004b77 100%);
+        border-radius: var(--md-shape-corner-large);
+        padding: 32px;
+        margin-bottom: 24px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--md-elevation-2);
+      ">
+        <div style="position: absolute; top: -50%; right: -10%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);"></div>
+        <div style="position: absolute; bottom: -30px; left: -30px; width: 120px; height: 120px; border-radius: 50%; background: rgba(255,255,255,0.05);"></div>
+        <div style="position: absolute; top: -40px; right: -40px; width: 100px; height: 100px; border-radius: 50%; background: rgba(255,255,255,0.05);"></div>
+
+        <div style="display: flex; align-items: center; gap: 24px; position: relative; z-index: 1; flex-wrap: wrap;">
+          <img id="dev-profile-avatar" src="" alt="開發者大頭照" style="
+            width: 96px; height: 96px; border-radius: 50%;
+            border: 4px solid rgba(255,255,255,0.3);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            object-fit: cover;
+            background: var(--md-sys-color-surface-container-high);
+          " onerror="this.onerror=null; this.src=window.DEFAULT_AVATAR;">
+
+          <div style="flex: 1; min-width: 200px;">
+            <h1 id="dev-profile-name" style="margin: 0 0 8px 0; font-size: 2rem; font-weight: 800;">--</h1>
+            <p id="dev-profile-email" style="margin: 0 0 16px 0; opacity: 0.9; font-size: 1rem;">--</p>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+              <span class="dev-badge" style="
+                background: rgba(255,255,255,0.2);
+                backdrop-filter: blur(10px);
+                padding: 6px 16px;
+                border-radius: var(--md-shape-corner-full);
+                font-size: 0.85rem;
+                font-weight: 600;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                border: 1px solid rgba(255,255,255,0.3);
+              ">
+                <span class="material-symbols-outlined" style="font-size: 18px;">verified</span>
+                開發者認證
+              </span>
+              <span id="dev-join-date" class="dev-badge" style="
+                background: rgba(255,255,255,0.15);
+                padding: 6px 16px;
+                border-radius: var(--md-shape-corner-full);
+                font-size: 0.85rem;
+                font-weight: 600;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+              ">
+                <span class="material-symbols-outlined" style="font-size: 18px;">calendar_today</span>
+                <span>加入日期</span>
+              </span>
+            </div>
+          </div>
+
+          <!-- 統計數據卡片 -->
+          <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-left: auto;">
+            <div class="dev-stat-card" style="
+              background: rgba(255,255,255,0.15);
+              backdrop-filter: blur(10px);
+              border: 1px solid rgba(255,255,255,0.2);
+              border-radius: var(--md-shape-corner-medium);
+              padding: 16px 24px;
+              min-width: 100px;
+              text-align: center;
+            ">
+              <div id="dev-stat-apps" style="font-size: 2rem; font-weight: 800; line-height: 1;">0</div>
+              <div style="font-size: 0.8rem; opacity: 0.9; margin-top: 4px;">發布專案</div>
+            </div>
+            <div class="dev-stat-card" style="
+              background: rgba(255,255,255,0.15);
+              backdrop-filter: blur(10px);
+              border: 1px solid rgba(255,255,255,0.2);
+              border-radius: var(--md-shape-corner-medium);
+              padding: 16px 24px;
+              min-width: 100px;
+              text-align: center;
+            ">
+              <div id="dev-stat-testers" style="font-size: 2rem; font-weight: 800; line-height: 1;">0</div>
+              <div style="font-size: 0.8rem; opacity: 0.9; margin-top: 4px;">累積測試員</div>
+            </div>
+            <div class="dev-stat-card" style="
+              background: rgba(255,255,255,0.15);
+              backdrop-filter: blur(10px);
+              border: 1px solid rgba(255,255,255,0.2);
+              border-radius: var(--md-shape-corner-medium);
+              padding: 16px 24px;
+              min-width: 100px;
+              text-align: center;
+            ">
+              <div id="dev-stat-likes" style="font-size: 2rem; font-weight: 800; line-height: 1;">0</div>
+              <div style="font-size: 0.8rem; opacity: 0.9; margin-top: 4px;">獲得讚數</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 專案列表區塊 -->
+      <div class="dev-apps-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+          <h2 style="margin: 0; font-size: 1.4rem; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+            <span class="material-symbols-outlined" style="color: var(--md-sys-color-primary);">apps</span>
+            發布的專案
+          </h2>
+          <div id="dev-apps-count" style="font-size: 0.9rem; color: var(--md-sys-color-secondary); background: var(--md-sys-color-surface-container); padding: 6px 12px; border-radius: var(--md-shape-corner-full);">
+            共 <span id="dev-total-apps">0</span> 個專案
+          </div>
+        </div>
+
+        <div id="dev-apps-grid" class="app-grid"></div>
+
+        <!-- 空狀態 -->
+        <div id="dev-empty-state" style="display: none; text-align: center; padding: 60px 20px; background: var(--md-sys-color-surface-container); border-radius: var(--md-shape-corner-large); border: 1px solid var(--md-sys-color-outline-variant);">
+          <span class="material-symbols-outlined" style="font-size: 64px; color: var(--md-sys-color-outline); margin-bottom: 16px; display: block;">folder_open</span>
+          <h3 style="margin: 0 0 8px 0; font-size: 1.2rem;">目前沒有發布任何專案</h3>
+          <p style="color: var(--md-sys-color-secondary); margin: 0 0 20px 0;">這位開發者尚未在 TesterTribe 刊登封閉測試專案</p>
+          <button class="btn btn-primary" onclick="switchTab('market')">
+            <span class="material-symbols-outlined">explore</span> 瀏覽市集其他專案
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

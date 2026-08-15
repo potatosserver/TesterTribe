@@ -1,0 +1,42 @@
+<div id="view-market" class="tab-content active">
+  <div class="hero-banner">
+    <div>
+      <h1 class="hero-title">
+        <span class="material-symbols-outlined" style="font-size: 32px;">rocket_launch</span>
+        互助測試，輕鬆通過 20 人門檻
+      </h1>
+      <p class="hero-subtitle">加入 Android & iOS 開發者社群，互相測試，讓專案順利公開發布！</p>
+    </div>
+    <button class="btn btn-tonal" onclick="switchTab('publish')" style="background: white; color: var(--md-sys-color-primary);">
+      <span class="material-symbols-outlined">add</span> 刊登我的 App
+    </button>
+  </div>
+
+  <div class="filter-section">
+    <div class="search-box">
+      <span class="material-symbols-outlined" style="color: var(--md-sys-color-outline);">search</span>
+      <input type="text" id="search-input" class="search-input" placeholder="搜尋專案名稱、包名或開發者...">
+    </div>
+
+    <div class="chips-group">
+      <button class="chip-btn active" onclick="filterPlatform('all', this)">
+        <span class="material-symbols-outlined" style="font-size: 18px;">grid_view</span> 全部平台
+      </button>
+      <button class="chip-btn" onclick="filterPlatform('android', this)">
+        <span class="material-symbols-outlined" style="font-size: 18px; color: #137333;">android</span> Android 專區
+      </button>
+      <button class="chip-btn" onclick="filterPlatform('ios', this)">
+        <span class="material-symbols-outlined" style="font-size: 18px; color: #3c4043;">phone_iphone</span> iOS 專區
+      </button>
+    </div>
+  </div>
+
+  <div id="market-app-list" class="app-grid"></div>
+
+  <div style="text-align: center; margin-top: 36px;">
+    <button id="btn-load-more" class="btn btn-tonal" style="padding: 12px 32px;">
+      <span class="material-symbols-outlined">expand_more</span> 載入更多專案
+    </button>
+    <div id="no-more-msg" style="display: none; color: #888; margin-top: 12px; font-size: 0.9rem;">已載入全部專案！</div>
+  </div>
+</div>

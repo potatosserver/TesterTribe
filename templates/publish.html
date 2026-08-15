@@ -1,0 +1,62 @@
+<div id="view-publish" class="tab-content">
+  <div class="card" style="max-width: 680px; margin: 0 auto;">
+    <h2 style="display: flex; align-items: center; gap: 8px; margin-top: 0;">
+      <span class="material-symbols-outlined" style="color: var(--md-sys-color-primary);">add_circle</span>
+      刊登新測試 App 專案
+    </h2>
+
+    <form id="app-form">
+      <div class="form-group">
+        <label>選擇 App 平台</label>
+        <select id="app-platform" class="form-control" onchange="togglePlatformFields('publish')">
+          <option value="android">Android App</option>
+          <option value="ios">iOS App (TestFlight)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>App 名稱</label>
+        <input type="text" id="app-name" class="form-control" placeholder="例如：記帳小助手 Beta" required>
+      </div>
+
+      <div class="form-group">
+        <label id="label-package-name">Android 應用程式包名 (Package Name)</label>
+        <input type="text" id="app-package-name" class="form-control" placeholder="例如：com.example.myapp" required>
+      </div>
+
+      <div id="android-fields">
+        <div class="form-group">
+          <label>Google 群組連結</label>
+          <input type="url" id="group-url" class="form-control" placeholder="https://groups.google.com/g/...">
+        </div>
+        <p style="font-size: 0.8rem; color: var(--md-sys-color-primary); margin-top: -10px; margin-bottom: 16px;">
+          成為測試人員與 Google Play 商店連結將根據包名自動生成！
+        </p>
+      </div>
+
+      <div id="ios-fields" style="display: none;">
+        <div class="form-group">
+          <label>TestFlight 加入測試連結</label>
+          <input type="url" id="testflight-url" class="form-control" placeholder="https://testflight.apple.com/join/...">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>1. App 圖示 (Icon)</label>
+        <input type="file" id="app-icon-file" class="form-control" accept="image/*" required>
+      </div>
+
+      <div class="form-group">
+        <label>2. App 畫面截圖 (最多 3 張)</label>
+        <input type="file" id="app-screenshots-files" class="form-control" accept="image/*" multiple>
+      </div>
+
+      <div class="form-group">
+        <label>簡介與測試需求</label>
+        <textarea id="app-desc" class="form-control" rows="4" placeholder="詳細描述您的 App 特色與測試需求..." required></textarea>
+      </div>
+
+      <button type="submit" id="btn-submit" class="btn btn-primary" style="width: 100%;">發布 App 至市集</button>
+    </form>
+  </div>
+</div>

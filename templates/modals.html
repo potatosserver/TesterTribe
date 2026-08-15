@@ -1,0 +1,105 @@
+<!-- Modal 1：發表/編輯評論、評分與 Bug 回報對話框 -->
+<div id="feedback-modal" class="modal-overlay">
+  <div class="modal-card">
+    <h3 id="modal-feedback-title" style="margin: 0 0 8px 0; display: flex; align-items: center; gap: 8px;">
+      <span class="material-symbols-outlined" style="color: var(--md-sys-color-primary);">rate_review</span>
+      發表社群評論或回報問題
+    </h3>
+
+    <div class="form-group" style="text-align: left; margin-top: 16px;">
+      <label>反饋標籤</label>
+      <select id="feedback-type" class="form-control" onchange="toggleRatingStarBox()">
+        <option value="review" id="opt-review">⭐ 評分與公開心得</option>
+        <option value="bug">🐛 Bug 錯誤回報</option>
+        <option value="suggestion">💡 功能建議</option>
+      </select>
+    </div>
+
+    <div id="rating-stars-box" style="display: none; margin-top: 12px;">
+      <label>評分</label>
+      <div class="gp-star-container" id="rating-stars">
+        <span class="gp-star-btn" data-value="1">★</span>
+        <span class="gp-star-btn" data-value="2">★</span>
+        <span class="gp-star-btn" data-value="3">★</span>
+        <span class="gp-star-btn" data-value="4">★</span>
+        <span class="gp-star-btn" data-value="5">★</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label id="feedback-content-label">內容</label>
+      <textarea id="feedback-content" class="form-control" rows="4" placeholder="請詳細描述您的體驗或遇到的問題..." required></textarea>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
+      <button onclick="closeFeedbackModal()" class="btn btn-outline">取消</button>
+      <button id="btn-submit-feedback" class="btn btn-primary" onclick="submitFeedback()">送出</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal 2：編輯 App 專案對話框 -->
+<div id="edit-app-modal" class="modal-overlay">
+  <div class="modal-card" style="max-width: 680px;">
+    <h3 id="edit-modal-title" style="margin: 0 0 8px 0; display: flex; align-items: center; gap: 8px;">
+      <span class="material-symbols-outlined" style="color: var(--md-sys-color-primary);">edit</span>
+      編輯 App 專案
+    </h3>
+
+    <form id="edit-app-form">
+      <input type="hidden" id="edit-app-id">
+
+      <div class="form-group">
+        <label>選擇 App 平台</label>
+        <select id="edit-app-platform" class="form-control" onchange="togglePlatformFields('edit')">
+          <option value="android">Android App</option>
+          <option value="ios">iOS App (TestFlight)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>App 名稱</label>
+        <input type="text" id="edit-app-name" class="form-control" required>
+      </div>
+
+      <div class="form-group">
+        <label id="edit-label-package-name">Android 應用程式包名 (Package Name)</label>
+        <input type="text" id="edit-app-package-name" class="form-control" required>
+      </div>
+
+      <div id="edit-android-fields">
+        <div class="form-group">
+          <label>Google 群組連結</label>
+          <input type="url" id="edit-group-url" class="form-control" placeholder="https://groups.google.com/g/...">
+        </div>
+      </div>
+
+      <div id="edit-ios-fields" style="display: none;">
+        <div class="form-group">
+          <label>TestFlight 加入測試連結</label>
+          <input type="url" id="edit-testflight-url" class="form-control" placeholder="https://testflight.apple.com/join/...">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>1. App 圖示 (Icon) - 留空則保持原圖</label>
+        <input type="file" id="edit-app-icon-file" class="form-control" accept="image/*">
+      </div>
+
+      <div class="form-group">
+        <label>2. App 畫面截圖 (最多 3 張) - 留空則保持原圖</label>
+        <input type="file" id="edit-app-screenshots-files" class="form-control" accept="image/*" multiple>
+      </div>
+
+      <div class="form-group">
+        <label>簡介與測試需求</label>
+        <textarea id="edit-app-desc" class="form-control" rows="4" required></textarea>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
+        <button type="button" onclick="closeEditAppModal()" class="btn btn-outline">取消</button>
+        <button type="submit" id="edit-btn-submit" class="btn btn-primary">更新專案</button>
+      </div>
+    </form>
+  </div>
+</div>
