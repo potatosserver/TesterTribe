@@ -39,6 +39,7 @@ export function setupPublish() {
       await addDoc(collection(db, 'apps'), {
         name: document.getElementById('app-name').value,
         platform: platform,
+        status: 'published',
         packageName: packageName,
         iconUrl: iconUrl,
         screenshotUrls: screenshotUrls,

@@ -39,15 +39,29 @@ export function setupAuth() {
     const headerAvatar = document.getElementById('header-avatar');
     
     if (user) {
-      btnLogin.style.display = 'none';
-      headerAvatar.style.display = 'block';
-      headerAvatar.src = user.photoURL || DEFAULT_AVATAR;
-      document.getElementById('menu-user-photo').src = user.photoURL || DEFAULT_AVATAR;
-      document.getElementById('menu-user-name').innerText = user.displayName;
-      document.getElementById('menu-user-email').innerText = user.email;
-      document.getElementById('acc-user-photo').src = user.photoURL || DEFAULT_AVATAR;
-      document.getElementById('acc-user-name').innerText = user.displayName;
-      document.getElementById('acc-user-email').innerText = user.email;
+      if (btnLogin) btnLogin.style.display = 'none';
+      if (headerAvatar) {
+        headerAvatar.style.display = 'block';
+        headerAvatar.src = user.photoURL || DEFAULT_AVATAR;
+      }
+      
+      const menuPhoto = document.getElementById('menu-user-photo');
+      if (menuPhoto) menuPhoto.src = user.photoURL || DEFAULT_AVATAR;
+      
+      const menuName = document.getElementById('menu-user-name');
+      if (menuName) menuName.innerText = user.displayName;
+      
+      const menuEmail = document.getElementById('menu-user-email');
+      if (menuEmail) menuEmail.innerText = user.email;
+      
+      const accPhoto = document.getElementById('acc-user-photo');
+      if (accPhoto) accPhoto.src = user.photoURL || DEFAULT_AVATAR;
+      
+      const accName = document.getElementById('acc-user-name');
+      if (accName) accName.innerText = user.displayName;
+      
+      const accEmail = document.getElementById('acc-user-email');
+      if (accEmail) accEmail.innerText = user.email;
 
       // Sync user data to Firestore users collection
       try {

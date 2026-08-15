@@ -81,12 +81,18 @@ async function fetchMarketApps(isInitial = false) {
   btnLoadMore.disabled = true;
 
   try {
-    // Use separate collections: apps_google_play and apps_app_store
-    const collectionName = currentStore === 'google-play' ? 'apps_google_play' : 'apps_app_store';
+    // Professional Unified Approach: All apps are in 'apps' collection
+    const platform = currentStore === 'google-play' ? 'android' : 'ios';
+    const collectionName = 'apps';
     
-    let baseQuery = query(collection(db, collectionName), orderBy('createdAt', 'desc'));
+    // Base query: must be published AND match the platform
+    let baseQuery = query(
+      collection(db, collectionName), 
+      where('status', '==', 'published'),
+      where('platform', '==', platform),
+      orderBy('createdAt', 'desc')
+    );
     
-    // For platform filter within a store (should be redundant but kept for flexibility)
     if (currentPlatformFilter !== 'all') {
       baseQuery = query(baseQuery, where('platform', '==', currentPlatformFilter));
     }
@@ -96,11 +102,15 @@ async function fetchMarketApps(isInitial = false) {
       : query(baseQuery, limit(PAGE_SIZE));
 
     // Use cached query with 5-minute TTL
-    const constraintsArray = [{ field: 'createdAt', op: 'desc' }];
+    const constraintsArray = [
+      { field: 'status', op: '==', value: 'published' },
+      { field: 'platform', op: '==', value: platform },
+      { field: 'createdAt', op: 'desc' }
+    ];
     if (currentPlatformFilter !== 'all') {
       constraintsArray.push({ field: 'platform', op: '==', value: currentPlatformFilter });
     }
-    const results = await cachedGetDocs(collection(db, collectionName), constraintsArray, { ttl: 5 * 60 * 1000, skipCache: !!lastVisibleDoc });
+    const results = await cachedGetDocs(collection(db, collectionName), constraintsArray, { ttl: 5 * 60 * 1000, collectionName, skipCache: !!lastVisibleDoc });
     
     if (isInitial) {
       loadedMarketApps = results;

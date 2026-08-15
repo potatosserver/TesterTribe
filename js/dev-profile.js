@@ -70,9 +70,8 @@ async function openDevProfile(authorUid, authorName) {
     // Check if this is the current user's own profile
     const isOwnProfile = window.currentUser && window.currentUser.uid === actualUid;
 
-    // Fetch apps by this author from the correct store collection
-    const collectionName = store === 'google-play' ? 'apps_google_play' : 'apps_app_store';
-    const q = query(collection(db, collectionName), where('authorUid', '==', actualUid));
+    // Fetch apps by this author from the unified 'apps' collection
+    const q = query(collection(db, 'apps'), where('authorUid', '==', actualUid));
     const snapshot = await getDocs(q);
     const apps = [];
     snapshot.forEach(docSnap => apps.push({ id: docSnap.id, ...docSnap.data() }));

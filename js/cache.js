@@ -107,6 +107,9 @@ export const firestoreCache = new FirestoreCache();
 export async function cachedGetDocs(collectionRef, simpleConstraints, cacheOptions = {}) {
   const { ttl = 5 * 60 * 1000, collectionName, skipCache = false } = cacheOptions;
 
+  // Import Firestore functions we need
+  const { query, getDocs, orderBy, where } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+
   if (!skipCache) {
     // Create a cache key from the simpleConstraints
     const cached = firestoreCache.get(collectionName, simpleConstraints);
@@ -123,7 +126,6 @@ export async function cachedGetDocs(collectionRef, simpleConstraints, cacheOptio
   });
 
   // Execute actual query
-  const { query, getDocs } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
   const q = query(collectionRef, ...firestoreConstraints);
   const snapshot = await getDocs(q);
 

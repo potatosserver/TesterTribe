@@ -4,7 +4,7 @@ import { getAuth } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-aut
 import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyC4J0kbnKbQf9jZkGfL7mQ9ZvXyR8sX1zA', // 替換為實際 API Key
+  apiKey: 'AIzaSyDqbzXsf5zMTnddV4DNyws3fuOOA6QacaQ',
   authDomain: 'testertribe-eb02a.firebaseapp.com',
   projectId: 'testertribe-eb02a',
   storageBucket: 'testertribe-eb02a.firebasestorage.app',

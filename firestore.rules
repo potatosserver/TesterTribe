@@ -1,0 +1,91 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- Helper Functions ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function getApp(appId) {
+      return get(/databases/$(database)/documents/apps/$(appId)).data;
+    }
+
+    // --- Collections ---
+
+    // ✅ Users: 允許登入用戶讀取，僅允許本人寫入
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create, update: if isOwner(userId);
+      allow delete: if false;
+    }
+
+    // ✅ Market Apps (Google Play/App Store)
+    match /apps_google_play/{appId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /apps_app_store/{appId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // ✅ Core Apps (主 App 數據集)
+    match /apps/{appId} {
+      allow read: if true;
+
+      allow create: if isSignedIn()
+        && request.resource.data.authorUid == request.auth.uid;
+
+      allow update: if isOwner(resource.data.authorUid)
+        || (isSignedIn() && request.resource.data.authorUid == resource.data.authorUid);
+
+      allow delete: if isOwner(resource.data.authorUid);
+
+      // 互動子集合
+      match /likes/{userId} {
+        allow read: if true;
+        allow write: if isOwner(userId)
+          && getApp(appId).authorUid != request.auth.uid;
+      }
+
+      match /testers/{userId} {
+        allow read: if true;
+        allow write: if isOwner(userId);
+      }
+
+      match /ratings/{userId} {
+        allow read: if true;
+        allow write: if isOwner(userId)
+          && getApp(appId).authorUid != request.auth.uid
+          && request.resource.data.score >= 1
+          && request.resource.data.score <= 5;
+      }
+
+      match /feedbacks/{userId} {
+        allow read: if true;
+
+        allow create: if isOwner(userId)
+          && (request.resource.data.type != 'review' || getApp(appId).authorUid != request.auth.uid);
+
+        allow update: if isSignedIn() && (
+          (isOwner(userId) && (request.resource.data.type != 'review' || getApp(appId).authorUid != request.auth.uid))
+          || isOwner(getApp(appId).authorUid)
+        );
+
+        allow delete: if isSignedIn()
+          && (isOwner(userId) || isOwner(getApp(appId).authorUid));
+      }
+    }
+
+    // 預設拒絕
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
