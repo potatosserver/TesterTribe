@@ -5,12 +5,6 @@ import { PAGE_SIZE } from './constants.js';
 import { escapeHTML, formatDate } from './utils.js';
 import { cachedGetDocs, invalidateCache } from './cache.js';
 
-let loadedMarketAppsAndroid = [];
-let lastVisibleDocAndroid = null;
-
-let loadedMarketAppsIos = [];
-let lastVisibleDocIos = null;
-
 let currentPlatformFilter = 'all'; // UI state for chips (not in URL)
 
 // Platform configurations
@@ -22,8 +16,6 @@ const MARKET_CONFIG = {
     btnLoadMoreId: 'btn-load-more-android',
     noMoreMsgId: 'no-more-msg-android',
     searchInputId: 'search-input-android',
-    loadedApps: loadedMarketAppsAndroid,
-    lastVisibleDoc: lastVisibleDocAndroid,
     title: 'Google Play 市集',
     icon: 'rocket_launch'
   },
@@ -34,11 +26,15 @@ const MARKET_CONFIG = {
     btnLoadMoreId: 'btn-load-more-ios',
     noMoreMsgId: 'no-more-msg-ios',
     searchInputId: 'search-input-ios',
-    loadedApps: loadedMarketAppsIos,
-    lastVisibleDoc: lastVisibleDocIos,
     title: 'App Store 市集',
     icon: 'phone_iphone'
   }
+};
+
+// State stored in object to avoid closure issues
+const marketState = {
+  android: { loadedApps: [], lastVisibleDoc: null },
+  ios: { loadedApps: [], lastVisibleDoc: null }
 };
 
 export function setupMarket() {
@@ -49,10 +45,19 @@ export function setupMarket() {
   // Expose for global access
   window.fetchMarketAppsAndroid = () => fetchMarketApps('android', true);
   window.fetchMarketAppsIos = () => fetchMarketApps('ios', true);
+  
+  // Debug: dump all loaded apps
+  window.debugMarketApps = () => {
+    console.log('=== Android Apps ===');
+    marketState.android.loadedApps.forEach((app, i) => console.log(i, app));
+    console.log('=== iOS Apps ===');
+    marketState.ios.loadedApps.forEach((app, i) => console.log(i, app));
+  };
 }
 
 function setupMarketPlatform(platformKey) {
   const config = MARKET_CONFIG[platformKey];
+  const state = marketState[platformKey];
   
   // Load more button
   const btnLoadMore = document.getElementById(config.btnLoadMoreId);
@@ -65,13 +70,30 @@ function setupMarketPlatform(platformKey) {
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {
       const keyword = e.target.value.toLowerCase().trim();
-      const appsList = config === 'android' ? loadedMarketAppsAndroid : loadedMarketAppsIos;
-      if (!keyword) return renderMarketApps(platformKey, appsList);
-      renderMarketApps(platformKey, appsList.filter(app => 
-        app.name.toLowerCase().includes(keyword) ||
-        app.description.toLowerCase().includes(keyword) ||
-        (app.packageName && app.packageName.toLowerCase().includes(keyword))
-      ));
+      console.log('[Market Search] Platform:', platformKey, 'Keyword:', keyword, 'Loaded apps:', state.loadedApps.length);
+      if (!keyword) {
+        console.log('[Market Search] Empty keyword, showing all');
+        return renderMarketApps(platformKey, state.loadedApps);
+      }
+      
+      // Search all loaded apps
+      const filtered = state.loadedApps.filter(app => {
+        const nameMatch = app.name.toLowerCase().includes(keyword);
+        const pkgMatch = app.packageName && app.packageName.toLowerCase().includes(keyword);
+        const authorMatch = app.authorName && app.authorName.toLowerCase().includes(keyword);
+        
+        if (nameMatch || pkgMatch || authorMatch) {
+          console.log('[Market Search] Match:', {
+            name: app.name,
+            packageName: app.packageName,
+            authorName: app.authorName,
+            nameMatch, pkgMatch, authorMatch, keyword
+          });
+        }
+        return nameMatch || pkgMatch || authorMatch;
+      });
+      console.log('[Market Search] Filtered results:', filtered.length);
+      renderMarketApps(platformKey, filtered);
     });
   }
   
@@ -81,6 +103,7 @@ function setupMarketPlatform(platformKey) {
 
 async function fetchMarketApps(platformKey, isInitial = false) {
   const config = MARKET_CONFIG[platformKey];
+  const state = marketState[platformKey];
   const btnLoadMore = document.getElementById(config.btnLoadMoreId);
   const noMoreMsg = document.getElementById(config.noMoreMsgId);
   
@@ -88,14 +111,9 @@ async function fetchMarketApps(platformKey, isInitial = false) {
   const skipCache = isInitial;
 
   if (isInitial) {
-    // Reset the appropriate array
-    if (platformKey === 'android') {
-      loadedMarketAppsAndroid = [];
-      lastVisibleDocAndroid = null;
-    } else {
-      loadedMarketAppsIos = [];
-      lastVisibleDocIos = null;
-    }
+    // Reset the appropriate state
+    state.loadedApps = [];
+    state.lastVisibleDoc = null;
     btnLoadMore.style.display = 'inline-flex';
     noMoreMsg.style.display = 'none';
   }
@@ -114,8 +132,8 @@ async function fetchMarketApps(platformKey, isInitial = false) {
       orderBy('createdAt', 'desc')
     );
 
-    let q = (platformKey === 'android' ? lastVisibleDocAndroid : lastVisibleDocIos)
-      ? query(baseQuery, startAfter(platformKey === 'android' ? lastVisibleDocAndroid : lastVisibleDocIos), limit(PAGE_SIZE))
+    let q = state.lastVisibleDoc
+      ? query(baseQuery, startAfter(state.lastVisibleDoc), limit(PAGE_SIZE))
       : query(baseQuery, limit(PAGE_SIZE));
 
     // Use cached query with 5-minute TTL
@@ -129,21 +147,13 @@ async function fetchMarketApps(platformKey, isInitial = false) {
     const results = await cachedGetDocs(collection(db, collectionName), constraintsArray, { 
       ttl: 5 * 60 * 1000, 
       collectionName, 
-      skipCache: skipCache || !!(platformKey === 'android' ? lastVisibleDocAndroid : lastVisibleDocIos) 
+      skipCache: skipCache || !!state.lastVisibleDoc 
     });
 
     if (isInitial) {
-      if (platformKey === 'android') {
-        loadedMarketAppsAndroid = results;
-      } else {
-        loadedMarketAppsIos = results;
-      }
+      state.loadedApps = results;
     } else {
-      if (platformKey === 'android') {
-        loadedMarketAppsAndroid.push(...results);
-      } else {
-        loadedMarketAppsIos.push(...results);
-      }
+      state.loadedApps.push(...results);
     }
 
     // For pagination, we still need to do a real query to get the last visible doc
@@ -155,14 +165,9 @@ async function fetchMarketApps(platformKey, isInitial = false) {
       return;
     }
 
-    if (platformKey === 'android') {
-      lastVisibleDocAndroid = snapshot.docs[snapshot.docs.length - 1];
-    } else {
-      lastVisibleDocIos = snapshot.docs[snapshot.docs.length - 1];
-    }
+    state.lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1];
 
-    const appsList = platformKey === 'android' ? loadedMarketAppsAndroid : loadedMarketAppsIos;
-    renderMarketApps(platformKey, appsList);
+    renderMarketApps(platformKey, state.loadedApps);
 
     if (snapshot.docs.length < PAGE_SIZE) {
       btnLoadMore.style.display = 'none';
