@@ -69,6 +69,11 @@ header { background: rgba(247, 249, 255, 0.92); position: sticky; top: 0; z-inde
 .chip-btn { background: #ffffff; border: 1px solid var(--md-sys-color-outline-variant); padding: 8px 16px; border-radius: var(--md-shape-corner-full); font-size: 0.85rem; font-weight: 700; color: var(--md-sys-color-secondary); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
 .chip-btn.active { background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); border-color: var(--md-sys-color-primary); }
 
+.store-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+.store-tab { background: #ffffff; border: 2px solid var(--md-sys-color-outline-variant); padding: 10px 20px; border-radius: var(--md-shape-corner-full); font-size: 0.9rem; font-weight: 800; color: var(--md-sys-color-secondary); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.store-tab.active { background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); border-color: var(--md-sys-color-primary); }
+.store-tab:hover:not(.active) { border-color: var(--md-sys-color-primary); }
+
 .app-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 20px; }
 .app-card { background: #ffffff; border-radius: var(--md-shape-corner-large); padding: 22px; border: 1px solid var(--md-sys-color-outline-variant); display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; position: relative; }
 .app-card:hover { transform: translateY(-3px); box-shadow: var(--md-elevation-2); }

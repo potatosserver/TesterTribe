@@ -25,6 +25,13 @@ export function setupAuth() {
     } 
   };
 
+  // Open my own dev profile
+  window.openMyProfile = () => {
+    if (window.currentUser) {
+      window.switchTab('devProfile', { authorUid: window.currentUser.uid });
+    }
+  };
+
   // Auth state listener
   onAuthStateChanged(auth, async (user) => {
     window.currentUser = user;
@@ -65,9 +72,15 @@ export function setupAuth() {
       } catch (err) {
         console.error('同步用戶資料失敗:', err);
       }
+
+      // Show "我的開發者頁面" menu item
+      const menuMyProfile = document.getElementById('menu-my-profile');
+      if (menuMyProfile) menuMyProfile.style.display = 'flex';
     } else {
       btnLogin.style.display = 'inline-flex';
       headerAvatar.style.display = 'none';
+      const menuMyProfile = document.getElementById('menu-my-profile');
+      if (menuMyProfile) menuMyProfile.style.display = 'none';
       window.closeProfileDropdown();
       window.switchTab('market');
     }

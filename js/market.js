@@ -3,17 +3,25 @@ import { collection, query, orderBy, startAfter, limit, getDocs, where } from 'h
 import { db } from './firebase-config.js';
 import { PAGE_SIZE } from './constants.js';
 import { escapeHTML, formatDate } from './utils.js';
+import { cachedGetDocs, invalidateCache } from './cache.js';
+import { getStoreFromUrl, getPlatformFromUrl, platformToStore, navigate } from './router.js';
 
 let loadedMarketApps = [];
 let lastVisibleDoc = null;
 let currentPlatformFilter = 'all';
+let currentStore = 'google-play';
 
 export function setupMarket() {
+  // Get store from URL or default
+  currentStore = getStoreFromUrl();
+  const platform = getPlatformFromUrl();
+  
   window.loadedMarketApps = loadedMarketApps;
   window.lastVisibleDoc = lastVisibleDoc;
   window.filterPlatform = filterPlatform;
   window.fetchMarketApps = fetchMarketApps;
   window.renderMarketApps = renderMarketApps;
+  window.switchMarketStore = switchMarketStore;
 
   // Load more button
   document.getElementById('btn-load-more').onclick = () => fetchMarketApps(false);
@@ -29,8 +37,34 @@ export function setupMarket() {
     ));
   });
 
+  // Update store tab UI
+  updateStoreTabUI(currentStore);
+
   // Initial load
   fetchMarketApps(true);
+}
+
+function switchMarketStore(store) {
+  currentStore = store;
+  currentPlatformFilter = 'all';
+  updateStoreTabUI(store);
+  navigate('market', { store });
+  fetchMarketApps(true);
+}
+
+function updateStoreTabUI(store) {
+  const googlePlayBtn = document.getElementById('btn-store-google-play');
+  const appStoreBtn = document.getElementById('btn-store-app-store');
+  const marketTitle = document.getElementById('market-title');
+  
+  if (googlePlayBtn && appStoreBtn) {
+    googlePlayBtn.classList.toggle('active', store === 'google-play');
+    appStoreBtn.classList.toggle('active', store === 'app-store');
+  }
+  
+  if (marketTitle) {
+    marketTitle.textContent = store === 'google-play' ? 'Google Play 市集' : 'App Store 市集';
+  }
 }
 
 async function fetchMarketApps(isInitial = false) {
@@ -47,8 +81,12 @@ async function fetchMarketApps(isInitial = false) {
   btnLoadMore.disabled = true;
 
   try {
-    let baseQuery = query(collection(db, 'apps'), orderBy('createdAt', 'desc'));
+    // Use separate collections: apps_google_play and apps_app_store
+    const collectionName = currentStore === 'google-play' ? 'apps_google_play' : 'apps_app_store';
     
+    let baseQuery = query(collection(db, collectionName), orderBy('createdAt', 'desc'));
+    
+    // For platform filter within a store (should be redundant but kept for flexibility)
     if (currentPlatformFilter !== 'all') {
       baseQuery = query(baseQuery, where('platform', '==', currentPlatformFilter));
     }
@@ -57,6 +95,20 @@ async function fetchMarketApps(isInitial = false) {
       ? query(baseQuery, startAfter(lastVisibleDoc), limit(PAGE_SIZE))
       : query(baseQuery, limit(PAGE_SIZE));
 
+    // Use cached query with 5-minute TTL
+    const constraintsArray = [{ field: 'createdAt', op: 'desc' }];
+    if (currentPlatformFilter !== 'all') {
+      constraintsArray.push({ field: 'platform', op: '==', value: currentPlatformFilter });
+    }
+    const results = await cachedGetDocs(collection(db, collectionName), constraintsArray, { ttl: 5 * 60 * 1000, skipCache: !!lastVisibleDoc });
+    
+    if (isInitial) {
+      loadedMarketApps = results;
+    } else {
+      loadedMarketApps.push(...results);
+    }
+
+    // For pagination, we still need to do a real query to get the last visible doc
     const snapshot = await getDocs(q);
 
     if (snapshot.empty) {
@@ -66,7 +118,7 @@ async function fetchMarketApps(isInitial = false) {
     }
 
     lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1];
-    snapshot.forEach((docSnap) => loadedMarketApps.push({ id: docSnap.id, ...docSnap.data() }));
+    
     renderMarketApps(loadedMarketApps);
 
     if (snapshot.docs.length < PAGE_SIZE) {

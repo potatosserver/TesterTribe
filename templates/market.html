@@ -1,9 +1,9 @@
 <div id="view-market" class="tab-content active">
   <div class="hero-banner">
     <div>
-      <h1 class="hero-title">
+      <h1 class="hero-title" id="market-title">
         <span class="material-symbols-outlined" style="font-size: 32px;">rocket_launch</span>
-        互助測試，輕鬆通過 20 人門檻
+        Google Play 市集
       </h1>
       <p class="hero-subtitle">加入 Android & iOS 開發者社群，互相測試，讓專案順利公開發布！</p>
     </div>
@@ -18,15 +18,12 @@
       <input type="text" id="search-input" class="search-input" placeholder="搜尋專案名稱、包名或開發者...">
     </div>
 
-    <div class="chips-group">
-      <button class="chip-btn active" onclick="filterPlatform('all', this)">
-        <span class="material-symbols-outlined" style="font-size: 18px;">grid_view</span> 全部平台
+    <div class="store-tabs">
+      <button id="btn-store-google-play" class="store-tab active" onclick="switchMarketStore('google-play')">
+        <span class="material-symbols-outlined" style="font-size: 20px;">android</span> Google Play
       </button>
-      <button class="chip-btn" onclick="filterPlatform('android', this)">
-        <span class="material-symbols-outlined" style="font-size: 18px; color: #137333;">android</span> Android 專區
-      </button>
-      <button class="chip-btn" onclick="filterPlatform('ios', this)">
-        <span class="material-symbols-outlined" style="font-size: 18px; color: #3c4043;">phone_iphone</span> iOS 專區
+      <button id="btn-store-app-store" class="store-tab" onclick="switchMarketStore('app-store')">
+        <span class="material-symbols-outlined" style="font-size: 20px;">phone_iphone</span> App Store
       </button>
     </div>
   </div>

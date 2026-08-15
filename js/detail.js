@@ -2,6 +2,7 @@
 import { doc, getDoc, collection, query, getDocs, updateDoc, deleteDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { db } from './firebase-config.js';
 import { escapeHTML, formatDate } from './utils.js';
+import { getAppIdFromUrl, getStoreFromUrl, platformToStore } from './router.js';
 
 export function setupDetail() {
   window.openAppDetail = openAppDetail;
@@ -12,8 +13,24 @@ export function setupDetail() {
 }
 
 async function openAppDetail(appId) {
-  window.switchTab('appDetail');
-  window.currentDetailAppId = appId;
+  // Get the store from the current URL (this works whether we are in the market or in the appDetail)
+  const store = getStoreFromUrl();
+  // If appId is provided, use it; otherwise, try to get it from the URL
+  const id = appId || getAppIdFromUrl();
+  if (!id) {
+    window.switchTab('market');
+    return;
+  }
+
+  // If we were given an appId (i.e., we are not just refreshing the current appDetail), then update the URL to include the store and appId
+  if (appId) {
+    window.switchTab('appDetail', { store, appId: id });
+  } else {
+    // We are just refreshing, so we don't need to change the URL, just stay on the current tab
+    window.switchTab('appDetail');
+  }
+
+  window.currentDetailAppId = id;
   
   const detailContent = document.getElementById('detail-content');
   detailContent.innerHTML = '<div style="text-align:center; padding:40px;">載入專案資訊中...</div>';

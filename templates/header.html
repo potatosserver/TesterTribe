@@ -21,8 +21,8 @@
         <div class="menu-item" onclick="switchTab('publish'); closeProfileDropdown();">
           <span class="material-symbols-outlined" style="color: var(--md-sys-color-primary);">add_circle</span> 刊登新 App
         </div>
-        <div class="menu-item" onclick="switchTab('account'); closeProfileDropdown();">
-          <span class="material-symbols-outlined" style="color: var(--md-sys-color-primary);">account_circle</span> 帳號與管理
+        <div class="menu-item" id="menu-my-profile" onclick="openMyProfile(); closeProfileDropdown();" style="display: none;">
+          <span class="material-symbols-outlined" style="color: var(--md-sys-color-primary);">person</span> 我的開發者頁面
         </div>
         <div class="menu-item" style="color: var(--md-sys-color-error);" onclick="handleLogout()">
           <span class="material-symbols-outlined">logout</span> 登出帳號
