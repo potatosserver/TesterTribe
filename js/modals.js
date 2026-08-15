@@ -2,6 +2,7 @@
 import { addDoc, updateDoc, doc, getDoc, collection, serverTimestamp, deleteDoc, setDoc } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { db } from './firebase-config.js';
 import { uploadImagesToImgBB } from './utils.js';
+import { m3Alert, m3Error, m3Success } from './m3-dialog.js';
 
 export function setupModals() {
   // Feedback modal
@@ -59,11 +60,11 @@ function toggleRatingStarBox() {
 
 async function submitFeedback() {
   const appId = window.currentFeedbackAppId;
-  if (!appId || !window.currentUser) return alert('請先登入！');
+  if (!appId || !window.currentUser) return m3Alert('請先登入！');
 
   const type = document.getElementById('feedback-type').value;
   const content = document.getElementById('feedback-content').value.trim();
-  if (!content) return alert('請填寫內容！');
+  if (!content) return m3Alert('請填寫內容！');
 
   let rating = 5;
   if (type === 'review') {
@@ -92,11 +93,11 @@ async function submitFeedback() {
       await updateDoc(appRef, { ratingCount: newCount, ratingSum: newSum });
     }
 
-    alert('送出成功！');
+    m3Success('送出成功！');
     closeFeedbackModal();
     window.openAppDetail(appId);
   } catch (err) {
-    alert('送出失敗：' + err.message);
+    m3Error('送出失敗：' + err.message);
   }
 }
 
@@ -192,13 +193,13 @@ async function handleEditAppSubmit(e) {
     }
 
     await updateDoc(doc(db, 'apps', appId), updateData);
-    alert('專案更新成功！');
+    m3Success('專案更新成功！');
     closeEditAppModal();
     window.openAppDetail(appId);
     window.loadMyApps?.();
     window.fetchMarketApps?.(true);
   } catch (err) {
-    alert('更新失敗：' + err.message);
+    m3Error('更新失敗：' + err.message);
   } finally {
     submitBtn.disabled = false;
     submitBtn.innerText = '更新專案';

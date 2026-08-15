@@ -3,6 +3,7 @@ import { doc, getDoc, collection, query, getDocs, updateDoc, deleteDoc, setDoc, 
 import { db } from './firebase-config.js';
 import { escapeHTML, formatDate } from './utils.js';
 import { getAppIdFromUrl, getStoreFromUrl, platformToStore } from './router.js';
+import { m3Alert, m3Error, m3Success } from './m3-dialog.js';
 
 export function setupDetail() {
   window.openAppDetail = openAppDetail;
@@ -225,7 +226,7 @@ async function openAppDetail(appId) {
 }
 
 async function handleToggleLikeDetail(appId) {
-  if (!window.currentUser) return alert('請先登入！');
+  if (!window.currentUser) return m3Alert('請先登入！');
 
   // Check if current user is the app author
   const appRef = doc(db, 'apps', appId);
@@ -233,7 +234,7 @@ async function handleToggleLikeDetail(appId) {
   const appData = appSnap.data();
   console.log('Author check:', { appId, exists: appSnap.exists(), appData, authorUid: appData?.authorUid, currentUid: window.currentUser?.uid });
   if (appSnap.exists() && appData && appData.authorUid === window.currentUser.uid) {
-    alert('開發者無法為自己的專案按讚！');
+    m3Alert('開發者無法為自己的專案按讚！', '無法按讚');
     return;
   }
 
@@ -253,7 +254,7 @@ async function handleToggleLikeDetail(appId) {
 }
 
 async function toggleJoinTestDetail(appId, isJoined) {
-  if (!window.currentUser) return alert('請先登入！');
+  if (!window.currentUser) return m3Alert('請先登入！');
   
   const testerRef = doc(db, 'apps', appId, 'testers', window.currentUser.uid);
   

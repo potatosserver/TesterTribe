@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Test M3 Dialog</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0..1,0" />
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #1a1a1a; color: #fff; }
+    button { padding: 10px 20px; margin: 10px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>M3 Dialog Test</h1>
+  <button onclick="testAlert()">Test Alert</button>
+  <button onclick="testConfirm()">Test Confirm</button>
+  <button onclick="testSuccess()">Test Success</button>
+  <button onclick="testError()">Test Error</button>
+
+  <script type="module">
+    import { m3Alert, m3Confirm, m3Success, m3Error } from './js/m3-dialog.js';
+    window.m3Alert = m3Alert;
+    window.m3Confirm = m3Confirm;
+    window.m3Success = m3Success;
+    window.m3Error = m3Error;
+    
+    window.testAlert = () => m3Alert('這是測試訊息', '測試標題');
+    window.testConfirm = async () => {
+      const result = await m3Confirm('確定要繼續嗎？', '確認操作');
+      console.log('Confirm result:', result);
+    };
+    window.testSuccess = () => m3Success('操作成功！', '成功');
+    window.testError = () => m3Error('發生錯誤！', '錯誤');
+  </script>
+</body>
+</html>

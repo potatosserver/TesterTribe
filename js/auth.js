@@ -4,6 +4,7 @@ import { doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/fi
 import { auth, db, provider } from './firebase-config.js';
 import { DEFAULT_AVATAR } from './constants.js';
 import { navigate, getStoreFromUrl } from './router.js';
+import { m3Confirm } from './m3-dialog.js';
 
 export function setupAuth() {
   // Login button
@@ -20,7 +21,8 @@ export function setupAuth() {
   // Logout
   window.handleLogout = async () => { 
     window.closeProfileDropdown(); 
-    if (confirm('確定登出？')) { 
+    const confirmed = await m3Confirm('確定登出？', '確認登出');
+    if (confirmed) { 
       await signOut(auth); 
       window.switchTab('market'); 
     } 

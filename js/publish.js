@@ -3,6 +3,7 @@ import { addDoc, collection, serverTimestamp } from 'https://www.gstatic.com/fir
 import { db } from './firebase-config.js';
 import { IMGBB_API_KEY } from './constants.js';
 import { uploadImagesToImgBB } from './utils.js';
+import { m3Alert, m3Error, m3Success } from './m3-dialog.js';
 
 export function setupPublish() {
   window.togglePlatformFields = togglePlatformFields;
@@ -10,14 +11,14 @@ export function setupPublish() {
   const appForm = document.getElementById('app-form');
   appForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (!window.currentUser) return alert('請先登入！');
+    if (!window.currentUser) return m3Alert('請先登入！');
 
     const platform = document.getElementById('app-platform').value;
     const packageName = document.getElementById('app-package-name').value.trim();
     const iconFile = document.getElementById('app-icon-file').files[0];
     const screenshotFiles = document.getElementById('app-screenshots-files').files;
 
-    if (!iconFile) return alert('請選擇 App 圖示！');
+    if (!iconFile) return m3Alert('請選擇 App 圖示！');
 
     let groupUrl = '';
     let storeUrl = '';
@@ -56,12 +57,12 @@ export function setupPublish() {
         ratingCount: 0
       });
 
-      alert('App 專案刊登成功！');
+      m3Success('App 專案刊登成功！');
       appForm.reset();
       window.fetchMarketApps?.(true);
       window.switchTab('market');
     } catch (err) { 
-      alert('發布失敗：' + err.message); 
+      m3Error('發布失敗：' + err.message); 
     }
     finally {
       submitBtn.disabled = false;

@@ -3,6 +3,7 @@ import { collection, query, where, getDocs, doc, getDoc, deleteDoc } from 'https
 import { db } from './firebase-config.js';
 import { escapeHTML, formatDate } from './utils.js';
 import { getStoreFromUrl, getPlatformFromUrl, getAuthorIdentifierFromUrl } from './router.js';
+import { m3Alert, m3Confirm, m3Error, m3Success } from './m3-dialog.js';
 
 export function setupDevProfile() {
   window.openDevProfile = openDevProfile;
@@ -10,18 +11,19 @@ export function setupDevProfile() {
 }
 
 async function deleteApp(appId) {
-  if (!window.currentUser) return alert('請先登入！');
-  if (!confirm('確定要下架並刪除此專案嗎？此操作無法復原。')) return;
+  if (!window.currentUser) return m3Alert('請先登入！');
+  const confirmed = await m3Confirm('確定要下架並刪除此專案嗎？此操作無法復原。', '確認刪除', { destructive: true });
+  if (!confirmed) return;
 
   try {
     await deleteDoc(doc(db, 'apps', appId));
-    alert('專案已刪除');
+    m3Success('專案已刪除');
     // Refresh the dev profile
     window.openDevProfile(window.currentUser.uid);
     window.fetchMarketApps?.(true);
   } catch (err) {
     console.error('刪除失敗:', err);
-    alert('刪除失敗：' + err.message);
+    m3Error('刪除失敗：' + err.message);
   }
 }
 
