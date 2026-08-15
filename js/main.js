@@ -3,6 +3,7 @@ import { initializeApp } from './app.js';
 import { loadTemplates } from './template-loader.js';
 import { setupAuth } from './auth.js';
 import { setupTabs } from './tabs.js';
+import { setupLogin } from './auth.js';
 import { initRouter, navigate } from './router.js';
 
 // Make constants globally available for templates
@@ -15,6 +16,8 @@ window.PAGE_SIZE = PAGE_SIZE;
 document.addEventListener('DOMContentLoaded', async () => {
   await loadTemplates();
   initializeApp();
+  setupAuth(); // Initialize auth (profile dropdown, logout, etc.)
   setupTabs(); // Initialize tab switching
+  setupLogin(); // Initialize login page button
   initRouter();
 });

@@ -1,10 +1,11 @@
 // Hash-based router for deep linking
-// URL Structure: #market/google-play, #market/app-store, #app/google-play/com.example.app, #app/google-play/appId, #dev/google-play/developerName
+// URL Structure: #market/google-play, #market/app-store, #app/google-play/com.example.app, #app/google-play/appId, #dev/google-play/developerName, #login
 export const routes = {
   'market': { template: 'market', handler: 'setupMarket' },
   'app-detail': { template: 'app-detail', handler: 'setupDetail' },
   'dev-profile': { template: 'dev-profile', handler: 'setupDevProfile' },
-  'publish': { template: 'publish', handler: 'setupPublish' }
+  'publish': { template: 'publish', handler: 'setupPublish' },
+  'login': { template: 'login', handler: 'setupLogin' }
 };
 
 const STORE_MAPPING = {
@@ -31,7 +32,7 @@ export function initRouter() {
   handleHashChange(); // Handle initial load
 }
 
-function handleHashChange() {
+export function handleHashChange() {
   const hash = window.location.hash.slice(1); // Remove #
   if (!hash) {
     navigate('market', { store: 'google-play' });
@@ -44,6 +45,19 @@ function handleHashChange() {
   
   if (!route) {
     navigate('market', { store: 'google-play' });
+    return;
+  }
+
+  // Check if route requires authentication
+  const PROTECTED_ROUTES = ['publish'];
+  if (PROTECTED_ROUTES.includes(routeName) && !window.currentUser) {
+    navigate('login');
+    // Show alert after navigation
+    setTimeout(() => {
+      import('./m3-dialog.js').then(({ m3Alert }) => {
+        m3Alert('請先登入才能刊登 App 專案！', '需要登入', { confirmText: '登入' });
+      });
+    }, 0);
     return;
   }
 

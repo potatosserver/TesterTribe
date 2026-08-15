@@ -329,8 +329,8 @@ function escapeHTML(str) {
 }
 
 // Convenience functions
-export function m3Alert(message, title) {
-  return showM3Alert(message, title);
+export function m3Alert(message, title, options) {
+  return showM3Alert(message, title, options);
 }
 
 export function m3Confirm(message, title, options) {

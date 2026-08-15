@@ -6,10 +6,11 @@ import { DEFAULT_AVATAR } from './constants.js';
 import { navigate, getStoreFromUrl } from './router.js';
 import { m3Confirm } from './m3-dialog.js';
 
-export function setupAuth() {
-  // Login button
-  document.getElementById('btn-login').onclick = () => signInWithPopup(auth, provider);
+export function signInWithGoogle() {
+  return signInWithPopup(auth, provider);
+}
 
+export function setupAuth() {
   // Profile dropdown
   window.toggleProfileDropdown = (e) => { 
     e.stopPropagation(); 
@@ -102,5 +103,33 @@ export function setupAuth() {
       window.closeProfileDropdown();
       window.switchTab('market');
     }
+    
+    // Check if user just logged in from login page
+    checkAndRedirectAfterLogin(user);
   });
+}
+
+// Check if user just logged in (coming from login page) and redirect to dev profile
+let wasOnLoginPage = false;
+export function setWasOnLoginPage(value) {
+  wasOnLoginPage = value;
+}
+window.authSetLoginOrigin = setWasOnLoginPage;
+
+function checkAndRedirectAfterLogin(user) {
+  if (wasOnLoginPage && user) {
+    wasOnLoginPage = false;
+    const store = getStoreFromUrl();
+    window.navigate('dev-profile', { store, authorIdentifier: user.uid });
+  }
+}
+
+export function setupLogin() {
+  const btn = document.getElementById('btn-login-page');
+  if (btn) {
+    btn.onclick = () => {
+      setWasOnLoginPage(true);
+      signInWithGoogle();
+    };
+  }
 }

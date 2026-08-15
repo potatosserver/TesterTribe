@@ -16,8 +16,8 @@
         </button>
       </div>
 
-      <button id="btn-login" class="btn btn-primary">
-        <span class="material-symbols-outlined">login</span> Google 登入
+      <button id="btn-login" class="btn btn-primary" onclick="window.authSetLoginOrigin?.(); window.switchTab('login')">
+        <span class="material-symbols-outlined">login</span> 登入
       </button>
 
       <img id="header-avatar" class="avatar-btn" src="" alt="Profile" style="display: none;" onclick="toggleProfileDropdown(event)" onerror="this.onerror=null; this.src=window.DEFAULT_AVATAR;">
@@ -28,7 +28,7 @@
           <div id="menu-user-name" style="font-weight: 800;">--</div>
           <div id="menu-user-email" style="font-size: 0.85rem; color: #666;">--</div>
         </div>
-        <div class="menu-item" onclick="switchTab('publish'); closeProfileDropdown();">
+        <div class="menu-item" onclick="window.switchTab('login'); closeProfileDropdown();">
           <span class="material-symbols-outlined" style="color: var(--md-sys-color-primary);">add_circle</span> 刊登新 App
         </div>
         <div class="menu-item" id="menu-my-profile" onclick="openMyProfile(); closeProfileDropdown();" style="display: none;">

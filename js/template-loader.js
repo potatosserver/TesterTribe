@@ -8,7 +8,8 @@ export async function loadTemplates() {
     'app-detail',
     'dev-profile',
     'publish',
-    'modals'
+    'modals',
+    'login'
   ];
 
   await Promise.all(
@@ -42,7 +43,8 @@ export async function loadTemplates() {
     templateCache['market'] + 
     templateCache['app-detail'] + 
     templateCache['dev-profile'] + 
-    templateCache['publish'];
+    templateCache['publish'] +
+    templateCache['login'];
   document.getElementById('modal-container').innerHTML = templateCache['modals'];
 }
 
