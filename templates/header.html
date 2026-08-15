@@ -6,12 +6,12 @@
     </div>
 
     <div style="display: flex; align-items: center; gap: 16px;">
-      <!-- Store Toggle Buttons -->
+      <!-- Market Tabs -->
       <div class="store-tabs" style="display: flex; gap: 8px;">
-        <button id="btn-store-google-play-header" class="store-tab active" onclick="switchMarketStore('google-play')">
+        <button id="btn-market-android" class="store-tab active" onclick="window.switchTab('market-android')">
           <span class="material-symbols-outlined" style="font-size: 20px;">android</span> Google Play
         </button>
-        <button id="btn-store-app-store-header" class="store-tab" onclick="switchMarketStore('app-store')">
+        <button id="btn-market-ios" class="store-tab" onclick="window.switchTab('market-ios')">
           <span class="material-symbols-outlined" style="font-size: 20px;">phone_iphone</span> App Store
         </button>
       </div>

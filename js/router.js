@@ -1,7 +1,9 @@
 // Hash-based router for deep linking
-// URL Structure: #market/google-play, #market/app-store, #app/google-play/com.example.app, #app/google-play/appId, #dev/google-play/developerName, #login
+// URL Structure: #market/android, #market/ios, #app/google-play/com.example.app, #app/google-play/appId, #dev/google-play/developerName, #login
 export const routes = {
   'market': { template: 'market', handler: 'setupMarket' },
+  'market-android': { template: 'market', handler: 'setupMarket' },
+  'market-ios': { template: 'market', handler: 'setupMarket' },
   'app-detail': { template: 'app-detail', handler: 'setupDetail' },
   'dev-profile': { template: 'dev-profile', handler: 'setupDevProfile' },
   'publish': { template: 'publish', handler: 'setupPublish' },
@@ -9,13 +11,13 @@ export const routes = {
 };
 
 const STORE_MAPPING = {
-  'google-play': 'android',
-  'app-store': 'ios'
+  'android': 'android',
+  'ios': 'ios'
 };
 
 const REVERSE_STORE_MAPPING = {
-  'android': 'google-play',
-  'ios': 'app-store'
+  'android': 'android',
+  'ios': 'ios'
 };
 
 let currentRoute = null;
@@ -35,7 +37,7 @@ export function initRouter() {
 export function handleHashChange() {
   const hash = window.location.hash.slice(1); // Remove #
   if (!hash) {
-    navigate('market', { store: 'google-play' });
+    navigate('market-android');
     return;
   }
 
@@ -44,7 +46,7 @@ export function handleHashChange() {
   const route = routes[routeName];
   
   if (!route) {
-    navigate('market', { store: 'google-play' });
+    navigate('market-android');
     return;
   }
 
@@ -63,12 +65,15 @@ export function handleHashChange() {
 
   const newParams = {};
   
-  if (routeName === 'market') {
-    const store = parts[1] || 'google-play';
-    newParams.store = store;
-    newParams.platform = STORE_MAPPING[store] || 'android';
+  if (routeName === 'market-android' || routeName === 'market-ios') {
+    const platform = routeName === 'market-android' ? 'android' : 'ios';
+    newParams.platform = platform;
+  } else if (routeName === 'market') {
+    // Legacy redirect
+    navigate('market-android');
+    return;
   } else if (routeName === 'app-detail') {
-    const store = parts[1] || 'google-play';
+    const store = parts[1] || 'android';
     const identifier = parts[2];
     newParams.store = store;
     newParams.platform = STORE_MAPPING[store] || 'android';
@@ -79,7 +84,7 @@ export function handleHashChange() {
       newParams.appId = identifier;
     }
   } else if (routeName === 'dev-profile') {
-    const store = parts[1] || 'google-play';
+    const store = parts[1] || 'android';
     const authorIdentifier = parts[2];
     newParams.store = store;
     newParams.platform = STORE_MAPPING[store] || 'android';
@@ -101,10 +106,10 @@ export function handleHashChange() {
 export function navigate(routeName, params = {}) {
   let hash = routeName;
   
-  if (routeName === 'market') {
-    if (params.store) hash += `/${params.store}`;
+  if (routeName === 'market-android' || routeName === 'market-ios') {
+    // No additional params needed
   } else if (routeName === 'app-detail') {
-    const store = params.store || 'google-play';
+    const store = params.store || 'android';
     hash += `/${store}`;
     if (params.packageName) {
       hash += `/${encodeURIComponent(params.packageName)}`;
@@ -112,7 +117,7 @@ export function navigate(routeName, params = {}) {
       hash += `/${encodeURIComponent(params.appId)}`;
     }
   } else if (routeName === 'dev-profile') {
-    const store = params.store || 'google-play';
+    const store = params.store || 'android';
     hash += `/${store}`;
     if (params.authorIdentifier) {
       hash += `/${encodeURIComponent(params.authorIdentifier)}`;
@@ -167,3 +172,4 @@ window.getPlatformFromUrl = getPlatformFromUrl;
 window.getPackageNameFromUrl = getPackageNameFromUrl;
 window.getAppIdFromUrl = getAppIdFromUrl;
 window.getAuthorIdentifierFromUrl = getAuthorIdentifierFromUrl;
+window.getRouteParams = () => routeParams;

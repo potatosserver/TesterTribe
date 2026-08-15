@@ -5,6 +5,7 @@ import { setupAuth } from './auth.js';
 import { setupTabs } from './tabs.js';
 import { setupLogin } from './auth.js';
 import { initRouter, navigate } from './router.js';
+import { setupMarket } from './market.js';
 
 // Make constants globally available for templates
 import { DEFAULT_AVATAR, DEFAULT_ICON, PAGE_SIZE } from './constants.js';
@@ -19,5 +20,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupAuth(); // Initialize auth (profile dropdown, logout, etc.)
   setupTabs(); // Initialize tab switching
   setupLogin(); // Initialize login page button
+  setupMarket(); // Initialize market (must be before initRouter)
   initRouter();
 });

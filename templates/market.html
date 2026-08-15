@@ -1,11 +1,11 @@
-<div id="view-market" class="tab-content active">
+<div id="view-market-android" class="tab-content active">
   <div class="hero-banner">
     <div>
-      <h1 class="hero-title" id="market-title">
+      <h1 class="hero-title">
         <span class="material-symbols-outlined" style="font-size: 32px;">rocket_launch</span>
         Google Play 市集
       </h1>
-      <p class="hero-subtitle">加入 Android & iOS 開發者社群，互相測試，讓專案順利公開發布！</p>
+      <p class="hero-subtitle">Android 開發者互助測試社群</p>
     </div>
     <button class="btn btn-tonal" onclick="switchTab('publish')" style="background: white; color: var(--md-sys-color-primary);">
       <span class="material-symbols-outlined">add</span> 刊登我的 App
@@ -15,16 +15,47 @@
   <div class="filter-section">
     <div class="search-box">
       <span class="material-symbols-outlined" style="color: var(--md-sys-color-outline);">search</span>
-      <input type="text" id="search-input" class="search-input" placeholder="搜尋專案名稱、包名或開發者...">
+      <input type="text" id="search-input-android" class="search-input" placeholder="搜尋專案名稱、包名或開發者...">
     </div>
   </div>
 
-  <div id="market-app-list" class="app-grid"></div>
+  <div id="market-app-list-android" class="app-grid"></div>
 
   <div style="text-align: center; margin-top: 36px;">
-    <button id="btn-load-more" class="btn btn-tonal" style="padding: 12px 32px;">
+    <button id="btn-load-more-android" class="btn btn-tonal" style="padding: 12px 32px;">
       <span class="material-symbols-outlined">expand_more</span> 載入更多專案
     </button>
-    <div id="no-more-msg" style="display: none; color: #888; margin-top: 12px; font-size: 0.9rem;">已載入全部專案！</div>
+    <div id="no-more-msg-android" style="display: none; color: #888; margin-top: 12px; font-size: 0.9rem;">已載入全部專案！</div>
+  </div>
+</div>
+
+<div id="view-market-ios" class="tab-content">
+  <div class="hero-banner">
+    <div>
+      <h1 class="hero-title">
+        <span class="material-symbols-outlined" style="font-size: 32px;">phone_iphone</span>
+        App Store 市集
+      </h1>
+      <p class="hero-subtitle">iOS 開發者互助測試社群</p>
+    </div>
+    <button class="btn btn-tonal" onclick="switchTab('publish')" style="background: white; color: var(--md-sys-color-primary);">
+      <span class="material-symbols-outlined">add</span> 刊登我的 App
+    </button>
+  </div>
+
+  <div class="filter-section">
+    <div class="search-box">
+      <span class="material-symbols-outlined" style="color: var(--md-sys-color-outline);">search</span>
+      <input type="text" id="search-input-ios" class="search-input" placeholder="搜尋專案名稱、包名或開發者...">
+    </div>
+  </div>
+
+  <div id="market-app-list-ios" class="app-grid"></div>
+
+  <div style="text-align: center; margin-top: 36px;">
+    <button id="btn-load-more-ios" class="btn btn-tonal" style="padding: 12px 32px;">
+      <span class="material-symbols-outlined">expand_more</span> 載入更多專案
+    </button>
+    <div id="no-more-msg-ios" style="display: none; color: #888; margin-top: 12px; font-size: 0.9rem;">已載入全部專案！</div>
   </div>
 </div>

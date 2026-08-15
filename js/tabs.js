@@ -15,27 +15,52 @@ export function switchTab(tabName, params = {}) {
     return;
   }
   
+  // Map market tabs
+  let targetTabName = tabName;
+  if (tabName === 'market-android') {
+    targetTabName = 'market-android';
+  } else if (tabName === 'market-ios') {
+    targetTabName = 'market-ios';
+  }
+
   // Hide all tab contents
   document.querySelectorAll('.tab-content').forEach(el => {
     el.classList.remove('active');
   });
   
   // Show selected tab
-  const targetTab = document.getElementById(`view-${tabName}`);
+  const targetTab = document.getElementById(`view-${targetTabName}`);
   if (targetTab) {
     targetTab.classList.add('active');
   } else {
-    console.warn(`Tab view not found: view-${tabName}`);
+    console.warn(`Tab view not found: view-${targetTabName}`);
   }
+  
+  // Update URL hash
+  navigate(tabName, params);
+  
+  // Update header active button state
+  updateMarketTabUI(tabName);
   
   // Close dropdown if open
   window.closeProfileDropdown?.();
   
   // Load data for specific tabs
-  if (tabName === 'market') {
-    window.fetchMarketApps?.(true);
+  if (tabName === 'market-android') {
+    window.fetchMarketAppsAndroid?.();
+  } else if (tabName === 'market-ios') {
+    window.fetchMarketAppsIos?.();
   } else if ((tabName === 'devProfile' || tabName === 'dev-profile') && window.currentUser) {
     // dev-profile handles its own loading
+  }
+}
+
+function updateMarketTabUI(tabName) {
+  const androidBtn = document.getElementById('btn-market-android');
+  const iosBtn = document.getElementById('btn-market-ios');
+  if (androidBtn && iosBtn) {
+    androidBtn.classList.toggle('active', tabName === 'market-android');
+    iosBtn.classList.toggle('active', tabName === 'market-ios');
   }
 }
 
