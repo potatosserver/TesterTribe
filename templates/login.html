@@ -30,9 +30,23 @@
     </p>
 
     <div style="text-align: center; margin-top: 24px;">
-      <button class="btn btn-tonal" onclick="window.switchTab('market')" style="padding: 8px 16px; font-size: 0.875rem;">
+      <button class="btn btn-tonal" onclick="window.switchTab('market-android')" style="padding: 8px 16px; font-size: 0.875rem;">
         <span class="material-symbols-outlined">arrow_back</span> 返回市集瀏覽
       </button>
     </div>
   </div>
+
+  <script type="module">
+    // Check if already logged in and redirect
+    import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
+    import { auth } from './js/firebase-config.js';
+    import { navigate, getStoreFromUrl } from './js/router.js';
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        const store = getStoreFromUrl();
+        navigate('dev-profile', { store, authorIdentifier: user.uid });
+      }
+    });
+  </script>
 </div>
