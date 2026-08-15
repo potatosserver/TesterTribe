@@ -13,30 +13,23 @@ export function setupDetail() {
 }
 
 async function openAppDetail(appId) {
-  // Get the store from the current URL (this works whether we are in the market or in the appDetail)
   const store = getStoreFromUrl();
-  // If appId is provided, use it; otherwise, try to get it from the URL
   const id = appId || getAppIdFromUrl();
+  
   if (!id) {
     window.switchTab('market');
     return;
   }
 
-  // If we were given an appId (i.e., we are not just refreshing the current appDetail), then update the URL to include the store and appId
-  if (appId) {
-    window.switchTab('appDetail', { store, appId: id });
-  } else {
-    // We are just refreshing, so we don't need to change the URL, just stay on the current tab
-    window.switchTab('appDetail');
-  }
-
+  window.navigate('app-detail', { store, appId: id });
+  
   window.currentDetailAppId = id;
   
   const detailContent = document.getElementById('detail-content');
   detailContent.innerHTML = '<div style="text-align:center; padding:40px;">載入專案資訊中...</div>';
 
   try {
-    const appSnap = await getDoc(doc(db, 'apps', appId));
+    const appSnap = await getDoc(doc(db, 'apps', id));
     if (!appSnap.exists()) return detailContent.innerHTML = '找不到該專案。';
 
     const appData = appSnap.data();
@@ -52,14 +45,14 @@ async function openAppDetail(appId) {
 
     if (window.currentUser) {
       const [likeSnap, testerSnap] = await Promise.all([
-        getDoc(doc(db, 'apps', appId, 'likes', window.currentUser.uid)),
-        getDoc(doc(db, 'apps', appId, 'testers', window.currentUser.uid))
+        getDoc(doc(db, 'apps', id, 'likes', window.currentUser.uid)),
+        getDoc(doc(db, 'apps', id, 'testers', window.currentUser.uid))
       ]);
       isLiked = likeSnap.exists();
       isJoined = testerSnap.exists();
     }
 
-    const feedbackQ = query(collection(db, 'apps', appId, 'feedbacks'));
+    const feedbackQ = query(collection(db, 'apps', id, 'feedbacks'));
     const feedbackSnap = await getDocs(feedbackQ);
     let rawFeedbacks = [];
 

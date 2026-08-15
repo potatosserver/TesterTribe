@@ -9,17 +9,15 @@ export function setupDevProfile() {
 }
 
 async function openDevProfile(authorUid, authorName) {
-  // If no authorUid provided, try to get from URL params
   const store = getStoreFromUrl();
-  const platform = getPlatformFromUrl();
-  const authorIdentifier = getAuthorIdentifierFromUrl() || authorUid;
+  const authorIdentifier = authorUid || getAuthorIdentifierFromUrl();
   
   if (!authorIdentifier) {
     window.switchTab('market');
     return;
   }
 
-  window.switchTab('devProfile', { store, authorIdentifier: authorIdentifier });
+  window.navigate('dev-profile', { store, authorIdentifier: authorIdentifier });
   
   const loadingEl = document.getElementById('dev-profile-loading');
   const mainEl = document.getElementById('dev-profile-main');

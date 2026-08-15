@@ -1,10 +1,10 @@
 // Hash-based router for deep linking
 // URL Structure: #market/google-play, #market/app-store, #app/google-play/com.example.app, #app/google-play/appId, #dev/google-play/developerName
 export const routes = {
-  market: { template: 'market', handler: 'setupMarket' },
-  appDetail: { template: 'app-detail', handler: 'setupDetail' },
-  devProfile: { template: 'dev-profile', handler: 'setupDevProfile' },
-  publish: { template: 'publish', handler: 'setupPublish' }
+  'market': { template: 'market', handler: 'setupMarket' },
+  'app-detail': { template: 'app-detail', handler: 'setupDetail' },
+  'dev-profile': { template: 'dev-profile', handler: 'setupDevProfile' },
+  'publish': { template: 'publish', handler: 'setupPublish' }
 };
 
 const STORE_MAPPING = {
@@ -21,6 +21,7 @@ let currentRoute = null;
 let routeParams = {};
 
 export function initRouter() {
+  window.navigate = navigate; // Mount to window for global access
   window.addEventListener('hashchange', handleHashChange);
   handleHashChange(); // Handle initial load
 }
@@ -44,27 +45,21 @@ function handleHashChange() {
   const newParams = {};
   
   if (routeName === 'market') {
-    // #market/google-play or #market/app-store
     const store = parts[1] || 'google-play';
     newParams.store = store;
     newParams.platform = STORE_MAPPING[store] || 'android';
-  } else if (routeName === 'appDetail') {
-    // #appDetail/google-play/com.example.app or #appDetail/google-play/appId
+  } else if (routeName === 'app-detail') {
     const store = parts[1] || 'google-play';
     const identifier = parts[2];
     newParams.store = store;
     newParams.platform = STORE_MAPPING[store] || 'android';
     
-    // Try to determine if it's a packageName (contains dots) or appId
     if (identifier && identifier.includes('.')) {
-      // Likely a packageName like com.example.app
       newParams.packageName = identifier;
     } else {
-      // Treat as appId (Firestore document ID)
       newParams.appId = identifier;
     }
-  } else if (routeName === 'devProfile') {
-    // #devProfile/google-play/developerName or #devProfile/google-play/uid
+  } else if (routeName === 'dev-profile') {
     const store = parts[1] || 'google-play';
     const authorIdentifier = parts[2];
     newParams.store = store;
@@ -72,7 +67,6 @@ function handleHashChange() {
     newParams.authorIdentifier = authorIdentifier;
   }
 
-  // Always update route params and trigger switchTab
   routeParams = newParams;
   currentRoute = routeName;
   switchTab(routeName, newParams);
@@ -80,18 +74,25 @@ function handleHashChange() {
 
 export function navigate(routeName, params = {}) {
   let hash = routeName;
-  if (params.store) {
-    hash += `/${params.store}`;
+  
+  if (routeName === 'market') {
+    if (params.store) hash += `/${params.store}`;
+  } else if (routeName === 'app-detail') {
+    const store = params.store || 'google-play';
+    hash += `/${store}`;
+    if (params.packageName) {
+      hash += `/${encodeURIComponent(params.packageName)}`;
+    } else if (params.appId) {
+      hash += `/${encodeURIComponent(params.appId)}`;
+    }
+  } else if (routeName === 'dev-profile') {
+    const store = params.store || 'google-play';
+    hash += `/${store}`;
+    if (params.authorIdentifier) {
+      hash += `/${encodeURIComponent(params.authorIdentifier)}`;
+    }
   }
-  if (params.packageName) {
-    hash += `/${encodeURIComponent(params.packageName)}`;
-  }
-  if (params.authorIdentifier) {
-    hash += `/${encodeURIComponent(params.authorIdentifier)}`;
-  }
-  if (params.appId && routeName === 'appDetail') {
-    hash += `/${encodeURIComponent(params.appId)}`;
-  }
+  
   window.location.hash = hash;
 }
 
