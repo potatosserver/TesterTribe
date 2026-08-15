@@ -405,13 +405,31 @@ async function toggleJoinTestDetail(appId, isJoined) {
     clearStepChecks(appId);
   }
   
+  const appRef = doc(db, 'apps', appId);
   const testerRef = doc(db, 'apps', appId, 'testers', window.currentUser.uid);
   
-  if (isJoined) {
-    await deleteDoc(testerRef);
-  } else {
-    await setDoc(testerRef, { joinedAt: serverTimestamp() });
+  try {
+    if (isJoined) {
+      // Leaving test
+      await deleteDoc(testerRef);
+      // Decrement joinCount
+      const appSnap = await getDoc(appRef);
+      const currentCount = appSnap.data()?.joinCount || 0;
+      await updateDoc(appRef, { joinCount: Math.max(0, currentCount - 1) });
+    } else {
+      // Joining test
+      await setDoc(testerRef, { joinedAt: serverTimestamp() });
+      // Increment joinCount
+      const appSnap = await getDoc(appRef);
+      const currentCount = appSnap.data()?.joinCount || 0;
+      await updateDoc(appRef, { joinCount: currentCount + 1 });
+    }
+  } catch (err) {
+    console.error('更新測試狀態失敗:', err);
+    m3Error('操作失敗：' + err.message);
+    return;
   }
+  
   window.openAppDetail(appId); // Refresh
 }
 
