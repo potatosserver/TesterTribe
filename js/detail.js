@@ -40,7 +40,7 @@ async function openAppDetail(appId) {
   const id = appId || getAppIdFromUrl();
   
   if (!id) {
-    window.switchTab('market');
+    window.switchTab('market-android');
     return;
   }
   
@@ -64,6 +64,9 @@ async function openAppDetail(appId) {
     const isCompleted = joinCount >= MAX_TESTERS;
     const platform = appData.platform || 'android';
     const isAppAuthor = window.currentUser && (window.currentUser.uid === appData.authorUid);
+    
+    // Number of required steps based on platform
+    const REQUIRED_STEPS = platform === 'ios' ? 1 : 3;
     
     let isLiked = false;
     let isJoined = false;
@@ -208,7 +211,7 @@ async function openAppDetail(appId) {
                   </span>
                 </label>
               ` : `
-                <label class="gp-step-btn" data-step="1" data-url="${escapeHTML(appData.storeUrl)}">
+                <label class="gp-step-btn" data-step="1" data-url="${escapeHTML(appData.storeUrl || appData.testFlightUrl)}">
                   <input type="checkbox" class="gp-step-check" data-step="1" ${getStepChecked(1, id) ? 'checked' : ''}>
                   <span class="gp-step-content">
                     <span class="material-symbols-outlined">flight_takeoff</span>
@@ -242,7 +245,7 @@ async function openAppDetail(appId) {
 
             <div class="gp-sidebar-item">
               <div class="gp-sidebar-label">
-                Google 封閉測試進度 
+                ${platform === 'ios' ? 'TestFlight 測試進度' : 'Google 封閉測試進度'} 
                 <span id="detail-progress-text" style="color: ${isCompleted ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-error)'}; font-weight: 700;">
                   ${joinCount} / ${MAX_TESTERS} 人 (${progressPercent}%)
                 </span>
@@ -384,27 +387,43 @@ async function handleToggleLikeDetail(appId) {
 async function toggleJoinTestDetail(appId, isJoined) {
   if (!window.currentUser) return m3Alert('請先登入！');
   
+  // Get app data to determine platform
+  const appRef = doc(db, 'apps', appId);
+  const appSnap = await getDoc(appRef);
+  const appData = appSnap.data();
+  const platform = appData?.platform || 'android';
+  const REQUIRED_STEPS = platform === 'ios' ? 1 : 3;
+  
   if (!isJoined) {
     // Check if test is already full
-    const appSnap = await getDoc(doc(db, 'apps', appId));
-    const appData = appSnap.data();
-    const currentJoinCount = appData?.joinCount || 0;
+    const appSnap2 = await getDoc(doc(db, 'apps', appId));
+    const appData2 = appSnap2.data();
+    const currentJoinCount = appData2?.joinCount || 0;
     const MAX_TESTERS = 12;
-    
     if (currentJoinCount >= MAX_TESTERS) {
       m3Alert(`測試名額已滿（${MAX_TESTERS} 人），無法加入。`, '名額已滿');
       return;
     }
     
-    // Check if all 3 steps are completed in order
+    // Check if all required steps are completed in order
     const stepChecks = getStepChecks(appId);
-    const allStepsCompleted = stepChecks[1] === true && stepChecks[2] === true && stepChecks[3] === true;
+    let allStepsCompleted = true;
+    for (let i = 1; i <= REQUIRED_STEPS; i++) {
+      if (stepChecks[i] !== true) {
+        allStepsCompleted = false;
+        break;
+      }
+    }
     
     if (!allStepsCompleted) {
       // Find the first incomplete step
       let nextStep = 1;
-      if (stepChecks[1] === true) nextStep = 2;
-      if (stepChecks[1] === true && stepChecks[2] === true) nextStep = 3;
+      for (let i = 1; i <= REQUIRED_STEPS; i++) {
+        if (stepChecks[i] !== true) {
+          nextStep = i;
+          break;
+        }
+      }
       
       m3Alert(`請先按順序完成所有測試步驟（步驟 ${nextStep} 尚未完成），再回報已加入測試。`, '步驟未完成');
       return;
@@ -423,7 +442,6 @@ async function toggleJoinTestDetail(appId, isJoined) {
     clearStepChecks(appId);
   }
   
-  const appRef = doc(db, 'apps', appId);
   const testerRef = doc(db, 'apps', appId, 'testers', window.currentUser.uid);
   
   try {
