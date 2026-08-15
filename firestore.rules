@@ -17,9 +17,9 @@ service cloud.firestore {
 
     // --- Collections ---
 
-    // ✅ Users: 允許登入用戶讀取，僅允許本人寫入
+    // ✅ Users: 允許所有人讀取公開資料，僅允許本人寫入
     match /users/{userId} {
-      allow read: if isSignedIn();
+      allow read: if true;
       allow create, update: if isOwner(userId);
       allow delete: if false;
     }
