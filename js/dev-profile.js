@@ -127,8 +127,9 @@ async function openDevProfile(authorUid, authorName) {
     apps.forEach((appData) => {
       const avgRating = appData.ratingCount ? (appData.ratingSum / appData.ratingCount).toFixed(1) : '尚無';
       const joinCount = appData.joinCount || 0;
-      const progressPercent = Math.min(100, Math.round((joinCount / 20) * 100));
-      const isUrgent = joinCount < 20;
+      const MAX_TESTERS = 12;
+      const progressPercent = Math.min(100, Math.round((joinCount / MAX_TESTERS) * 100));
+      const isCompleted = joinCount >= MAX_TESTERS;
       const platform = appData.platform || platform;
 
       const card = document.createElement('div');
@@ -157,8 +158,6 @@ async function openDevProfile(authorUid, authorName) {
       `;
 
       card.innerHTML = `
-        ${isUrgent ? `<div class="urgent-tag"><span class="material-symbols-outlined" style="font-size:14px;">bolt</span> 急需測試</div>` : ''}
-
         <div>
           <div class="app-header">
             <img class="app-icon" src="${escapeHTML(appData.iconUrl)}" onerror="this.onerror=null; this.src=window.DEFAULT_ICON;">
@@ -181,10 +180,10 @@ async function openDevProfile(authorUid, authorName) {
           <div class="progress-section">
             <div class="progress-text">
               <span>測試進度</span>
-              <span>${joinCount} / 20 人 (${progressPercent}%)</span>
+              <span style="color: ${isCompleted ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-error)'}; font-weight: 700;">${joinCount} / ${MAX_TESTERS} 人 (${progressPercent}%)</span>
             </div>
             <div class="progress-bar-bg">
-              <div class="progress-bar-fill" style="width: ${progressPercent}%;"></div>
+              <div class="progress-bar-fill" style="width: ${progressPercent}%; background: ${isCompleted ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-error)'};"></div>
             </div>
           </div>
         </div>

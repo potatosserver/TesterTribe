@@ -59,7 +59,9 @@ async function openAppDetail(appId) {
     const screenshots = appData.screenshotUrls || [];
     const avgRating = appData.ratingCount ? (appData.ratingSum / appData.ratingCount).toFixed(1) : '尚無';
     const joinCount = appData.joinCount || 0;
-    const progressPercent = Math.min(100, Math.round((joinCount / 20) * 100));
+    const MAX_TESTERS = 12;
+    const progressPercent = Math.min(100, Math.round((joinCount / MAX_TESTERS) * 100));
+    const isCompleted = joinCount >= MAX_TESTERS;
     const platform = appData.platform || 'android';
     const isAppAuthor = window.currentUser && (window.currentUser.uid === appData.authorUid);
     
@@ -239,13 +241,18 @@ async function openAppDetail(appId) {
             <hr class="gp-divider">
 
             <div class="gp-sidebar-item">
-              <div class="gp-sidebar-label">Google 封閉測試進度 (${joinCount} / 20 人)</div>
-              <div class="progress-bar-bg" style="margin-bottom:12px;">
-                <div class="progress-bar-fill" style="width: ${progressPercent}%;"></div>
+              <div class="gp-sidebar-label">
+                Google 封閉測試進度 
+                <span id="detail-progress-text" style="color: ${isCompleted ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-error)'}; font-weight: 700;">
+                  ${joinCount} / ${MAX_TESTERS} 人 (${progressPercent}%)
+                </span>
               </div>
-              <button onclick="window.toggleJoinTestDetail('${id}', ${isJoined})" class="btn ${isJoined ? 'btn-error' : 'btn-primary'}" style="width:100%; padding:12px;">
-                <span class="material-symbols-outlined">${isJoined ? 'cancel' : 'check_circle'}</span>
-                ${isJoined ? '已加入測試 (點擊退出)' : '回報已加入測試'}
+              <div class="progress-bar-bg" style="margin-bottom:12px;">
+                <div class="progress-bar-fill" style="width: ${progressPercent}%; background: ${isCompleted ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-error)'};"></div>
+              </div>
+              <button onclick="window.toggleJoinTestDetail('${id}', ${isJoined})" class="btn ${isJoined ? 'btn-error' : (isCompleted ? 'btn-tonal' : 'btn-primary')}" style="width:100%; padding:12px;" ${isCompleted && !isJoined ? 'disabled' : ''}>
+                <span class="material-symbols-outlined">${isJoined ? 'cancel' : (isCompleted ? 'check_circle' : 'check_circle')}</span>
+                ${isJoined ? '已加入測試 (點擊退出)' : (isCompleted ? '測試名額已滿' : '回報已加入測試')}
               </button>
             </div>
           </div>
@@ -378,6 +385,17 @@ async function toggleJoinTestDetail(appId, isJoined) {
   if (!window.currentUser) return m3Alert('請先登入！');
   
   if (!isJoined) {
+    // Check if test is already full
+    const appSnap = await getDoc(doc(db, 'apps', appId));
+    const appData = appSnap.data();
+    const currentJoinCount = appData?.joinCount || 0;
+    const MAX_TESTERS = 12;
+    
+    if (currentJoinCount >= MAX_TESTERS) {
+      m3Alert(`測試名額已滿（${MAX_TESTERS} 人），無法加入。`, '名額已滿');
+      return;
+    }
+    
     // Check if all 3 steps are completed in order
     const stepChecks = getStepChecks(appId);
     const allStepsCompleted = stepChecks[1] === true && stepChecks[2] === true && stepChecks[3] === true;
