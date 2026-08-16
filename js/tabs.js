@@ -4,9 +4,12 @@ import { m3LoginRequired } from './m3-dialog.js';
 
 const PROTECTED_TABS = ['publish'];
 
-export function switchTab(tabName, params = {}) {
-  // Check if tab requires authentication
-  if (PROTECTED_TABS.includes(tabName) && !window.currentUser) {
+// Internal flag to prevent navigate() loop
+let isInternalNavigation = false;
+
+export function switchTab(tabName, params = {}, internal = false) {
+  // Check if tab requires authentication (only for user-initiated navigation)
+  if (!internal && PROTECTED_TABS.includes(tabName) && !window.currentUser) {
     m3LoginRequired('請先登入才能刊登 App 專案');
     return;
   }
@@ -36,8 +39,10 @@ export function switchTab(tabName, params = {}) {
     console.warn(`Tab view not found: view-${targetTabName}`);
   }
   
-  // Update URL hash
-  navigate(tabName, params);
+  // Update URL only for user-initiated navigation
+  if (!internal) {
+    navigate(tabName, params);
+  }
   
   // Update header active button state
   updateMarketTabUI(tabName);

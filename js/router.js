@@ -1,5 +1,5 @@
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
-// URL Structure: #market/android, #market/ios, #app/google-play/com.example.app, #dev-profile/google-play/user%40email.com, #login, #home, #terms, #privacy, #guidelines, #contact
+// URL Structure: /market/android, /market/ios, /app/google-play/com.example.app, /dev-profile/google-play/user%40email.com, /login, /home, /terms, /privacy, /guidelines, /contact
 export const routes = {
   'home': { template: 'home', handler: 'setupHome' },
   'market': { template: 'market', handler: 'setupMarket' },
@@ -57,23 +57,20 @@ export async function initRouter() {
   window.getPlatformFromUrl = getPlatformFromUrl;
   window.getPackageNameFromUrl = getPackageNameFromUrl;
   window.getAuthorEmailFromUrl = getAuthorEmailFromUrl;
-  window.addEventListener('hashchange', handleHashChange);
+  window.addEventListener('popstate', handlePopState);
   await waitForAuth();
-  handleHashChange(); // Handle initial load after auth is ready
+  handlePopState(); // Handle initial load after auth is ready
 }
 
-export function handleHashChange() {
-  const hash = window.location.hash.slice(1); // Remove #
-  if (!hash) {
-    navigate('home');
-    return;
-  }
-
-  const parts = hash.split('/');
-  const routeName = parts[0];
+export function handlePopState() {
+  const path = window.location.pathname;
+  // Remove leading slash and split
+  const parts = path.split('/').filter(p => p);
+  const routeName = parts[0] || 'home';
   const route = routes[routeName];
   
   if (!route) {
+    // Use navigate for redirects (will push new state)
     navigate('market-android');
     return;
   }
@@ -133,9 +130,14 @@ export function handleHashChange() {
     // Static pages - no additional params needed
   }
 
+  applyRoute(routeName, newParams);
+}
+
+// Internal: apply route without pushing history (used by popstate and initial load)
+function applyRoute(routeName, newParams) {
   routeParams = newParams;
   currentRoute = routeName;
-  switchTab(routeName, newParams);
+  switchTab(routeName, newParams, true); // internal = true to prevent navigate() loop
   
   // Load data for detail and dev-profile tabs when navigating via URL
   if (routeName === 'app') {
@@ -147,7 +149,7 @@ export function handleHashChange() {
 }
 
 export function navigate(routeName, params = {}) {
-  let hash = routeName;
+  let path = '/' + routeName;
   
   if (routeName === 'home') {
     // No additional params needed
@@ -155,19 +157,53 @@ export function navigate(routeName, params = {}) {
     // No additional params needed
   } else if (routeName === 'app') {
     const store = params.store || 'google-play';
-    hash += `/${store}`;
+    path += `/${store}`;
     if (params.packageName) {
-      hash += `/${encodeURIComponent(params.packageName)}`;
+      path += `/${encodeURIComponent(params.packageName)}`;
     }
   } else if (routeName === 'dev-profile') {
     const store = params.store || 'google-play';
-    hash += `/${store}`;
+    path += `/${store}`;
     if (params.authorEmail) {
-      hash += `/${encodeURIComponent(params.authorEmail)}`;
+      path += `/${encodeURIComponent(params.authorEmail)}`;
     }
   }
   
-  window.location.hash = hash;
+  window.history.pushState({}, '', path);
+  // Parse and apply route immediately (without triggering popstate)
+  const parts = path.split('/').filter(p => p);
+  const rName = parts[0] || 'home';
+  const newParams = {};
+  
+  if (rName === 'home') {
+  } else if (rName === 'market-android' || rName === 'market-ios') {
+    const platform = rName === 'market-android' ? 'android' : 'ios';
+    const store = rName === 'market-android' ? 'google-play' : 'app-store';
+    newParams.platform = platform;
+    newParams.store = store;
+  } else if (rName === 'market') {
+    navigate('market-android');
+    return;
+  } else if (rName === 'app') {
+    const store = parts[1] || 'google-play';
+    const packageName = parts[2];
+    newParams.store = store;
+    newParams.platform = STORE_MAPPING[store] || 'android';
+    if (packageName) {
+      newParams.packageName = decodeURIComponent(packageName);
+    }
+  } else if (rName === 'dev-profile') {
+    const store = parts[1] || 'google-play';
+    const email = parts[2];
+    newParams.store = store;
+    newParams.platform = STORE_MAPPING[store] || 'android';
+    if (email) {
+      newParams.authorEmail = decodeURIComponent(email);
+    }
+  } else if (rName === 'terms' || rName === 'privacy' || rName === 'guidelines' || rName === 'contact') {
+  }
+  
+  applyRoute(rName, newParams);
 }
 
 // Getters for modules

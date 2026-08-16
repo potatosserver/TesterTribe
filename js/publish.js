@@ -80,7 +80,7 @@ export function setupPublish() {
       m3Success('App 專案刊登成功！');
       appForm.reset();
       window.fetchMarketApps?.(true);
-      window.switchTab('market-android');
+      window.navigate('market-android');
     } catch (err) { 
       m3Error('發布失敗：' + err.message); 
     }

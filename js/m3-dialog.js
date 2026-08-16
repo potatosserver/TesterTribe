@@ -437,7 +437,7 @@ export function m3LoginRequired(message = '請先登入才能使用此功能', t
     destructive: false,
     onConfirm: () => {
       window.authSetLoginOrigin?.();
-      window.switchTab('login');
+      window.navigate('login');
     },
     onCancel: () => {}
   });

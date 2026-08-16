@@ -25,7 +25,7 @@ export function setupAuth() {
     const confirmed = await m3Confirm('確定登出？', '確認登出');
     if (confirmed) { 
       await signOut(auth); 
-      window.switchTab('market'); 
+      window.navigate('market-android'); 
     } 
   };
 

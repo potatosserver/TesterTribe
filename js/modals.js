@@ -233,7 +233,7 @@ async function handleEditAppSubmit(e) {
       const store = getStoreFromUrl();
       window.navigate('dev-profile', { store, authorEmail: window.currentUser.email });
     } else {
-      window.switchTab('market-android');
+      window.navigate('market-android');
     }
     
     window.loadMyApps?.();
@@ -263,7 +263,7 @@ async function confirmDeleteApp() {
       const store = getStoreFromUrl();
       window.navigate('dev-profile', { store, authorEmail: window.currentUser.email });
     } else {
-      window.switchTab('market-android');
+      window.navigate('market-android');
     }
     
     window.loadMyApps?.();

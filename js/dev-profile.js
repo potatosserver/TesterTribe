@@ -10,15 +10,13 @@ export function setupDevProfile() {
 }
 
 async function openDevProfile(authorUid, authorName, authorEmail) {
-  const store = getStoreFromUrl();
-  const authorIdentifier = authorEmail || authorUid || getAuthorEmailFromUrl();
+  // Get author identifier from URL params (set by applyRoute)
+  const authorIdentifier = getAuthorEmailFromUrl();
   
   if (!authorIdentifier) {
-    window.switchTab('market');
+    window.navigate('market-android');
     return;
   }
-
-  window.navigate('dev-profile', { store, authorEmail: authorIdentifier });
   
   const loadingEl = document.getElementById('dev-profile-loading');
   const mainEl = document.getElementById('dev-profile-main');
