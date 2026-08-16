@@ -24,18 +24,7 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // ✅ Market Apps (Google Play/App Store)
-    match /apps_google_play/{appId} {
-      allow read: if true;
-      allow write: if false;
-    }
-
-    match /apps_app_store/{appId} {
-      allow read: if true;
-      allow write: if false;
-    }
-
-    // ✅ Core Apps (主 App 數據集)
+    // ✅ Core Apps (主 App 數據集) - 統一使用 apps 集合
     match /apps/{appId} {
       allow read: if true;
 

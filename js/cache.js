@@ -9,8 +9,26 @@ class FirestoreCache {
   }
 
   // Generate cache key from collection, query constraints
+  // Normalizes constraints order to ensure same logical query gets same key
   getCacheKey(collectionName, constraints = []) {
-    const constraintStr = constraints.map(c => {
+    // Sort constraints by field name, then by operator, then by value
+    // This ensures that queries with same constraints in different order get the same cache key
+    const sortedConstraints = [...constraints].sort((a, b) => {
+      // First sort by field name
+      if (a.field !== b.field) {
+        return a.field.localeCompare(b.field);
+      }
+      // Then by operator
+      if (a.op !== b.op) {
+        return a.op.localeCompare(b.op);
+      }
+      // Then by value (convert to string for comparison)
+      const valA = a.value !== undefined ? String(a.value) : '';
+      const valB = b.value !== undefined ? String(b.value) : '';
+      return valA.localeCompare(valB);
+    });
+    
+    const constraintStr = sortedConstraints.map(c => {
       // For ordering constraints, there is no value
       if (c.op === 'desc' || c.op === 'asc') {
         return `${c.field}_${c.op}`;

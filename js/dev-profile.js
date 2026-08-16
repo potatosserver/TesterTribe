@@ -2,16 +2,19 @@
 import { collection, query, where, getDocs, doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { db } from './firebase-config.js';
 import { escapeHTML, formatDate, formatDateOnly } from './utils.js';
-import { getStoreFromUrl, getPlatformFromUrl, getAuthorEmailFromUrl } from './router.js';
+import { getStoreFromUrl, getPlatformFromUrl, getAuthorEmailFromUrl, getAuthorUidFromUrl } from './router.js';
 import { m3Alert, m3Confirm, m3Error, m3Success } from './m3-dialog.js';
 
 export function setupDevProfile() {
   window.openDevProfile = openDevProfile;
 }
 
-async function openDevProfile(authorUid, authorName, authorEmail) {
+async function openDevProfile() {
   // Get author identifier from URL params (set by applyRoute)
-  const authorIdentifier = getAuthorEmailFromUrl();
+  // Prefer UID for efficient lookup, fallback to email for backward compatibility
+  const authorUidFromUrl = getAuthorUidFromUrl();
+  const authorEmailFromUrl = getAuthorEmailFromUrl();
+  const authorIdentifier = authorUidFromUrl || authorEmailFromUrl;
   
   if (!authorIdentifier) {
     window.navigate('market-android');
@@ -25,12 +28,20 @@ async function openDevProfile(authorUid, authorName, authorEmail) {
   document.getElementById('dev-empty-state').style.display = 'none';
 
   try {
-    // Fetch user by Email (authorIdentifier is now an email from URL parameter)
+    // Fetch user by UID (preferred) or Email (fallback)
     let userSnap;
     let actualUid;
       
-    if (authorIdentifier.includes('@')) {
-      const usersQuery = query(collection(db, 'users'), where('email', '==', authorIdentifier));
+    if (authorUidFromUrl) {
+      // Direct UID lookup - most efficient
+      userSnap = await getDoc(doc(db, 'users', authorUidFromUrl));
+      if (!userSnap.exists()) {
+        throw new Error('找不到該開發者');
+      }
+      actualUid = userSnap.id;
+    } else if (authorEmailFromUrl) {
+      // Fallback to email query for backward compatibility
+      const usersQuery = query(collection(db, 'users'), where('email', '==', authorEmailFromUrl));
       const usersSnapshot = await getDocs(usersQuery);
       if (usersSnapshot.empty) {
         throw new Error('找不到該開發者');
@@ -39,12 +50,7 @@ async function openDevProfile(authorUid, authorName, authorEmail) {
       userSnap = matchedDoc;
       actualUid = matchedDoc.id;
     } else {
-      // Fallback to UID if the identifier doesn't look like an email
-      userSnap = await getDoc(doc(db, 'users', authorIdentifier));
-      if (!userSnap.exists()) {
-        throw new Error('開發者不存在');
-      }
-      actualUid = userSnap.id;
+      throw new Error('無效的開發者識別碼');
     }
       
     const userData = userSnap.data();

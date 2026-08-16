@@ -70,30 +70,38 @@ export function handlePopState() {
   const route = routes[routeName];
   
   if (!route) {
-    // Use navigate for redirects (will push new state)
-    navigate('market-android');
+    // Replace current history entry instead of pushing new one
+    window.history.replaceState({}, '', '/market-android');
+    // Parse and apply the corrected route
+    const correctedParts = ['market-android'];
+    const newParams = { platform: 'android', store: 'google-play' };
+    applyRoute('market-android', newParams);
     return;
   }
 
   // Check if route requires authentication
   const PROTECTED_ROUTES = ['publish'];
-  if (PROTECTED_ROUTES.includes(routeName) && !window.currentUser) {
-    navigate('login');
+  // Use auth.currentUser directly to avoid race condition with window.currentUser
+  const auth = getAuth();
+  if (PROTECTED_ROUTES.includes(routeName) && !auth.currentUser) {
+    // Replace current history entry instead of pushing new one
+    window.history.replaceState({}, '', '/login');
     // Show alert after navigation
     setTimeout(() => {
       import('./m3-dialog.js').then(({ m3Alert }) => {
         m3Alert('請先登入才能刊登 App 專案！', '需要登入', { confirmText: '登入' });
       });
     }, 0);
+    applyRoute('login', {});
     return;
   }
 
   // Special handling for login page: if already logged in, redirect to own dev profile
-  // Use getAuth().currentUser directly since window.currentUser might not be set yet
-  const auth = getAuth();
   if (routeName === 'login' && auth.currentUser) {
     const store = getStoreFromUrl();
-    window.navigate('dev-profile', { store, authorEmail: auth.currentUser.email });
+    // Replace current history entry
+    window.history.replaceState({}, '', `/dev-profile/${store}/${encodeURIComponent(auth.currentUser.uid)}`);
+    applyRoute('dev-profile', { store, authorUid: auth.currentUser.uid });
     return;
   }
 
@@ -120,11 +128,16 @@ export function handlePopState() {
     }
   } else if (routeName === 'dev-profile') {
     const store = parts[1] || 'google-play';
-    const email = parts[2];
+    const identifier = parts[2];
     newParams.store = store;
     newParams.platform = STORE_MAPPING[store] || 'android';
-    if (email) {
-      newParams.authorEmail = decodeURIComponent(email);
+    if (identifier) {
+      // Check if it's a UID (no @) or email (has @)
+      if (identifier.includes('@')) {
+        newParams.authorEmail = decodeURIComponent(identifier);
+      } else {
+        newParams.authorUid = decodeURIComponent(identifier);
+      }
     }
   } else if (routeName === 'terms' || routeName === 'privacy' || routeName === 'guidelines' || routeName === 'contact') {
     // Static pages - no additional params needed
@@ -142,7 +155,8 @@ function applyRoute(routeName, newParams) {
   // Load data for detail and dev-profile tabs when navigating via URL
   if (routeName === 'app') {
     const store = getStoreFromUrl();
-    window.openAppDetail(getPackageNameFromUrl(), store);
+    // skipNavigation=true because navigate() was already called (or this is initial load from popstate)
+    window.openAppDetail(getPackageNameFromUrl(), store, true);
   } else if (routeName === 'dev-profile') {
     window.openDevProfile();
   }
@@ -150,60 +164,51 @@ function applyRoute(routeName, newParams) {
 
 export function navigate(routeName, params = {}) {
   let path = '/' + routeName;
+  const newParams = {};
   
   if (routeName === 'home') {
     // No additional params needed
   } else if (routeName === 'market-android' || routeName === 'market-ios') {
-    // No additional params needed
+    const platform = routeName === 'market-android' ? 'android' : 'ios';
+    const store = routeName === 'market-android' ? 'google-play' : 'app-store';
+    newParams.platform = platform;
+    newParams.store = store;
+  } else if (routeName === 'market') {
+    // Legacy redirect - use replaceState to avoid history pollution
+    window.history.replaceState({}, '', '/market-android');
+    applyRoute('market-android', { platform: 'android', store: 'google-play' });
+    return;
   } else if (routeName === 'app') {
     const store = params.store || 'google-play';
     path += `/${store}`;
+    newParams.store = store;
+    newParams.platform = STORE_MAPPING[store] || 'android';
     if (params.packageName) {
       path += `/${encodeURIComponent(params.packageName)}`;
+      newParams.packageName = params.packageName;
     }
   } else if (routeName === 'dev-profile') {
     const store = params.store || 'google-play';
     path += `/${store}`;
-    if (params.authorEmail) {
+    newParams.store = store;
+    newParams.platform = STORE_MAPPING[store] || 'android';
+    if (params.authorUid) {
+      path += `/${encodeURIComponent(params.authorUid)}`;
+      newParams.authorUid = params.authorUid;
+    } else if (params.authorEmail) {
+      // Backward compatibility: support authorEmail in URL
       path += `/${encodeURIComponent(params.authorEmail)}`;
+      newParams.authorEmail = params.authorEmail;
     }
+  } else if (routeName === 'login') {
+    // No additional params needed
+  } else if (routeName === 'terms' || routeName === 'privacy' || routeName === 'guidelines' || routeName === 'contact') {
+    // Static pages - no additional params needed
   }
   
   window.history.pushState({}, '', path);
-  // Parse and apply route immediately (without triggering popstate)
-  const parts = path.split('/').filter(p => p);
-  const rName = parts[0] || 'home';
-  const newParams = {};
-  
-  if (rName === 'home') {
-  } else if (rName === 'market-android' || rName === 'market-ios') {
-    const platform = rName === 'market-android' ? 'android' : 'ios';
-    const store = rName === 'market-android' ? 'google-play' : 'app-store';
-    newParams.platform = platform;
-    newParams.store = store;
-  } else if (rName === 'market') {
-    navigate('market-android');
-    return;
-  } else if (rName === 'app') {
-    const store = parts[1] || 'google-play';
-    const packageName = parts[2];
-    newParams.store = store;
-    newParams.platform = STORE_MAPPING[store] || 'android';
-    if (packageName) {
-      newParams.packageName = decodeURIComponent(packageName);
-    }
-  } else if (rName === 'dev-profile') {
-    const store = parts[1] || 'google-play';
-    const email = parts[2];
-    newParams.store = store;
-    newParams.platform = STORE_MAPPING[store] || 'android';
-    if (email) {
-      newParams.authorEmail = decodeURIComponent(email);
-    }
-  } else if (rName === 'terms' || rName === 'privacy' || rName === 'guidelines' || rName === 'contact') {
-  }
-  
-  applyRoute(rName, newParams);
+  // Apply route directly without re-parsing (avoids double applyRoute)
+  applyRoute(routeName, newParams);
 }
 
 // Getters for modules
@@ -229,6 +234,10 @@ export function getPackageNameFromUrl() {
 
 export function getAuthorEmailFromUrl() {
   return routeParams.authorEmail;
+}
+
+export function getAuthorUidFromUrl() {
+  return routeParams.authorUid;
 }
 
 // Helper to convert platform to store name

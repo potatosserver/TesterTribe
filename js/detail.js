@@ -36,7 +36,7 @@ function clearStepChecks(appId) {
   localStorage.removeItem(key);
 }
 
-async function openAppDetail(appId, storeFromCard) {
+async function openAppDetail(appId, storeFromCard, skipNavigation = false) {
   const store = storeFromCard || getStoreFromUrl();
   const pkgName = appId || getPackageNameFromUrl();
   const platform = store === 'app-store' ? 'ios' : 'android';
@@ -46,7 +46,18 @@ async function openAppDetail(appId, storeFromCard) {
     return;
   }
   
-  window.navigate('app', { store, packageName: pkgName });
+  // Only navigate if not already on the correct route (avoids double query)
+  if (!skipNavigation) {
+    const currentRoute = window.getCurrentRoute?.();
+    const currentParams = window.getRouteParams?.();
+    const isAlreadyOnCorrectRoute = currentRoute === 'app' && 
+      currentParams?.packageName === pkgName && 
+      currentParams?.store === store;
+    
+    if (!isAlreadyOnCorrectRoute) {
+      window.navigate('app', { store, packageName: pkgName });
+    }
+  }
   
   window.currentDetailAppId = pkgName;
   
@@ -173,7 +184,7 @@ async function openAppDetail(appId, storeFromCard) {
                 包名：<code>${escapeHTML(appData.packageName) || '無'}</code>
               </div>
               <div style="font-size: 0.85rem; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                開發者：<a href="javascript:void(0)" onclick="window.navigate('dev-profile', { store: '${appData.store || (appData.platform === 'ios' ? 'app-store' : 'google-play')}', authorEmail: '${escapeHTML(appData.authorEmail || '')}' })" class="author-link">${escapeHTML(appData.authorName) || '匿名'}</a>
+                開發者：<a href="javascript:void(0)" onclick="window.navigate('dev-profile', { store: '${appData.store || (appData.platform === 'ios' ? 'app-store' : 'google-play')}', authorUid: '${escapeHTML(appData.authorUid || '')}' })" class="author-link">${escapeHTML(appData.authorName) || '匿名'}</a>
               </div>
             </div>
           </div>

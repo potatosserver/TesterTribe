@@ -33,7 +33,7 @@ export function setupAuth() {
   window.openMyProfile = () => {
     if (window.currentUser) {
       const store = getStoreFromUrl(); // Get current store from URL
-      window.navigate('dev-profile', { store, authorEmail: window.currentUser.email });
+      window.navigate('dev-profile', { store, authorUid: window.currentUser.uid });
     }
   };
 
@@ -113,17 +113,32 @@ export function setupAuth() {
 }
 
 // Check if user just logged in (coming from login page) and redirect to dev profile
-let wasOnLoginPage = false;
+// Use sessionStorage to persist across page refreshes and avoid SPA navigation issues
+function getLoginOrigin() {
+  return sessionStorage.getItem('auth_login_origin') === 'true';
+}
+
+function setLoginOrigin(value) {
+  if (value) {
+    sessionStorage.setItem('auth_login_origin', 'true');
+  } else {
+    sessionStorage.removeItem('auth_login_origin');
+  }
+}
+
 export function setWasOnLoginPage(value) {
-  wasOnLoginPage = value;
+  setLoginOrigin(value);
 }
 window.authSetLoginOrigin = setWasOnLoginPage;
 
 function checkAndRedirectAfterLogin(user) {
-  if (wasOnLoginPage && user) {
-    wasOnLoginPage = false;
-    const store = getStoreFromUrl();
-    window.navigate('dev-profile', { store, authorEmail: user.email });
+  if (getLoginOrigin() && user) {
+    setLoginOrigin(false);
+    // Get store from current URL path, fallback to google-play
+    const path = window.location.pathname;
+    const parts = path.split('/').filter(p => p);
+    const store = (parts[1] === 'app-store' || parts[1] === 'google-play') ? parts[1] : 'google-play';
+    window.navigate('dev-profile', { store, authorUid: user.uid });
   }
 }
 

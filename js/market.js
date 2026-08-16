@@ -65,35 +65,97 @@ function setupMarketPlatform(platformKey) {
     btnLoadMore.onclick = () => fetchMarketApps(platformKey, false);
   }
   
-  // Search input
+  // Search input - debounced Firestore search
   const searchInput = document.getElementById(config.searchInputId);
   if (searchInput) {
+    let searchDebounceTimer = null;
     searchInput.addEventListener('input', (e) => {
       const keyword = e.target.value.toLowerCase().trim();
-      console.log('[Market Search] Platform:', platformKey, 'Keyword:', keyword, 'Loaded apps:', state.loadedApps.length);
-      if (!keyword) {
-        console.log('[Market Search] Empty keyword, showing all');
-        return renderMarketApps(platformKey, state.loadedApps);
+      
+      // Clear previous debounce timer
+      if (searchDebounceTimer) {
+        clearTimeout(searchDebounceTimer);
       }
       
-      // Search all loaded apps
-      const filtered = state.loadedApps.filter(app => {
-        const nameMatch = app.name.toLowerCase().includes(keyword);
-        const pkgMatch = app.packageName && app.packageName.toLowerCase().includes(keyword);
-        const authorMatch = app.authorName && app.authorName.toLowerCase().includes(keyword);
-        
-        if (nameMatch || pkgMatch || authorMatch) {
-          console.log('[Market Search] Match:', {
-            name: app.name,
-            packageName: app.packageName,
-            authorName: app.authorName,
-            nameMatch, pkgMatch, authorMatch, keyword
-          });
+      // Debounce search by 300ms
+      searchDebounceTimer = setTimeout(async () => {
+        if (!keyword) {
+          console.log('[Market Search] Empty keyword, showing all loaded apps');
+          return renderMarketApps(platformKey, state.loadedApps);
         }
-        return nameMatch || pkgMatch || authorMatch;
-      });
-      console.log('[Market Search] Filtered results:', filtered.length);
-      renderMarketApps(platformKey, filtered);
+        
+        console.log('[Market Search] Platform:', platformKey, 'Keyword:', keyword);
+        
+        try {
+          // Search Firestore for apps matching keyword in name, packageName, or authorName
+          // We need to do multiple queries since Firestore doesn't support OR across fields
+          const platform = config.platform;
+          const collectionName = 'apps';
+          
+          // Query 1: Search by name (using >= and <= for prefix matching)
+          const nameQuery = query(
+            collection(db, collectionName),
+            where('status', '==', 'published'),
+            where('platform', '==', platform),
+            where('name', '>=', keyword),
+            where('name', '<=', keyword + '\uf8ff'),
+            orderBy('name'),
+            limit(20)
+          );
+          
+          // Query 2: Search by packageName
+          const pkgQuery = query(
+            collection(db, collectionName),
+            where('status', '==', 'published'),
+            where('platform', '==', platform),
+            where('packageName', '>=', keyword),
+            where('packageName', '<=', keyword + '\uf8ff'),
+            orderBy('packageName'),
+            limit(20)
+          );
+          
+          // Query 3: Search by authorName
+          const authorQuery = query(
+            collection(db, collectionName),
+            where('status', '==', 'published'),
+            where('platform', '==', platform),
+            where('authorName', '>=', keyword),
+            where('authorName', '<=', keyword + '\uf8ff'),
+            orderBy('authorName'),
+            limit(20)
+          );
+          
+          const [nameSnap, pkgSnap, authorSnap] = await Promise.all([
+            getDocs(nameQuery),
+            getDocs(pkgQuery),
+            getDocs(authorQuery)
+          ]);
+          
+          // Combine results, avoiding duplicates
+          const seenIds = new Set();
+          const searchResults = [];
+          
+          [...nameSnap.docs, ...pkgSnap.docs, ...authorSnap.docs].forEach(docSnap => {
+            if (!seenIds.has(docSnap.id)) {
+              seenIds.add(docSnap.id);
+              searchResults.push({ id: docSnap.id, ...docSnap.data() });
+            }
+          });
+          
+          console.log('[Market Search] Firestore results:', searchResults.length);
+          renderMarketApps(platformKey, searchResults);
+        } catch (err) {
+          console.error('[Market Search] Error:', err);
+          // Fallback to client-side search on loaded apps
+          const filtered = state.loadedApps.filter(app => {
+            const nameMatch = app.name.toLowerCase().includes(keyword);
+            const pkgMatch = app.packageName && app.packageName.toLowerCase().includes(keyword);
+            const authorMatch = app.authorName && app.authorName.toLowerCase().includes(keyword);
+            return nameMatch || pkgMatch || authorMatch;
+          });
+          renderMarketApps(platformKey, filtered);
+        }
+      }, 300);
     });
   }
   
@@ -315,7 +377,7 @@ function renderMarketApps(platformKey, appsList) {
                   </span>
                 </div>
                 <div style="font-size: 0.8rem; color:#666; margin-top: 2px;">
-                  開發者：<a href="javascript:void(0)" onclick="event.stopPropagation(); const store = '${config.store}'; window.location.hash = 'dev-profile/' + store + '/' + encodeURIComponent(this.dataset.authorEmail);" class="author-link" data-author-email="${escapeHTML(appData.authorEmail || '')}">${escapeHTML(appData.authorName) || '匿名'}</a>
+                  開發者：<a href="javascript:void(0)" onclick="event.stopPropagation(); const store = '${config.store}'; window.location.hash = 'dev-profile/' + store + '/' + encodeURIComponent(this.dataset.authorUid);" class="author-link" data-author-uid="${escapeHTML(appData.authorUid || '')}">${escapeHTML(appData.authorName) || '匿名'}</a>
                 </div>
               </div>
             </div>
