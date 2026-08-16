@@ -233,7 +233,16 @@ header { background: var(--md-sys-color-surface-container-low); position: sticky
 }
 
 /* Content width limit for reviews section (matches gp-action-buttons left column) */
-.bottom-reviews-section { max-width: 420px; }
+.bottom-reviews-section { 
+  width: 100%;
+  max-width: 764px; /* 420px (左欄) + 24px (間隔) + 320px (右欄) */
+  background: #ffffff; 
+  padding: 28px; 
+  border-radius: var(--md-shape-corner-large); 
+  border: 1px solid var(--md-sys-color-outline-variant); 
+  margin-top: 32px; 
+  box-shadow: var(--md-elevation-1); 
+}
 .gp-step-btn:hover {
   border-color: var(--md-sys-color-primary);
   background: var(--md-sys-color-primary-container);
