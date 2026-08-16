@@ -36,8 +36,8 @@ function clearStepChecks(appId) {
   localStorage.removeItem(key);
 }
 
-async function openAppDetail(appId) {
-  const store = getStoreFromUrl();
+async function openAppDetail(appId, storeFromCard) {
+  const store = storeFromCard || getStoreFromUrl();
   const pkgName = appId || getPackageNameFromUrl();
   const platform = store === 'app-store' ? 'ios' : 'android';
   
@@ -73,7 +73,11 @@ async function openAppDetail(appId) {
     const MAX_TESTERS = 12;
     const progressPercent = Math.min(100, Math.round((joinCount / MAX_TESTERS) * 100));
     const isCompleted = joinCount >= MAX_TESTERS;
-    const appDataPlatform = appData.platform || appData.store === 'app-store' ? 'ios' : 'android';
+    const appDataPlatform = appData.platform || (appData.store === 'app-store' ? 'ios' : 'android');
+    
+    // Debug: log platform detection
+    console.log('[Detail] App:', appData.name, 'platform field:', appData.platform, 'store field:', appData.store, 'computed platform:', appDataPlatform);
+    
     const isAppAuthor = window.currentUser && (window.currentUser.uid === appData.authorUid);
     
     const REQUIRED_STEPS = appDataPlatform === 'ios' ? 1 : 3;
@@ -401,7 +405,8 @@ async function handleToggleLikeDetail(appId) {
     await setDoc(likeRef, { createdAt: serverTimestamp() });
     await updateDoc(appRef, { likeCount: ((await getDoc(appRef)).data()?.likeCount || 0) + 1 });
   }
-  window.openAppDetail(appId);
+  const store = getStoreFromUrl();
+  window.openAppDetail(appId, store);
 }
 
 async function toggleJoinTestDetail(appId, isJoined) {
@@ -476,14 +481,16 @@ async function toggleJoinTestDetail(appId, isJoined) {
     return;
   }
   
-  window.openAppDetail(appId);
+  const store = getStoreFromUrl();
+  window.openAppDetail(appId, store);
 }
 
 async function togglePinFeedback(appId, feedbackId, isPinned) {
   if (!window.currentUser) return;
   const fbRef = doc(db, 'apps', appId, 'feedbacks', feedbackId);
   await updateDoc(fbRef, { isPinned: !isPinned });
-  window.openAppDetail(appId);
+  const store = getStoreFromUrl();
+  window.openAppDetail(appId, store);
 }
 
 function openFeedbackModal(appId) {

@@ -1358,3 +1358,48 @@ header { background: var(--md-sys-color-surface-container-low); position: sticky
 .tab-content.active {
   display: block;
 }
+
+/* ========== Legal Pages Styles ========== */
+.legal-content {
+  line-height: 1.8;
+  color: var(--md-sys-color-on-surface);
+}
+
+.legal-content h3 {
+  margin-top: 24px;
+  margin-bottom: 12px;
+  color: var(--md-sys-color-primary);
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.legal-content h4 {
+  margin-top: 16px;
+  margin-bottom: 8px;
+  color: var(--md-sys-color-on-surface);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.legal-content p {
+  margin-bottom: 12px;
+}
+
+.legal-content ul, .legal-content ol {
+  margin-bottom: 16px;
+  padding-left: 24px;
+}
+
+.legal-content li {
+  margin-bottom: 6px;
+}
+
+.legal-content a {
+  color: var(--md-sys-color-primary);
+  text-decoration: none;
+}
+
+.legal-content a:hover {
+  text-decoration: underline;
+}
+

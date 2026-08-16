@@ -123,8 +123,9 @@ async function fetchMarketApps(platformKey, isInitial = false) {
   try {
     const platform = config.platform;
     const collectionName = 'apps';
+    const store = platform === 'ios' ? 'app-store' : 'google-play';
 
-    // Base query: must be published AND match the platform
+    // Base query: must be published AND match the platform (check both platform and store fields)
     let baseQuery = query(
       collection(db, collectionName),
       where('status', '==', 'published'),
@@ -149,10 +150,33 @@ async function fetchMarketApps(platformKey, isInitial = false) {
       skipCache: skipCache || !!state.lastVisibleDoc 
     });
 
+    // Also fetch apps that have store field but not platform field
+    const storeConstraintsArray = [
+      { field: 'status', op: '==', value: 'published' },
+      { field: 'store', op: '==', value: store }
+    ];
+    
+    const storeResults = await cachedGetDocs(collection(db, collectionName), storeConstraintsArray, { 
+      ttl: 5 * 60 * 1000, 
+      collectionName: collectionName + '-store', 
+      skipCache: skipCache || !!state.lastVisibleDoc 
+    });
+
+    // Combine results, avoiding duplicates by packageName
+    const seenPackageNames = new Set();
+    const combinedResults = [];
+    
+    [...results, ...storeResults].forEach(app => {
+      if (!seenPackageNames.has(app.packageName)) {
+        seenPackageNames.add(app.packageName);
+        combinedResults.push(app);
+      }
+    });
+
     if (isInitial) {
-      state.loadedApps = results;
+      state.loadedApps = combinedResults;
     } else {
-      state.loadedApps.push(...results);
+      state.loadedApps.push(...combinedResults);
     }
 
     // For pagination, we still need to do a real query to get the last visible doc
@@ -200,11 +224,16 @@ function renderMarketApps(platformKey, appsList) {
     const MAX_TESTERS = 12;
     const progressPercent = Math.min(100, Math.round((joinCount / MAX_TESTERS) * 100));
     const isCompleted = joinCount >= MAX_TESTERS;
-    const platform = appData.platform || appData.store === 'app-store' ? 'ios' : 'android';
+    const platform = appData.platform || (appData.store === 'app-store' ? 'ios' : 'android');
+    
+    // Debug: log platform detection
+    console.log('[Market] App:', appData.name, 'platform field:', appData.platform, 'store field:', appData.store, 'computed platform:', platform);
 
     const card = document.createElement('div');
     card.className = 'app-card';
-    card.onclick = () => window.openAppDetail(appData.packageName);
+    // Pass the correct store based on the market tab's platform
+    const appStore = config.store;
+    card.onclick = () => window.openAppDetail(appData.packageName, appStore);
 
     card.innerHTML = `
           <div>
@@ -214,7 +243,7 @@ function renderMarketApps(platformKey, appsList) {
                 <div style="display:flex; align-items:center; gap:6px;">
                   <h3 class="app-title">${escapeHTML(appData.name)}</h3>
                   <span class="platform-badge ${platform === 'android' ? 'platform-android' : 'platform-ios'}">
-                    <span class="material-symbols-outlined" style="font-size:12px;">${platform === 'android' ? 'android' : 'phone_iphone'}</span>
+                    ${platform === 'android' ? '<span class="material-symbols-outlined" style="font-size:12px;">android</span>' : '<span style="font-size:12px;">🍎</span>'}
                     ${platform === 'android' ? 'Android' : 'iOS'}
                   </span>
                 </div>

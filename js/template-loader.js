@@ -10,7 +10,11 @@ export async function loadTemplates() {
     'dev-profile',
     'publish',
     'modals',
-    'login'
+    'login',
+    'terms',
+    'privacy',
+    'guidelines',
+    'contact'
   ];
 
   await Promise.all(
@@ -46,7 +50,11 @@ export async function loadTemplates() {
     templateCache['app-detail'] + 
     templateCache['dev-profile'] + 
     templateCache['publish'] +
-    templateCache['login'];
+    templateCache['login'] +
+    templateCache['terms'] +
+    templateCache['privacy'] +
+    templateCache['guidelines'] +
+    templateCache['contact'];
   document.getElementById('modal-container').innerHTML = templateCache['modals'];
 }
 

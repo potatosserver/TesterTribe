@@ -1,7 +1,8 @@
 // Modals module - feedback modal and edit app modal
 import { addDoc, updateDoc, doc, getDoc, collection, serverTimestamp, deleteDoc, setDoc, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { db } from './firebase-config.js';
-import { m3Alert, m3Error, m3Success } from './m3-dialog.js';
+import { m3Alert, m3Error, m3Success, m3Confirm } from './m3-dialog.js';
+import { getStoreFromUrl } from './router.js';
 
 export function setupModals() {
   // Feedback modal
@@ -97,7 +98,8 @@ async function submitFeedback() {
 
     m3Success('送出成功！');
     closeFeedbackModal();
-    window.openAppDetail(appId);
+    const store = getStoreFromUrl();
+    window.openAppDetail(appId, store);
   } catch (err) {
     m3Error('送出失敗：' + err.message);
   }
@@ -122,7 +124,10 @@ async function loadAppDataForEdit(docId) {
     if (!appSnap.exists()) return;
     const appData = appSnap.data();
 
-    document.getElementById('edit-app-platform').value = appData.platform || (appData.store === 'app-store' ? 'ios' : 'android');
+    const platform = appData.platform || (appData.store === 'app-store' ? 'ios' : 'android');
+    console.log('[Modals] App:', appData.name, 'platform field:', appData.platform, 'store field:', appData.store, 'computed platform:', platform);
+    
+    document.getElementById('edit-app-platform').value = platform;
     document.getElementById('edit-app-name').value = appData.name || '';
     document.getElementById('edit-app-package-name').value = appData.packageName || '';
     document.getElementById('edit-group-url').value = appData.groupUrl || '';
@@ -198,9 +203,13 @@ async function handleEditAppSubmit(e) {
   try {
     const screenshotUrls = [screenshotUrl1, screenshotUrl2, screenshotUrl3].filter(url => url);
     
+    // Determine store field based on platform for backward compatibility
+    const store = platform === 'ios' ? 'app-store' : 'google-play';
+    
     const updateData = {
       name: document.getElementById('edit-app-name').value,
       platform: platform,
+      store: store,
       packageName: packageName,
       iconUrl: iconUrl,
       screenshotUrls: screenshotUrls,
@@ -214,7 +223,15 @@ async function handleEditAppSubmit(e) {
     await updateDoc(doc(db, 'apps', appId), updateData);
     m3Success('專案更新成功！');
     closeEditAppModal();
-    window.openAppDetail(appId);
+    
+    // Navigate back to the current user's developer profile
+    if (window.currentUser) {
+      const store = getStoreFromUrl();
+      window.navigate('dev-profile', { store, authorEmail: window.currentUser.email });
+    } else {
+      window.switchTab('market-android');
+    }
+    
     window.loadMyApps?.();
     window.fetchMarketApps?.(true);
   } catch (err) {
@@ -236,7 +253,15 @@ async function confirmDeleteApp() {
     await deleteDoc(doc(db, 'apps', appId));
     m3Success('專案已刪除');
     closeEditAppModal();
-    window.switchTab('market-android');
+    
+    // Navigate back to the current user's developer profile
+    if (window.currentUser) {
+      const store = getStoreFromUrl();
+      window.navigate('dev-profile', { store, authorEmail: window.currentUser.email });
+    } else {
+      window.switchTab('market-android');
+    }
+    
     window.loadMyApps?.();
     window.fetchMarketApps?.(true);
   } catch (err) {

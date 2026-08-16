@@ -117,11 +117,16 @@ async function openDevProfile(authorUid, authorName, authorEmail) {
       const MAX_TESTERS = 12;
       const progressPercent = Math.min(100, Math.round((joinCount / MAX_TESTERS) * 100));
       const isCompleted = joinCount >= MAX_TESTERS;
-      const platform = appData.platform || appData.store === 'app-store' ? 'ios' : 'android';
+      const platform = appData.platform || (appData.store === 'app-store' ? 'ios' : 'android');
+      
+      // Debug: log platform detection
+      console.log('[DevProfile] App:', appData.name, 'platform field:', appData.platform, 'store field:', appData.store, 'computed platform:', platform);
 
       const card = document.createElement('div');
       card.className = 'app-card';
-      card.onclick = () => window.openAppDetail(appData.packageName);
+      // Pass the correct store based on app's platform/store field
+      const appStore = appData.store || (appData.platform === 'ios' ? 'app-store' : 'google-play');
+      card.onclick = () => window.openAppDetail(appData.packageName, appStore);
 
       // For own profile, show edit button in footer
       const footerActions = isOwnProfile ? `
@@ -151,7 +156,7 @@ async function openDevProfile(authorUid, authorName, authorEmail) {
               <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px; flex-wrap: nowrap; overflow-x: auto;">
                 <h3 class="app-title" style="margin: 0; font-size: 1.1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(appData.name)}</h3>
                 <span class="platform-badge ${platform === 'android' ? 'platform-android' : 'platform-ios'}" style="white-space: nowrap;">
-                  <span style="font-size:12px;">${platform === 'android' ? 'android' : '🍎'}</span>
+                  ${platform === 'android' ? '<span class="material-symbols-outlined" style="font-size:12px;">android</span>' : '<span style="font-size:12px;">🍎</span>'}
                   ${platform === 'android' ? 'Android' : 'iOS'}
                 </span>
               </div>

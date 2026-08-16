@@ -48,9 +48,13 @@ export function setupPublish() {
     try {
       const screenshotUrls = [screenshotUrl1, screenshotUrl2, screenshotUrl3].filter(url => url);
       
+      // Determine store field based on platform for backward compatibility
+      const store = platform === 'ios' ? 'app-store' : 'google-play';
+      
       await addDoc(collection(db, 'apps'), {
         name: document.getElementById('app-name').value,
         platform: platform,
+        store: store,
         status: 'published',
         packageName: packageName,
         iconUrl: iconUrl,

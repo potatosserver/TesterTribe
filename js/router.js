@@ -1,5 +1,5 @@
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
-// URL Structure: #market/android, #market/ios, #app/google-play/com.example.app, #dev-profile/google-play/user%40email.com, #login, #home
+// URL Structure: #market/android, #market/ios, #app/google-play/com.example.app, #dev-profile/google-play/user%40email.com, #login, #home, #terms, #privacy, #guidelines, #contact
 export const routes = {
   'home': { template: 'home', handler: 'setupHome' },
   'market': { template: 'market', handler: 'setupMarket' },
@@ -8,7 +8,11 @@ export const routes = {
   'app': { template: 'app-detail', handler: 'setupDetail' },
   'dev-profile': { template: 'dev-profile', handler: 'setupDevProfile' },
   'publish': { template: 'publish', handler: 'setupPublish' },
-  'login': { template: 'login', handler: 'setupLogin' }
+  'login': { template: 'login', handler: 'setupLogin' },
+  'terms': { template: 'terms', handler: 'setupTerms' },
+  'privacy': { template: 'privacy', handler: 'setupPrivacy' },
+  'guidelines': { template: 'guidelines', handler: 'setupGuidelines' },
+  'contact': { template: 'contact', handler: 'setupContact' }
 };
 
 const STORE_MAPPING = {
@@ -125,6 +129,8 @@ export function handleHashChange() {
     if (email) {
       newParams.authorEmail = decodeURIComponent(email);
     }
+  } else if (routeName === 'terms' || routeName === 'privacy' || routeName === 'guidelines' || routeName === 'contact') {
+    // Static pages - no additional params needed
   }
 
   routeParams = newParams;
@@ -133,7 +139,8 @@ export function handleHashChange() {
   
   // Load data for detail and dev-profile tabs when navigating via URL
   if (routeName === 'app') {
-    window.openAppDetail();
+    const store = getStoreFromUrl();
+    window.openAppDetail(getPackageNameFromUrl(), store);
   } else if (routeName === 'dev-profile') {
     window.openDevProfile();
   }

@@ -19,3 +19,9 @@ export function initializeApp() {
   setupModals();
   setupHome();
 }
+
+// Placeholder setup functions for static pages
+export function setupTerms() {}
+export function setupPrivacy() {}
+export function setupGuidelines() {}
+export function setupContact() {}
