@@ -13,6 +13,7 @@ export function setupModals() {
   // Edit app modal
   window.openEditAppModal = openEditAppModal;
   window.closeEditAppModal = closeEditAppModal;
+  window.confirmDeleteApp = confirmDeleteApp;
   
   // Form handlers
   document.getElementById('edit-app-form').addEventListener('submit', handleEditAppSubmit);
@@ -219,5 +220,24 @@ async function handleEditAppSubmit(e) {
   } finally {
     submitBtn.disabled = false;
     submitBtn.innerText = '更新專案';
+  }
+}
+
+async function confirmDeleteApp() {
+  const appId = window.currentEditingAppId;
+  if (!appId) return;
+  
+  const confirmed = await m3Confirm('確定要下架並刪除此專案嗎？此操作無法復原。', '確認刪除');
+  if (!confirmed) return;
+  
+  try {
+    await deleteDoc(doc(db, 'apps', appId));
+    m3Success('專案已刪除');
+    closeEditAppModal();
+    window.switchTab('market-android');
+    window.loadMyApps?.();
+    window.fetchMarketApps?.(true);
+  } catch (err) {
+    m3Error('刪除失敗：' + err.message);
   }
 }

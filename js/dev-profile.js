@@ -1,5 +1,5 @@
 // Developer profile module
-import { collection, query, where, getDocs, doc, getDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
+import { collection, query, where, getDocs, doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { db } from './firebase-config.js';
 import { escapeHTML, formatDate } from './utils.js';
 import { getStoreFromUrl, getPlatformFromUrl, getAuthorIdentifierFromUrl } from './router.js';
@@ -7,24 +7,6 @@ import { m3Alert, m3Confirm, m3Error, m3Success } from './m3-dialog.js';
 
 export function setupDevProfile() {
   window.openDevProfile = openDevProfile;
-  window.deleteApp = deleteApp;
-}
-
-async function deleteApp(appId) {
-  if (!window.currentUser) return m3Alert('請先登入！');
-  const confirmed = await m3Confirm('確定要下架並刪除此專案嗎？此操作無法復原。', '確認刪除', { destructive: true });
-  if (!confirmed) return;
-
-  try {
-    await deleteDoc(doc(db, 'apps', appId));
-    m3Success('專案已刪除');
-    // Refresh the dev profile
-    window.openDevProfile(window.currentUser.uid);
-    window.fetchMarketApps?.(true);
-  } catch (err) {
-    console.error('刪除失敗:', err);
-    m3Error('刪除失敗：' + err.message);
-  }
 }
 
 async function openDevProfile(authorUid, authorName) {
@@ -136,17 +118,16 @@ async function openDevProfile(authorUid, authorName) {
       card.className = 'app-card';
       card.onclick = () => window.openAppDetail(appData.id);
 
-      // For own profile, show edit/delete buttons in footer
+      // For own profile, show edit button in footer
       const footerActions = isOwnProfile ? `
         <div class="card-footer" style="display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--md-sys-color-outline-variant);">
           <div class="app-meta-time" style="margin: 0; white-space: nowrap;">
             <span class="material-symbols-outlined" style="font-size:14px;">schedule</span>
             更新於：${formatDate(appData.updatedAt || appData.createdAt)}
           </div>
-          <div style="display: flex; gap: 8px;">
-            <button onclick="event.stopPropagation(); window.openEditAppModal('${appData.id}')" class="btn btn-tonal" style="flex:1;">✏️ 編輯專案</button>
-            <button onclick="event.stopPropagation(); window.deleteApp('${appData.id}')" class="btn btn-error" style="flex:1;">下架刪除</button>
-          </div>
+          <button onclick="event.stopPropagation(); window.openEditAppModal('${appData.id}')" class="btn btn-tonal" style="flex:1;">
+            <span class="material-symbols-outlined" style="font-size: 18px;">edit</span> 編輯專案
+          </button>
         </div>
       ` : `
         <div class="card-footer" style="display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--md-sys-color-outline-variant);">
