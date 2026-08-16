@@ -384,3 +384,20 @@ window.m3Error = m3Error;
 window.m3Success = m3Success;
 window.m3Warning = m3Warning;
 window.m3Info = m3Info;
+
+// Login required dialog - shows alert with Login button that navigates to login page
+export function m3LoginRequired(message = '請先登入才能使用此功能', title = '請先登入') {
+  return showM3Confirm(message, title, {
+    confirmText: '登入',
+    cancelText: '取消',
+    confirmColor: 'primary',
+    destructive: false,
+    onConfirm: () => {
+      window.authSetLoginOrigin?.();
+      window.switchTab('login');
+    },
+    onCancel: () => {}
+  });
+}
+
+window.m3LoginRequired = m3LoginRequired;

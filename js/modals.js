@@ -30,6 +30,8 @@ export function setupModals() {
 }
 
 function openFeedbackModal(appId) {
+  if (!window.currentUser) return m3LoginRequired('請先登入才能發表評論或回報問題');
+  
   window.currentFeedbackAppId = appId;
   document.getElementById('feedback-modal').style.display = 'flex';
   document.getElementById('feedback-type').value = 'review';
@@ -60,8 +62,8 @@ function toggleRatingStarBox() {
 
 async function submitFeedback() {
   const appId = window.currentFeedbackAppId;
-  if (!appId || !window.currentUser) return m3Alert('請先登入！');
-
+  if (!appId || !window.currentUser) return m3LoginRequired('請先登入才能發表評論或回報問題');
+  
   const type = document.getElementById('feedback-type').value;
   const content = document.getElementById('feedback-content').value.trim();
   if (!content) return m3Alert('請填寫內容！');

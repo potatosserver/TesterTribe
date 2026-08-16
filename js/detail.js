@@ -187,39 +187,39 @@ async function openAppDetail(appId) {
             </h3>
             <div class="gp-action-buttons">
               ${platform === 'android' ? `
-                <label class="gp-step-btn" data-step="1" data-url="${escapeHTML(appData.groupUrl)}">
-                  <input type="checkbox" class="gp-step-check" data-step="1" ${getStepChecked(1, id) ? 'checked' : ''}>
+                <div class="gp-step-btn" data-step="1" data-url="${escapeHTML(appData.groupUrl)}">
+                  <span class="gp-step-check" data-step="1" ${getStepChecked(1, id) ? 'checked' : ''}></span>
                   <span class="gp-step-content">
                     <span class="material-symbols-outlined">group_add</span>
                     <span>加入 Google 測試群組</span>
                     <span class="material-symbols-outlined gp-step-link-icon">open_in_new</span>
                   </span>
-                </label>
-                <label class="gp-step-btn" data-step="2" data-url="${escapeHTML(testingOptInUrl)}">
-                  <input type="checkbox" class="gp-step-check" data-step="2" ${getStepChecked(2, id) ? 'checked' : ''}>
+                </div>
+                <div class="gp-step-btn" data-step="2" data-url="${escapeHTML(testingOptInUrl)}">
+                  <span class="gp-step-check" data-step="2" ${getStepChecked(2, id) ? 'checked' : ''}></span>
                   <span class="gp-step-content">
                     <span class="material-symbols-outlined">person_add</span>
                     <span>成為測試人員 (Opt-in)</span>
                     <span class="material-symbols-outlined gp-step-link-icon">open_in_new</span>
                   </span>
-                </label>
-                <label class="gp-step-btn" data-step="3" data-url="${escapeHTML(playStoreUrl)}">
-                  <input type="checkbox" class="gp-step-check" data-step="3" ${getStepChecked(3, id) ? 'checked' : ''}>
+                </div>
+                <div class="gp-step-btn" data-step="3" data-url="${escapeHTML(playStoreUrl)}">
+                  <span class="gp-step-check" data-step="3" ${getStepChecked(3, id) ? 'checked' : ''}></span>
                   <span class="gp-step-content">
                     <span class="material-symbols-outlined">download</span>
                     <span>前往 Google Play 商店下載測試版 App</span>
                     <span class="material-symbols-outlined gp-step-link-icon">open_in_new</span>
                   </span>
-                </label>
+                </div>
               ` : `
-                <label class="gp-step-btn" data-step="1" data-url="${escapeHTML(appData.storeUrl || appData.testFlightUrl)}">
-                  <input type="checkbox" class="gp-step-check" data-step="1" ${getStepChecked(1, id) ? 'checked' : ''}>
+                <div class="gp-step-btn" data-step="1" data-url="${escapeHTML(appData.storeUrl || appData.testFlightUrl)}">
+                  <span class="gp-step-check" data-step="1" ${getStepChecked(1, id) ? 'checked' : ''}></span>
                   <span class="gp-step-content">
                     <span class="material-symbols-outlined">flight_takeoff</span>
                     <span>加入 TestFlight 測試</span>
                     <span class="material-symbols-outlined gp-step-link-icon">open_in_new</span>
                   </span>
-                </label>
+                </div>
               `}
             </div>
           </div>
@@ -290,6 +290,10 @@ async function openAppDetail(appId) {
     // Attach click handlers for step buttons
     setTimeout(() => {
       document.querySelectorAll('.gp-step-btn').forEach(btn => {
+        // Skip if already bound
+        if (btn.dataset.stepBound === 'true') return;
+        btn.dataset.stepBound = 'true';
+        
         const step = btn.dataset.step;
         const url = btn.dataset.url;
         const checkbox = btn.querySelector('.gp-step-check');
@@ -306,37 +310,36 @@ async function openAppDetail(appId) {
           return stepChecks[stepNum - 1] === true;
         };
         
-        btn.addEventListener('click', (e) => {
-          if (e.target === checkbox) return;
+        // Single click handler for the entire step button (div)
+        btn.addEventListener('click', async (e) => {
+          console.log('[StepBtn] Click:', { step: stepNum, url, target: e.target.tagName, targetClass: e.target.className });
           
-          if (isCompleted()) {
-            if (url) window.open(url, '_blank');
+          if (!window.currentUser) {
+            await m3LoginRequired('請先登入才能操作測試步驟');
             return;
           }
           
-          if (!isPrevCompleted()) {
-            m3Alert(`請先完成步驟 ${stepNum - 1} 再開啟此步驟連結。`, '順序錯誤');
-            return;
-          }
+          const completed = isCompleted();
+          const isChecked = checkbox.classList.contains('checked');
           
-          if (url) window.open(url, '_blank');
-        });
-        
-        checkbox.addEventListener('change', (e) => {
-          if (!checkbox.checked) {
-            checkbox.checked = true;
-            e.preventDefault();
-            return;
-          }
+          console.log('[StepBtn] State:', { step: stepNum, completed, isChecked });
           
-          if (!isPrevCompleted()) {
-            m3Alert(`請先完成步驟 ${stepNum - 1} 再勾選此步驟。`, '順序錯誤');
-            checkbox.checked = false;
-            e.preventDefault();
-            return;
+          if (!isChecked) {
+            // Trying to check
+            if (!isPrevCompleted()) {
+              await m3Alert(`請先完成步驟 ${stepNum - 1} 再勾選此步驟。`, '順序錯誤');
+              return;
+            }
+            console.log('[StepBtn] Checking step', stepNum);
+            checkbox.classList.add('checked');
+            setStepCheck(id, stepNum, true);
+          } else if (completed && url) {
+            // Already checked and step completed - open the link
+            console.log('[StepBtn] Opening URL:', url);
+            window.open(url, '_blank');
+          } else {
+            console.log('[StepBtn] No action - checked but not completed');
           }
-          
-          setStepCheck(id, stepNum, true);
         });
       });
     }, 0);
@@ -346,7 +349,7 @@ async function openAppDetail(appId) {
 }
 
 async function handleToggleLikeDetail(appId) {
-  if (!window.currentUser) return m3Alert('請先登入！');
+  if (!window.currentUser) return m3LoginRequired('請先登入才能按讚');
   
   const appRef = doc(db, 'apps', appId);
   const appSnap = await getDoc(appRef);
@@ -371,7 +374,7 @@ async function handleToggleLikeDetail(appId) {
 }
 
 async function toggleJoinTestDetail(appId, isJoined) {
-  if (!window.currentUser) return m3Alert('請先登入！');
+  if (!window.currentUser) return m3LoginRequired('請先登入才能回報已加入測試');
   
   const appRef = doc(db, 'apps', appId);
   const appSnap = await getDoc(appRef);

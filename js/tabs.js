@@ -1,17 +1,13 @@
 // Tab switching module
 import { navigate } from './router.js';
-import { m3Alert } from './m3-dialog.js';
+import { m3LoginRequired } from './m3-dialog.js';
 
 const PROTECTED_TABS = ['publish'];
 
 export function switchTab(tabName, params = {}) {
   // Check if tab requires authentication
   if (PROTECTED_TABS.includes(tabName) && !window.currentUser) {
-    m3Alert('請先登入才能刊登 App 專案！', '需要登入', { confirmText: '登入' });
-    // Redirect to login page
-    setTimeout(() => {
-      window.navigate('login');
-    }, 0);
+    m3LoginRequired('請先登入才能刊登 App 專案');
     return;
   }
   

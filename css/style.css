@@ -210,16 +210,32 @@ header { background: var(--md-sys-color-surface-container-low); position: sticky
   border-color: var(--md-sys-color-primary);
   background: var(--md-sys-color-primary-container);
 }
-.gp-step-btn:has(.gp-step-check:checked) {
+.gp-step-btn:has(.gp-step-check.checked) {
   border-color: var(--md-sys-color-primary);
   background: var(--md-sys-color-primary-container);
 }
 .gp-step-check {
   width: 22px;
   height: 22px;
-  accent-color: var(--md-sys-color-primary);
   flex-shrink: 0;
-  cursor: pointer;
+  border: 2px solid var(--md-sys-color-outline);
+  border-radius: var(--md-shape-corner-small);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+.gp-step-check.checked {
+  background: var(--md-sys-color-primary);
+  border-color: var(--md-sys-color-primary);
+}
+.gp-step-check.checked::after {
+  content: '';
+  width: 6px;
+  height: 12px;
+  border: solid var(--md-sys-color-on-primary);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg) translateY(-1px);
 }
 .gp-step-content {
   display: flex;
