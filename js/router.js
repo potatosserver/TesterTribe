@@ -1,6 +1,7 @@
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
-// URL Structure: #market/android, #market/ios, #app/google-play/com.example.app, #dev-profile/google-play/user%40email.com, #login
+// URL Structure: #market/android, #market/ios, #app/google-play/com.example.app, #dev-profile/google-play/user%40email.com, #login, #home
 export const routes = {
+  'home': { template: 'home', handler: 'setupHome' },
   'market': { template: 'market', handler: 'setupMarket' },
   'market-android': { template: 'market', handler: 'setupMarket' },
   'market-ios': { template: 'market', handler: 'setupMarket' },
@@ -60,7 +61,7 @@ export async function initRouter() {
 export function handleHashChange() {
   const hash = window.location.hash.slice(1); // Remove #
   if (!hash) {
-    navigate('market-android');
+    navigate('home');
     return;
   }
 
@@ -97,7 +98,9 @@ export function handleHashChange() {
 
   const newParams = {};
   
-  if (routeName === 'market-android' || routeName === 'market-ios') {
+  if (routeName === 'home') {
+    // Home route - no additional params needed
+  } else if (routeName === 'market-android' || routeName === 'market-ios') {
     const platform = routeName === 'market-android' ? 'android' : 'ios';
     const store = routeName === 'market-android' ? 'google-play' : 'app-store';
     newParams.platform = platform;
@@ -139,7 +142,9 @@ export function handleHashChange() {
 export function navigate(routeName, params = {}) {
   let hash = routeName;
   
-  if (routeName === 'market-android' || routeName === 'market-ios') {
+  if (routeName === 'home') {
+    // No additional params needed
+  } else if (routeName === 'market-android' || routeName === 'market-ios') {
     // No additional params needed
   } else if (routeName === 'app') {
     const store = params.store || 'google-play';

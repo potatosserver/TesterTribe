@@ -4,6 +4,7 @@ const templateCache = {};
 export async function loadTemplates() {
   const templates = [
     'header',
+    'home',
     'market',
     'app-detail',
     'dev-profile',
@@ -40,6 +41,7 @@ export async function loadTemplates() {
   // Inject templates into DOM
   document.getElementById('header-container').innerHTML = templateCache['header'];
   document.getElementById('main-content').innerHTML = 
+    templateCache['home'] + 
     templateCache['market'] + 
     templateCache['app-detail'] + 
     templateCache['dev-profile'] + 

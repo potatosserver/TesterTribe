@@ -6,6 +6,7 @@ import { setupDevProfile } from './dev-profile.js';
 import { setupPublish } from './publish.js';
 import { setupDetail } from './detail.js';
 import { setupModals } from './modals.js';
+import { setupHome } from './home.js';
 
 export function initializeApp() {
   // Initialize all modules
@@ -16,4 +17,5 @@ export function initializeApp() {
   setupPublish();
   setupDetail();
   setupModals();
+  setupHome();
 }

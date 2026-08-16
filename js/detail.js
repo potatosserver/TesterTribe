@@ -73,7 +73,7 @@ async function openAppDetail(appId) {
     const MAX_TESTERS = 12;
     const progressPercent = Math.min(100, Math.round((joinCount / MAX_TESTERS) * 100));
     const isCompleted = joinCount >= MAX_TESTERS;
-    const appDataPlatform = appData.platform || 'android';
+    const appDataPlatform = appData.platform || appData.store === 'app-store' ? 'ios' : 'android';
     const isAppAuthor = window.currentUser && (window.currentUser.uid === appData.authorUid);
     
     const REQUIRED_STEPS = appDataPlatform === 'ios' ? 1 : 3;
@@ -410,7 +410,7 @@ async function toggleJoinTestDetail(appId, isJoined) {
   const appRef = doc(db, 'apps', appId);
   const appSnap = await getDoc(appRef);
   const appData = appSnap.data();
-  const platform = appData?.platform || 'android';
+  const platform = appData?.platform || (appData?.store === 'app-store' ? 'ios' : 'android');
   const REQUIRED_STEPS = platform === 'ios' ? 1 : 3;
   
   if (!isJoined) {

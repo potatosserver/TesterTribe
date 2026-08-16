@@ -85,10 +85,12 @@ export function setupPublish() {
 }
 
 function togglePlatformFields(formType) {
-  const platform = document.getElementById(`${formType}-app-platform`).value;
-  const androidFields = document.getElementById(`${formType}-android-fields`);
-  const iosFields = document.getElementById(`${formType}-ios-fields`);
-  const labelPackageName = document.getElementById(`${formType}-label-package-name`);
+  const platformSelectId = formType === 'publish' ? 'app-platform' : `${formType}-app-platform`;
+  const platform = document.getElementById(platformSelectId).value;
+  const prefix = formType === 'publish' ? '' : formType + '-';
+  const androidFields = document.getElementById(`${prefix}android-fields`);
+  const iosFields = document.getElementById(`${prefix}ios-fields`);
+  const labelPackageName = document.getElementById(`${prefix}label-package-name`);
 
   if (platform === 'android') {
     androidFields.style.display = 'block';

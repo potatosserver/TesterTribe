@@ -200,7 +200,7 @@ function renderMarketApps(platformKey, appsList) {
     const MAX_TESTERS = 12;
     const progressPercent = Math.min(100, Math.round((joinCount / MAX_TESTERS) * 100));
     const isCompleted = joinCount >= MAX_TESTERS;
-    const platform = appData.platform || 'android';
+    const platform = appData.platform || appData.store === 'app-store' ? 'ios' : 'android';
 
     const card = document.createElement('div');
     card.className = 'app-card';

@@ -1,0 +1,153 @@
+<div id="view-home" class="tab-content active">
+  <!-- Hero Section -->
+  <section class="home-hero">
+    <div class="hero-content">
+      <div class="hero-icon">
+        <span class="material-symbols-outlined">android</span>
+      </div>
+      <h1 class="hero-main-title">TesterTribe</h1>
+      <p class="hero-tagline">Android & iOS 開發者互助測試社群</p>
+      <p class="hero-description">
+        發布您的 App 專案，邀請真實用戶測試回饋<br>
+        幫助其他開發者測試，賺取積分提升您專案曝光度
+      </p>
+      <div class="hero-actions">
+        <button class="btn btn-primary btn-lg" onclick="window.switchTab('market-android')">
+          <span class="material-symbols-outlined">android</span>
+          瀏覽 Google Play 專案
+        </button>
+        <button class="btn btn-outline btn-lg" onclick="window.switchTab('market-ios')" style="border-color: white; color: white;">
+          <span style="font-size: 24px;">🍎</span>
+          瀏覽 App Store 專案
+        </button>
+      </div>
+    </div>
+    <div class="hero-stats">
+      <div class="stat-item">
+        <span class="stat-number" id="stat-projects">0</span>
+        <span class="stat-label">專案總數</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number" id="stat-developers">0</span>
+        <span class="stat-label">開發者數</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number" id="stat-tests">0</span>
+        <span class="stat-label">測試回饋數</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section class="home-how-it-works">
+    <h2 class="section-title">如何運作</h2>
+    <div class="steps-container">
+      <div class="step-item">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3 class="step-title">開發者刊登專案</h3>
+          <p class="step-desc">填寫 App 資訊、測試需求、目標裝置與獎勵積分，發布至對應市集</p>
+        </div>
+      </div>
+      <div class="step-connector"></div>
+      <div class="step-item">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3 class="step-title">測試員申請參與</h3>
+          <p class="step-desc">瀏覽專案、篩選符合條件的機會，一鍵申請成為測試員</p>
+        </div>
+      </div>
+      <div class="step-connector"></div>
+      <div class="step-item">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3 class="step-title">執行測試回報</h3>
+          <p class="step-desc">在真實裝置上測試，提交截圖、影片、崩潰日誌與詳細回饋</p>
+        </div>
+      </div>
+      <div class="step-connector"></div>
+      <div class="step-item">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h3 class="step-title">獲得積分獎勵</h3>
+          <p class="step-desc">通過審核後獲得積分，提升專案曝光或兌換其他權益</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Platform Section -->
+  <section class="home-platforms">
+    <h2 class="section-title">支援平台</h2>
+    <div class="platform-cards">
+      <article class="platform-card android">
+        <div class="platform-icon">
+          <span class="material-symbols-outlined">android</span>
+        </div>
+        <h3 class="platform-title">Google Play</h3>
+        <p class="platform-desc">Android 應用程式測試社群</p>
+        <div class="platform-stats">
+          <span class="platform-stat">
+            <span id="android-project-count">0</span> 專案
+          </span>
+          <span class="platform-stat">
+            <span id="android-dev-count">0</span> 開發者
+          </span>
+        </div>
+        <button class="btn btn-primary platform-btn" onclick="window.switchTab('market-android')">
+          <span class="material-symbols-outlined">arrow_forward</span>
+          進入市集
+        </button>
+      </article>
+
+      <article class="platform-card ios">
+        <div class="platform-icon">
+          <span style="font-size: 48px;">🍎</span>
+        </div>
+        <h3 class="platform-title">App Store</h3>
+        <p class="platform-desc">iOS 應用程式測試社群</p>
+        <div class="platform-stats">
+          <span class="platform-stat">
+            <span id="ios-project-count">0</span> 專案
+          </span>
+          <span class="platform-stat">
+            <span id="ios-dev-count">0</span> 開發者
+          </span>
+        </div>
+        <button class="btn btn-primary platform-btn" onclick="window.switchTab('market-ios')">
+          <span class="material-symbols-outlined">arrow_forward</span>
+          進入市集
+        </button>
+      </article>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="home-cta">
+    <div class="cta-content">
+      <h2 class="cta-title">準備好開始了嗎？</h2>
+      <p class="cta-desc">加入 TesterTribe，讓您的 App 獲得真實用戶的寶貴回饋</p>
+      <div class="cta-actions">
+        <button class="btn btn-primary btn-lg" onclick="window.switchTab('publish')">
+          <span class="material-symbols-outlined">rocket_launch</span>
+          免費刊登第一個專案
+        </button>
+        <button class="btn btn-outline btn-lg" onclick="window.switchTab('market-android')">
+          <span class="material-symbols-outlined">explore</span>
+          先看看有哪些專案
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer Info -->
+  <footer class="home-footer">
+    <div class="footer-links">
+      <a href="#" class="footer-link">服務條款</a>
+      <a href="#" class="footer-link">隱私權政策</a>
+      <a href="#" class="footer-link">社群準則</a>
+      <a href="#" class="footer-link">聯絡我們</a>
+    </div>
+    <p class="footer-copyright">© 2026 TesterTribe. 為開發者打造的互助測試平台。</p>
+  </footer>
+</div>

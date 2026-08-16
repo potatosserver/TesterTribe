@@ -122,7 +122,7 @@ async function loadAppDataForEdit(docId) {
     if (!appSnap.exists()) return;
     const appData = appSnap.data();
 
-    document.getElementById('edit-app-platform').value = appData.platform || 'android';
+    document.getElementById('edit-app-platform').value = appData.platform || (appData.store === 'app-store' ? 'ios' : 'android');
     document.getElementById('edit-app-name').value = appData.name || '';
     document.getElementById('edit-app-package-name').value = appData.packageName || '';
     document.getElementById('edit-group-url').value = appData.groupUrl || '';

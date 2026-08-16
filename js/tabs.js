@@ -11,7 +11,7 @@ export function switchTab(tabName, params = {}) {
     return;
   }
   
-  // Map market tabs
+  // Map tab names to view IDs
   let targetTabName = tabName;
   if (tabName === 'market-android') {
     targetTabName = 'market-android';
@@ -19,6 +19,8 @@ export function switchTab(tabName, params = {}) {
     targetTabName = 'market-ios';
   } else if (tabName === 'app') {
     targetTabName = 'app-detail'; // The view ID is view-app-detail
+  } else if (tabName === 'home') {
+    targetTabName = 'home'; // The view ID is view-home
   }
 
   // Hide all tab contents
@@ -50,6 +52,8 @@ export function switchTab(tabName, params = {}) {
     window.fetchMarketAppsIos?.();
   } else if ((tabName === 'devProfile' || tabName === 'dev-profile') && window.currentUser) {
     // dev-profile handles its own loading
+  } else if (tabName === 'home') {
+    window.refreshHomeStats?.();
   }
 }
 
