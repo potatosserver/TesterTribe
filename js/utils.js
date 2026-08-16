@@ -28,3 +28,22 @@ export function formatDate(timestamp) {
     hour: '2-digit', minute: '2-digit'
   }).replace(/\//g, '/');
 }
+
+export function formatDateOnly(timestamp) {
+  if (!timestamp) return '未知日期';
+  let date;
+  if (typeof timestamp.toDate === 'function') {
+    date = timestamp.toDate();
+  } else if (timestamp instanceof Date) {
+    date = timestamp;
+  } else if (typeof timestamp === 'object' && timestamp.seconds) {
+    date = new Date(timestamp.seconds * 1000);
+  } else if (typeof timestamp === 'number' || typeof timestamp === 'string') {
+    date = new Date(timestamp);
+  } else {
+    return '未知日期';
+  }
+  return date.toLocaleDateString('zh-TW', { 
+    year: 'numeric', month: '2-digit', day: '2-digit'
+  }).replace(/\//g, '/');
+}

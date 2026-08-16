@@ -1,7 +1,7 @@
 // Developer profile module
 import { collection, query, where, getDocs, doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { db } from './firebase-config.js';
-import { escapeHTML, formatDate } from './utils.js';
+import { escapeHTML, formatDate, formatDateOnly } from './utils.js';
 import { getStoreFromUrl, getPlatformFromUrl, getAuthorIdentifierFromUrl } from './router.js';
 import { m3Alert, m3Confirm, m3Error, m3Success } from './m3-dialog.js';
 
@@ -57,7 +57,7 @@ async function openDevProfile(authorUid, authorName) {
     if (createdAt) {
       document.getElementById('dev-join-date').innerHTML = `
         <span class="material-symbols-outlined" style="font-size: 18px;">calendar_today</span>
-        ${formatDate(createdAt)} 加入
+        ${formatDateOnly(createdAt)} 加入
       `;
     } else {
       document.getElementById('dev-join-date').innerHTML = `
