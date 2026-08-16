@@ -21,8 +21,8 @@
         </button>
       </div>
 
-      <!-- Login button (desktop only) -->
-      <button id="btn-login" class="btn btn-primary desktop-only" onclick="window.authSetLoginOrigin?.(); window.switchTab('login')">
+      <!-- Login button (ALWAYS visible, right side, before avatar) -->
+      <button id="btn-login" class="btn btn-primary" onclick="window.authSetLoginOrigin?.(); window.switchTab('login')">
         <span class="material-symbols-outlined">login</span> 登入
       </button>
 
@@ -70,9 +70,6 @@
         <span style="font-size: 24px;">🍎</span> App Store 市集
       </button>
       <div class="mobile-nav-divider"></div>
-      <button id="mobile-btn-login" class="mobile-nav-item" onclick="window.authSetLoginOrigin?.(); window.switchTab('login'); closeMobileDrawer();">
-        <span class="material-symbols-outlined">login</span> 登入
-      </button>
     </nav>
 
     <div id="mobile-user-section" class="mobile-user-section" style="display: none;">
