@@ -38,75 +38,79 @@ export function setupAuth() {
   };
 
   // Auth state listener
-  onAuthStateChanged(auth, async (user) => {
-    window.currentUser = user;
-    const btnLogin = document.getElementById('btn-login');
-    const headerAvatar = document.getElementById('header-avatar');
+    onAuthStateChanged(auth, async (user) => {
+      window.currentUser = user;
+      const btnLogin = document.getElementById('btn-login');
+      const headerAvatar = document.getElementById('header-avatar');
+      const mobileBtnLogin = document.getElementById('mobile-btn-login');
+      const mobileMenuMyProfile = document.getElementById('mobile-menu-my-profile');
 
-    if (user) {
-      if (btnLogin) btnLogin.style.display = 'none';
-      if (headerAvatar) {
-        headerAvatar.style.display = 'block';
-        headerAvatar.src = user.photoURL || DEFAULT_AVATAR;
-      }
-
-      const menuPhoto = document.getElementById('menu-user-photo');
-      if (menuPhoto) menuPhoto.src = user.photoURL || DEFAULT_AVATAR;
-
-      const menuName = document.getElementById('menu-user-name');
-      if (menuName) menuName.innerText = user.displayName;
-
-      const menuEmail = document.getElementById('menu-user-email');
-      if (menuEmail) menuEmail.innerText = user.email;
-
-      const accPhoto = document.getElementById('acc-user-photo');
-      if (accPhoto) accPhoto.src = user.photoURL || DEFAULT_AVATAR;
-
-      const accName = document.getElementById('acc-user-name');
-      if (accName) accName.innerText = user.displayName;
-
-      const accEmail = document.getElementById('acc-user-email');
-      if (accEmail) accEmail.innerText = user.email;
-
-      // Sync user data to Firestore users collection
-      try {
-        const userRef = doc(db, 'users', user.uid);
-        const userSnap = await getDoc(userRef);
-        if (!userSnap.exists()) {
-          await setDoc(userRef, {
-            displayName: user.displayName,
-            email: user.email,
-            photoURL: user.photoURL,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp()
-          });
-        } else {
-          await setDoc(userRef, {
-            displayName: user.displayName,
-            email: user.email,
-            photoURL: user.photoURL,
-            updatedAt: serverTimestamp()
-          }, { merge: true });
+      if (user) {
+        if (btnLogin) btnLogin.style.display = 'none';
+        if (headerAvatar) {
+          headerAvatar.style.display = 'block';
+          headerAvatar.src = user.photoURL || DEFAULT_AVATAR;
         }
-      } catch (err) {
-        console.error('同步用戶資料失敗:', err);
-      }
+        if (mobileBtnLogin) mobileBtnLogin.style.display = 'none';
+        if (mobileMenuMyProfile) mobileMenuMyProfile.style.display = 'flex';
 
-      // Show \"我的開發者頁面\" menu item
-      const menuMyProfile = document.getElementById('menu-my-profile');
-      if (menuMyProfile) menuMyProfile.style.display = 'flex';
-    } else {
-      btnLogin.style.display = 'inline-flex';
-      headerAvatar.style.display = 'none';
-      const menuMyProfile = document.getElementById('menu-my-profile');
-      if (menuMyProfile) menuMyProfile.style.display = 'none';
-      window.closeProfileDropdown();
-      window.switchTab('market');
-    }
+        const menuPhoto = document.getElementById('menu-user-photo');
+        if (menuPhoto) menuPhoto.src = user.photoURL || DEFAULT_AVATAR;
+
+        const menuName = document.getElementById('menu-user-name');
+        if (menuName) menuName.innerText = user.displayName;
+
+        const menuEmail = document.getElementById('menu-user-email');
+        if (menuEmail) menuEmail.innerText = user.email;
+
+        const accPhoto = document.getElementById('acc-user-photo');
+        if (accPhoto) accPhoto.src = user.photoURL || DEFAULT_AVATAR;
+
+        const accName = document.getElementById('acc-user-name');
+        if (accName) accName.innerText = user.displayName;
+
+        const accEmail = document.getElementById('acc-user-email');
+        if (accEmail) accEmail.innerText = user.email;
+
+        // Sync user data to Firestore users collection
+        try {
+          const userRef = doc(db, 'users', user.uid);
+          const userSnap = await getDoc(userRef);
+          if (!userSnap.exists()) {
+            await setDoc(userRef, {
+              displayName: user.displayName,
+              email: user.email,
+              photoURL: user.photoURL,
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp()
+            });
+          } else {
+            await setDoc(userRef, {
+              displayName: user.displayName,
+              email: user.email,
+              photoURL: user.photoURL,
+              updatedAt: serverTimestamp()
+            }, { merge: true });
+          }
+        } catch (err) {
+          console.error('同步用戶資料失敗:', err);
+        }
+
+        // Show "我的開發者頁面" menu item
+        const menuMyProfile = document.getElementById('menu-my-profile');
+        if (menuMyProfile) menuMyProfile.style.display = 'flex';
+      } else {
+        btnLogin.style.display = 'inline-flex';
+        headerAvatar.style.display = 'none';
+        if (mobileBtnLogin) mobileBtnLogin.style.display = 'flex';
+        if (mobileMenuMyProfile) mobileMenuMyProfile.style.display = 'none';
+        window.closeProfileDropdown();
+        window.switchTab('market');
+      }
     
-    // Check if user just logged in from login page
-    checkAndRedirectAfterLogin(user);
-  });
+      // Check if user just logged in from login page
+      checkAndRedirectAfterLogin(user);
+    });
 }
 
 // Check if user just logged in (coming from login page) and redirect to dev profile

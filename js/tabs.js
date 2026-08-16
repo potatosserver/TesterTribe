@@ -62,6 +62,13 @@ function updateMarketTabUI(tabName) {
     androidBtn.classList.toggle('active', tabName === 'market-android');
     iosBtn.classList.toggle('active', tabName === 'market-ios');
   }
+  // Update mobile nav items
+  const mobileAndroidBtn = document.querySelector('.mobile-nav-item[onclick*="market-android"]');
+  const mobileIosBtn = document.querySelector('.mobile-nav-item[onclick*="market-ios"]');
+  if (mobileAndroidBtn && mobileIosBtn) {
+    mobileAndroidBtn.classList.toggle('active', tabName === 'market-android');
+    mobileIosBtn.classList.toggle('active', tabName === 'market-ios');
+  }
 }
 
 export function setupTabs() {
