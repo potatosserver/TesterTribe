@@ -19,7 +19,6 @@ export function setupPublish() {
     const screenshotUrl3 = document.getElementById('app-screenshot-url-3').value.trim();
 
     if (!iconUrl) return m3Alert('請輸入 App 圖示網址！');
-    if (!screenshotUrl1) return m3Alert('至少需輸入 1 張截圖網址！');
 
     let groupUrl = '';
     let storeUrl = '';
