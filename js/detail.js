@@ -301,7 +301,7 @@ async function openAppDetail(appId, storeFromCard) {
                             <div>
                               <h3 style="font-size: 1.25rem; font-weight: 800; margin: 0; display:flex; align-items:center; gap:8px;">
                                 <span class="material-symbols-outlined" style="color:var(--md-sys-color-primary);">forum</span>
-                                社群評價與反饋 ${appData.ratingCount && appData.ratingCount > 0 ? `<span style="color:#f59e0b; font-weight: 700;">${(appData.ratingSum / appData.ratingCount).toFixed(1)}</span> <span class="material-symbols-outlined" style="font-size:18px; color:#f59e0b;">star</span>` : '<span style="color:#999;">尚無評價</span>'}
+                                社群評價與反饋 ${appData.ratingCount && appData.ratingCount > 0 ? `<span style="color:#999;">(</span><span style="color:#f59e0b; font-weight: 700;">${(appData.ratingSum / appData.ratingCount).toFixed(1)}</span> <span class="material-symbols-outlined" style="font-size:18px; color:#f59e0b;">star</span><span style="color:#999;">)</span>` : '<span style="color:#999;">(尚無評價)</span>'}
                               </h3>
                               <p style="font-size: 0.85rem; color: #666; margin: 4px 0 0 0;">共有 ${appData.ratingCount || 0} 位測試人員評價</p>
                             </div>
