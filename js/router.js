@@ -1,18 +1,18 @@
 // Hash-based router for deep linking
-// URL Structure: #market/android, #market/ios, #app/google-play/com.example.app, #app/google-play/appId, #dev/google-play/developerName, #login
+// URL Structure: #market/android, #market/ios, #app/google-play/com.example.app, #dev-profile/google-play/user%40email.com, #login
 export const routes = {
   'market': { template: 'market', handler: 'setupMarket' },
   'market-android': { template: 'market', handler: 'setupMarket' },
   'market-ios': { template: 'market', handler: 'setupMarket' },
-  'app-detail': { template: 'app-detail', handler: 'setupDetail' },
+  'app': { template: 'app-detail', handler: 'setupDetail' },
   'dev-profile': { template: 'dev-profile', handler: 'setupDevProfile' },
   'publish': { template: 'publish', handler: 'setupPublish' },
   'login': { template: 'login', handler: 'setupLogin' }
 };
 
 const STORE_MAPPING = {
-  'android': 'android',
-  'ios': 'ios'
+  'google-play': 'android',
+  'app-store': 'ios'
 };
 
 const REVERSE_STORE_MAPPING = {
@@ -28,8 +28,7 @@ export function initRouter() {
   window.getStoreFromUrl = getStoreFromUrl;
   window.getPlatformFromUrl = getPlatformFromUrl;
   window.getPackageNameFromUrl = getPackageNameFromUrl;
-  window.getAppIdFromUrl = getAppIdFromUrl;
-  window.getAuthorIdentifierFromUrl = getAuthorIdentifierFromUrl;
+  window.getAuthorEmailFromUrl = getAuthorEmailFromUrl;
   window.addEventListener('hashchange', handleHashChange);
   handleHashChange(); // Handle initial load
 }
@@ -67,28 +66,29 @@ export function handleHashChange() {
   
   if (routeName === 'market-android' || routeName === 'market-ios') {
     const platform = routeName === 'market-android' ? 'android' : 'ios';
+    const store = routeName === 'market-android' ? 'google-play' : 'app-store';
     newParams.platform = platform;
+    newParams.store = store;
   } else if (routeName === 'market') {
     // Legacy redirect
     navigate('market-android');
     return;
-  } else if (routeName === 'app-detail') {
-    const store = parts[1] || 'android';
-    const identifier = parts[2];
+  } else if (routeName === 'app') {
+    const store = parts[1] || 'google-play';
+    const packageName = parts[2];
     newParams.store = store;
     newParams.platform = STORE_MAPPING[store] || 'android';
-    
-    if (identifier && identifier.includes('.')) {
-      newParams.packageName = identifier;
-    } else {
-      newParams.appId = identifier;
+    if (packageName) {
+      newParams.packageName = decodeURIComponent(packageName);
     }
   } else if (routeName === 'dev-profile') {
-    const store = parts[1] || 'android';
-    const authorIdentifier = parts[2];
+    const store = parts[1] || 'google-play';
+    const email = parts[2];
     newParams.store = store;
     newParams.platform = STORE_MAPPING[store] || 'android';
-    newParams.authorIdentifier = authorIdentifier;
+    if (email) {
+      newParams.authorEmail = decodeURIComponent(email);
+    }
   }
 
   routeParams = newParams;
@@ -96,7 +96,7 @@ export function handleHashChange() {
   switchTab(routeName, newParams);
   
   // Load data for detail and dev-profile tabs when navigating via URL
-  if (routeName === 'app-detail') {
+  if (routeName === 'app') {
     window.openAppDetail();
   } else if (routeName === 'dev-profile') {
     window.openDevProfile();
@@ -108,19 +108,17 @@ export function navigate(routeName, params = {}) {
   
   if (routeName === 'market-android' || routeName === 'market-ios') {
     // No additional params needed
-  } else if (routeName === 'app-detail') {
-    const store = params.store || 'android';
+  } else if (routeName === 'app') {
+    const store = params.store || 'google-play';
     hash += `/${store}`;
     if (params.packageName) {
       hash += `/${encodeURIComponent(params.packageName)}`;
-    } else if (params.appId) {
-      hash += `/${encodeURIComponent(params.appId)}`;
     }
   } else if (routeName === 'dev-profile') {
-    const store = params.store || 'android';
+    const store = params.store || 'google-play';
     hash += `/${store}`;
-    if (params.authorIdentifier) {
-      hash += `/${encodeURIComponent(params.authorIdentifier)}`;
+    if (params.authorEmail) {
+      hash += `/${encodeURIComponent(params.authorEmail)}`;
     }
   }
   
@@ -148,12 +146,8 @@ export function getPackageNameFromUrl() {
   return routeParams.packageName;
 }
 
-export function getAppIdFromUrl() {
-  return routeParams.appId;
-}
-
-export function getAuthorIdentifierFromUrl() {
-  return routeParams.authorIdentifier;
+export function getAuthorEmailFromUrl() {
+  return routeParams.authorEmail;
 }
 
 // Helper to convert platform to store name
@@ -170,6 +164,5 @@ export function storeToPlatform(store) {
 window.getStoreFromUrl = getStoreFromUrl;
 window.getPlatformFromUrl = getPlatformFromUrl;
 window.getPackageNameFromUrl = getPackageNameFromUrl;
-window.getAppIdFromUrl = getAppIdFromUrl;
-window.getAuthorIdentifierFromUrl = getAuthorIdentifierFromUrl;
+window.getAuthorEmailFromUrl = getAuthorEmailFromUrl;
 window.getRouteParams = () => routeParams;

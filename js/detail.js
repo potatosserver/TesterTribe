@@ -1,8 +1,8 @@
 // Detail module - app detail view with Google Play style layout
-import { doc, getDoc, collection, query, getDocs, updateDoc, deleteDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
+import { doc, getDoc, collection, query, where, getDocs, updateDoc, deleteDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { db } from './firebase-config.js';
 import { escapeHTML, formatDate } from './utils.js';
-import { getAppIdFromUrl, getStoreFromUrl, platformToStore } from './router.js';
+import { getPackageNameFromUrl, getStoreFromUrl, platformToStore } from './router.js';
 import { m3Alert, m3Error, m3Success, m3Confirm } from './m3-dialog.js';
 
 export function setupDetail() {
@@ -37,24 +37,34 @@ function clearStepChecks(appId) {
 
 async function openAppDetail(appId) {
   const store = getStoreFromUrl();
-  const id = appId || getAppIdFromUrl();
+  const pkgName = appId || getPackageNameFromUrl();
+  const platform = store === 'app-store' ? 'ios' : 'android';
   
-  if (!id) {
+  if (!pkgName) {
     window.switchTab('market-android');
     return;
   }
   
-  window.navigate('app-detail', { store, appId: id });
+  window.navigate('app', { store, packageName: pkgName });
   
-  window.currentDetailAppId = id;
+  window.currentDetailAppId = pkgName;
   
   const detailContent = document.getElementById('detail-content');
   detailContent.innerHTML = '<div style="text-align:center; padding:40px;">載入專案資訊中...</div>';
   
   try {
-    const appSnap = await getDoc(doc(db, 'apps', id));
-    if (!appSnap.exists()) return detailContent.innerHTML = '找不到該專案。';
+    // Find app by packageName AND platform to avoid cross-store contamination
+    const appsQuery = query(
+      collection(db, 'apps'), 
+      where('packageName', '==', pkgName),
+      where('platform', '==', platform)
+    );
+    const appsSnap = await getDocs(appsQuery);
     
+    if (appsSnap.empty) return detailContent.innerHTML = '找不到該專案。';
+    
+    const appSnap = appsSnap.docs[0];
+    const id = appSnap.id;
     const appData = appSnap.data();
     const screenshots = appData.screenshotUrls || [];
     const avgRating = appData.ratingCount ? (appData.ratingSum / appData.ratingCount).toFixed(1) : '尚無';
@@ -62,10 +72,10 @@ async function openAppDetail(appId) {
     const MAX_TESTERS = 12;
     const progressPercent = Math.min(100, Math.round((joinCount / MAX_TESTERS) * 100));
     const isCompleted = joinCount >= MAX_TESTERS;
-    const platform = appData.platform || 'android';
+    const appDataPlatform = appData.platform || 'android';
     const isAppAuthor = window.currentUser && (window.currentUser.uid === appData.authorUid);
     
-    const REQUIRED_STEPS = platform === 'ios' ? 1 : 3;
+    const REQUIRED_STEPS = appDataPlatform === 'ios' ? 1 : 3;
     
     let isLiked = false;
     let isJoined = false;

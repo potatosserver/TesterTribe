@@ -2,7 +2,7 @@
 import { collection, query, where, getDocs, doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { db } from './firebase-config.js';
 import { escapeHTML, formatDate, formatDateOnly } from './utils.js';
-import { getStoreFromUrl, getPlatformFromUrl, getAuthorIdentifierFromUrl } from './router.js';
+import { getStoreFromUrl, getPlatformFromUrl, getAuthorEmailFromUrl } from './router.js';
 import { m3Alert, m3Confirm, m3Error, m3Success } from './m3-dialog.js';
 
 export function setupDevProfile() {
@@ -11,7 +11,7 @@ export function setupDevProfile() {
 
 async function openDevProfile(authorUid, authorName) {
   const store = getStoreFromUrl();
-  const authorIdentifier = authorUid || getAuthorIdentifierFromUrl();
+  const authorIdentifier = authorUid || getAuthorEmailFromUrl();
   
   if (!authorIdentifier) {
     window.switchTab('market');
@@ -27,21 +27,29 @@ async function openDevProfile(authorUid, authorName) {
   document.getElementById('dev-empty-state').style.display = 'none';
 
   try {
-    // Fetch user by UID (authorIdentifier could be UID or we need to look it up)
-    const userSnap = await getDoc(doc(db, 'users', authorIdentifier));
-    if (!userSnap.exists()) {
-      // Try to find by display name if UID not found
-      const usersQuery = query(collection(db, 'users'), where('displayName', '==', authorIdentifier));
+    // Fetch user by Email (authorIdentifier is now an email from URL parameter)
+    let userSnap;
+    let actualUid;
+      
+    if (authorIdentifier.includes('@')) {
+      const usersQuery = query(collection(db, 'users'), where('email', '==', authorIdentifier));
       const usersSnapshot = await getDocs(usersQuery);
-      if (!usersSnapshot.empty) {
-        // Use the first match
-        const matchedDoc = usersSnapshot.docs[0];
-        // We'll use the matched doc's data but keep the original identifier for app queries
-      } else {
+      if (usersSnapshot.empty) {
+        throw new Error('找不到該開發者');
+      }
+      const matchedDoc = usersSnapshot.docs[0];
+      userSnap = matchedDoc;
+      actualUid = matchedDoc.id;
+    } else {
+      // Fallback to UID if the identifier doesn't look like an email
+      userSnap = await getDoc(doc(db, 'users', authorIdentifier));
+      if (!userSnap.exists()) {
         throw new Error('開發者不存在');
       }
+      actualUid = userSnap.id;
     }
-    const userData = userSnap.exists() ? userSnap.data() : {};
+      
+    const userData = userSnap.data();
     const displayName = userData.displayName || authorName || '匿名開發者';
     const email = userData.email || '無公開信箱';
     const photoURL = userData.photoURL || '';
@@ -51,9 +59,6 @@ async function openDevProfile(authorUid, authorName) {
     document.getElementById('dev-profile-email').innerText = escapeHTML(email);
     document.getElementById('dev-profile-avatar').src = photoURL || window.DEFAULT_AVATAR;
     
-    // Store the actual UID for app queries
-    const actualUid = userSnap.exists() ? userSnap.id : authorIdentifier;
-
     if (createdAt) {
       document.getElementById('dev-join-date').innerHTML = `
         <span class="material-symbols-outlined" style="font-size: 18px;">calendar_today</span>
@@ -116,7 +121,7 @@ async function openDevProfile(authorUid, authorName) {
 
       const card = document.createElement('div');
       card.className = 'app-card';
-      card.onclick = () => window.openAppDetail(appData.id);
+      card.onclick = () => window.openAppDetail(appData.packageName);
 
       // For own profile, show edit button in footer
       const footerActions = isOwnProfile ? `

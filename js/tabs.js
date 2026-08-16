@@ -17,6 +17,8 @@ export function switchTab(tabName, params = {}) {
     targetTabName = 'market-android';
   } else if (tabName === 'market-ios') {
     targetTabName = 'market-ios';
+  } else if (tabName === 'app') {
+    targetTabName = 'app-detail'; // The view ID is view-app-detail
   }
 
   // Hide all tab contents

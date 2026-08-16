@@ -141,9 +141,8 @@ async function fetchMarketApps(platformKey, isInitial = false) {
       { field: 'status', op: '==', value: 'published' },
       { field: 'platform', op: '==', value: platform }
     ];
-    if (currentPlatformFilter !== 'all') {
-      constraintsArray.push({ field: 'platform', op: '==', value: currentPlatformFilter });
-    }
+    
+    // Note: currentPlatformFilter is for the UI chips, but the base fetch must be platform-specific
     const results = await cachedGetDocs(collection(db, collectionName), constraintsArray, { 
       ttl: 5 * 60 * 1000, 
       collectionName, 
@@ -205,7 +204,7 @@ function renderMarketApps(platformKey, appsList) {
 
     const card = document.createElement('div');
     card.className = 'app-card';
-    card.onclick = () => window.openAppDetail(appData.id);
+    card.onclick = () => window.openAppDetail(appData.packageName);
 
     card.innerHTML = `
           <div>

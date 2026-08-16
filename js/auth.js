@@ -105,7 +105,6 @@ export function setupAuth() {
         if (mobileBtnLogin) mobileBtnLogin.style.display = 'flex';
         if (mobileMenuMyProfile) mobileMenuMyProfile.style.display = 'none';
         window.closeProfileDropdown();
-        window.switchTab('market');
       }
     
       // Check if user just logged in from login page
