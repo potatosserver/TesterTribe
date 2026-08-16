@@ -107,7 +107,7 @@ async function openAppDetail(appId) {
         let typeBadge = '';
         if (fb.type === 'review') {
           const starsHtml = '★'.repeat(fb.rating || 5) + '☆'.repeat(5 - (fb.rating || 5));
-          typeBadge = `<span class="type-badge type-review"><span style="color:#f59e0b;">${starsHtml}</span> (${fb.rating} 星)</span>`;
+          typeBadge = `<span class="type-badge type-review"><span style="color:#f59e0b;">${starsHtml}</span></span>`;
         } else if (fb.type === 'bug') {
           typeBadge = `<span class="type-badge type-bug"><span class="material-symbols-outlined" style="font-size:12px;">bug_report</span> Bug 回報</span>`;
         } else {
@@ -119,7 +119,10 @@ async function openAppDetail(appId) {
             ${isPinned ? `<div class="pinned-badge"><span class="material-symbols-outlined" style="font-size:14px;">push_pin</span> 開發者置頂留言</div>` : ''}
             
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
-              <div>${typeBadge} <span style="font-size:0.8rem; color:#888; margin-left:8px;">來自：${escapeHTML(fb.authorName)}</span></div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-weight: 600; font-size: 0.9rem;">${escapeHTML(fb.authorName)}</span>
+                ${fb.type === 'review' ? `<span style="color:#f59e0b;">${'★'.repeat(fb.rating || 5) + '☆'.repeat(5 - (fb.rating || 5))}</span>` : typeBadge}
+              </div>
               <div style="display:flex; gap:8px;">
                 ${isAppAuthor ? `
                   <button onclick="window.togglePinFeedback('${id}', '${fb.id}', ${isPinned})" class="btn btn-outline" style="padding:2px 8px; font-size:0.75rem;">
@@ -265,7 +268,7 @@ async function openAppDetail(appId) {
           <div>
             <h3 style="font-size: 1.25rem; font-weight: 800; margin: 0; display:flex; align-items:center; gap:8px;">
               <span class="material-symbols-outlined" style="color:var(--md-sys-color-primary);">forum</span>
-              社群評價與反饋 (平均 <span class="material-symbols-outlined" style="font-size:20px; color:#f59e0b;">star</span> ${avgRating})
+              社群評價與反饋 ${appData.ratingCount && appData.ratingCount > 0 ? `<span style="color:#f59e0b; font-weight: 700;">${(appData.ratingSum / appData.ratingCount).toFixed(1)}</span> <span class="material-symbols-outlined" style="font-size:18px; color:#f59e0b;">star</span>` : '<span style="color:#999;">尚無評價</span>'}
             </h3>
             <p style="font-size: 0.85rem; color: #666; margin: 4px 0 0 0;">共有 ${appData.ratingCount || 0} 位測試人員評價</p>
           </div>
