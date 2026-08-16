@@ -102,6 +102,64 @@ header { background: var(--md-sys-color-surface-container-low); position: sticky
 .search-box { background: #ffffff; border-radius: var(--md-shape-corner-full); padding: 6px 20px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--md-sys-color-outline-variant); box-shadow: var(--md-elevation-1); }
 .search-input { border: none; background: transparent; width: 100%; padding: 10px 0; font-size: 0.95rem; outline: none; }
 
+/* M3 Style Filter Controls */
+.filter-controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.filter-controls > div { display: flex; align-items: center; gap: 6px; }
+.filter-controls label { font-size: 0.85rem; color: var(--md-sys-color-on-surface-variant); font-weight: 500; white-space: nowrap; }
+.filter-controls select.form-control {
+  background: #ffffff;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-shape-corner-full);
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s;
+  min-width: 140px;
+  width: auto !important;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2372777f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 40px;
+}
+.filter-controls select.form-control:hover {
+  border-color: var(--md-sys-color-outline);
+}
+.filter-controls select.form-control:focus {
+  border-color: var(--md-sys-color-primary);
+  box-shadow: 0 0 0 2px var(--md-sys-color-primary-container);
+}
+
+/* Desktop: search box and filters side by side */
+@media (min-width: 768px) {
+  .filter-section {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .search-box {
+    flex: 1;
+    min-width: 0;
+    max-width: none;
+  }
+  .filter-controls {
+    flex-shrink: 0;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .filter-controls > div {
+    width: 100%;
+  }
+  .filter-controls select.form-control {
+    width: 100% !important;
+    min-width: 180px;
+  }
+}
+
 .chips-group { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
 .chip-btn { background: #ffffff; border: 1px solid var(--md-sys-color-outline-variant); padding: 8px 16px; border-radius: var(--md-shape-corner-full); font-size: 0.85rem; font-weight: 700; color: var(--md-sys-color-secondary); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
 .chip-btn.active { background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); border-color: var(--md-sys-color-primary); }

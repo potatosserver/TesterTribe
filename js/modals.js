@@ -138,6 +138,7 @@ async function loadAppDataForEdit(docId) {
     document.getElementById('edit-app-screenshot-url-2').value = screenshots[1] || '';
     document.getElementById('edit-app-screenshot-url-3').value = screenshots[2] || '';
     document.getElementById('edit-app-desc').value = appData.description || '';
+    document.getElementById('edit-app-is-closed').checked = appData.isClosed === true;
 
     togglePlatformFields('edit');
   } catch (err) {
@@ -196,6 +197,8 @@ async function handleEditAppSubmit(e) {
     storeUrl = testFlightUrl;
   }
 
+  const isClosed = document.getElementById('edit-app-is-closed').checked;
+
   const submitBtn = document.getElementById('edit-btn-submit');
   submitBtn.disabled = true;
   submitBtn.innerText = '更新中...';
@@ -217,6 +220,7 @@ async function handleEditAppSubmit(e) {
       groupUrl: groupUrl,
       storeUrl: storeUrl,
       testFlightUrl: testFlightUrl,
+      isClosed: isClosed,
       updatedAt: serverTimestamp()
     };
 

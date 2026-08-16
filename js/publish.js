@@ -32,6 +32,8 @@ export function setupPublish() {
       storeUrl = testFlightUrl;
     }
 
+    const isClosed = document.getElementById('app-is-closed').checked;
+
     // Check for duplicate packageName
     const appsRef = collection(db, 'apps');
     const dupQuery = query(appsRef, where('packageName', '==', packageName), where('platform', '==', platform));
@@ -63,6 +65,7 @@ export function setupPublish() {
         groupUrl: groupUrl,
         storeUrl: storeUrl,
         testFlightUrl: testFlightUrl,
+        isClosed: isClosed,
         authorName: window.currentUser.displayName,
         authorUid: window.currentUser.uid,
         authorEmail: window.currentUser.email,

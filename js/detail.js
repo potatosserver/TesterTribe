@@ -202,7 +202,7 @@ async function openAppDetail(appId, storeFromCard) {
             </h3>
             <div class="gp-steps-with-sidebar">
               <div class="gp-action-buttons">
-                ${platform === 'android' ? `
+                ${!appData.isClosed && platform === 'android' ? `
                   <!-- Step 1-2: Guide + Link wrapped together in one box -->
                   <div class="gp-step-group">
                     <div class="gp-step-guide">
@@ -233,13 +233,14 @@ async function openAppDetail(appId, storeFromCard) {
                       </span>
                     </div>
                   </div>
-                  
-                  <!-- Step 4: Download link -->
-                  <div class="gp-step-btn" data-step="3" data-url="${escapeHTML(playStoreUrl)}">
-                    <span class="gp-step-check" data-step="3" ${getStepChecked(3, id) ? 'checked' : ''}></span>
+                ` : ''}
+                ${platform === 'android' ? `
+                  <!-- Step 4: Download link (always shown for Android) -->
+                  <div class="gp-step-btn" data-step="${!appData.isClosed ? '3' : '1'}" data-url="${escapeHTML(playStoreUrl)}">
+                    <span class="gp-step-check" data-step="${!appData.isClosed ? '3' : '1'}" ${getStepChecked(!appData.isClosed ? 3 : 1, id) ? 'checked' : ''}></span>
                     <span class="gp-step-content">
                       <span class="material-symbols-outlined">download</span>
-                      <span>前往 Google Play 商店下載測試版 App</span>
+                      <span>${!appData.isClosed ? '前往 Google Play 商店下載測試版 App' : '前往 Google Play 商店下載 App'}</span>
                       <span class="material-symbols-outlined gp-step-link-icon">open_in_new</span>
                     </span>
                   </div>
@@ -273,6 +274,7 @@ async function openAppDetail(appId, storeFromCard) {
                   
                   <hr class="gp-divider">
                   
+                  ${!appData.isClosed ? `
                   <div class="gp-sidebar-item">
                     <div class="gp-sidebar-label">
                       ${platform === 'ios' ? 'TestFlight 測試進度' : 'Google 封閉測試進度'} 
@@ -288,6 +290,16 @@ async function openAppDetail(appId, storeFromCard) {
                       ${isJoined ? '已加入測試 (點擊退出)' : (isCompleted ? '測試名額已滿' : '回報已加入測試')}
                     </button>
                   </div>
+                  ` : `
+                  <div class="gp-sidebar-item">
+                    <div class="gp-sidebar-label">
+                      ${platform === 'ios' ? 'TestFlight 測試人數' : 'Google 測試人數'} 
+                      <span style="color: var(--md-sys-color-primary); font-weight: 700;">
+                        ${joinCount} 人
+                      </span>
+                    </div>
+                  </div>
+                  `}
                 </div>
                                 </div>
                               </div>
@@ -416,6 +428,7 @@ async function toggleJoinTestDetail(appId, isJoined) {
   const appSnap = await getDoc(appRef);
   const appData = appSnap.data();
   const platform = appData?.platform || (appData?.store === 'app-store' ? 'ios' : 'android');
+  const isClosed = appData?.isClosed === true;
   const REQUIRED_STEPS = platform === 'ios' ? 1 : 3;
   
   if (!isJoined) {
@@ -428,35 +441,38 @@ async function toggleJoinTestDetail(appId, isJoined) {
       return;
     }
     
-    const stepChecks = getStepChecks(appId);
-    let allStepsCompleted = true;
-    for (let i = 1; i <= REQUIRED_STEPS; i++) {
-      if (stepChecks[i] !== true) {
-        allStepsCompleted = false;
-        break;
-      }
-    }
-    
-    if (!allStepsCompleted) {
-      let nextStep = 1;
+    // If app is closed, skip step validation
+    if (!isClosed) {
+      const stepChecks = getStepChecks(appId);
+      let allStepsCompleted = true;
       for (let i = 1; i <= REQUIRED_STEPS; i++) {
         if (stepChecks[i] !== true) {
-          nextStep = i;
+          allStepsCompleted = false;
           break;
         }
       }
       
-      m3Alert(`請先按順序完成所有測試步驟（步驟 ${nextStep} 尚未完成），再回報已加入測試。`, '步驟未完成');
-      return;
+      if (!allStepsCompleted) {
+        let nextStep = 1;
+        for (let i = 1; i <= REQUIRED_STEPS; i++) {
+          if (stepChecks[i] !== true) {
+            nextStep = i;
+            break;
+          }
+        }
+        
+        m3Alert(`請先按順序完成所有測試步驟（步驟 ${nextStep} 尚未完成），再回報已加入測試。`, '步驟未完成');
+        return;
+      }
+      
+      const confirmed = await m3Confirm('確定已完成所有步驟並下載測試版 App？', '確認加入測試', {
+        confirmText: '已下載完成',
+        cancelText: '取消',
+        destructive: false
+      });
+      
+      if (!confirmed) return;
     }
-    
-    const confirmed = await m3Confirm('確定已完成所有步驟並下載測試版 App？', '確認加入測試', {
-      confirmText: '已下載完成',
-      cancelText: '取消',
-      destructive: false
-    });
-    
-    if (!confirmed) return;
   } else {
     clearStepChecks(appId);
   }

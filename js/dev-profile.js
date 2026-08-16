@@ -171,6 +171,7 @@ async function openDevProfile(authorUid, authorName, authorEmail) {
             <span class="badge-pill badge-like"><span class="material-symbols-outlined" style="font-size:14px;">favorite</span> ${appData.likeCount || 0}</span>
           </div>
 
+          ${!appData.isClosed ? `
           <div class="progress-section">
             <div class="progress-text">
               <span>測試進度</span>
@@ -180,6 +181,14 @@ async function openDevProfile(authorUid, authorName, authorEmail) {
               <div class="progress-bar-fill" style="width: ${progressPercent}%; background: ${isCompleted ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-error)'};"></div>
             </div>
           </div>
+          ` : `
+          <div class="progress-section" style="padding-top: 8px;">
+            <div class="progress-text">
+              <span>測試人數</span>
+              <span style="color: var(--md-sys-color-primary); font-weight: 700;">${joinCount} 人</span>
+            </div>
+          </div>
+          `}
         </div>
 
         ${footerActions}

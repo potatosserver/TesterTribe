@@ -97,6 +97,22 @@ function setupMarketPlatform(platformKey) {
     });
   }
   
+  // Status filter
+  const statusFilter = document.getElementById(`filter-status-${platformKey}`);
+  if (statusFilter) {
+    statusFilter.addEventListener('change', () => {
+      renderMarketApps(platformKey, state.loadedApps);
+    });
+  }
+  
+  // Sort filter
+  const sortFilter = document.getElementById(`filter-sort-${platformKey}`);
+  if (sortFilter) {
+    sortFilter.addEventListener('change', () => {
+      renderMarketApps(platformKey, state.loadedApps);
+    });
+  }
+  
   // Initial load
   fetchMarketApps(platformKey, true);
 }
@@ -211,14 +227,65 @@ function renderMarketApps(platformKey, appsList) {
   const marketList = document.getElementById(config.listId);
   if (!marketList) return;
   
+  // Get filter values
+  const statusFilter = document.getElementById(`filter-status-${platformKey}`);
+  const sortFilter = document.getElementById(`filter-sort-${platformKey}`);
+  const statusValue = statusFilter ? statusFilter.value : 'all';
+  const sortValue = sortFilter ? sortFilter.value : 'auto';
+  
+  // Apply status filter
+  let filteredApps = appsList;
+  if (statusValue === 'open') {
+    filteredApps = appsList.filter(app => !app.isClosed);
+  } else if (statusValue === 'closed') {
+    filteredApps = appsList.filter(app => app.isClosed === true);
+  }
+  
+  // Apply sort
+  if (sortValue === 'popular') {
+    // 熱門：愛心數降序
+    filteredApps.sort((a, b) => (b.likeCount || 0) - (a.likeCount || 0));
+  } else if (sortValue === 'rating') {
+    // 評價：星星數降序，無星星用 3.5 計算
+    filteredApps.sort((a, b) => {
+      const ratingA = a.ratingCount ? (a.ratingSum / a.ratingCount) : 3.5;
+      const ratingB = b.ratingCount ? (b.ratingSum / b.ratingCount) : 3.5;
+      return ratingB - ratingA;
+    });
+  } else {
+    // 自動：綜合權重
+    // 權重：愛心數 * 1 + 星星數 * 2 + 該開發者參與的測試app數 * 5 (重權重)
+    // 為了計算開發者參與的測試app數，我們需要先統計每個開發者的app數
+    const authorAppCounts = {};
+    appsList.forEach(app => {
+      if (app.authorEmail) {
+        authorAppCounts[app.authorEmail] = (authorAppCounts[app.authorEmail] || 0) + 1;
+      }
+    });
+    
+    filteredApps.sort((a, b) => {
+      const likeA = a.likeCount || 0;
+      const likeB = b.likeCount || 0;
+      const ratingA = a.ratingCount ? (a.ratingSum / a.ratingCount) : 3.5;
+      const ratingB = b.ratingCount ? (b.ratingSum / b.ratingCount) : 3.5;
+      const authorCountA = a.authorEmail ? (authorAppCounts[a.authorEmail] || 0) : 0;
+      const authorCountB = b.authorEmail ? (authorAppCounts[b.authorEmail] || 0) : 0;
+      
+      const scoreA = likeA * 1 + ratingA * 2 + authorCountA * 5;
+      const scoreB = likeB * 1 + ratingB * 2 + authorCountB * 5;
+      
+      return scoreB - scoreA;
+    });
+  }
+  
   marketList.innerHTML = '';
 
-  if (appsList.length === 0) {
+  if (filteredApps.length === 0) {
     marketList.innerHTML = '<div style="color: #888; grid-column: 1/-1; text-align: center; padding: 40px 0;">沒有找到相關的專案。</div>';
     return;
   }
 
-  appsList.forEach((appData) => {
+  filteredApps.forEach((appData) => {
     const avgRating = appData.ratingCount ? (appData.ratingSum / appData.ratingCount).toFixed(1) : '尚無';
     const joinCount = appData.joinCount || 0;
     const MAX_TESTERS = 12;
@@ -258,6 +325,7 @@ function renderMarketApps(platformKey, appsList) {
               <span class="badge-pill badge-like"><span class="material-symbols-outlined" style="font-size:14px;">favorite</span> ${appData.likeCount || 0}</span>
             </div>
 
+            ${!appData.isClosed ? `
             <div class="progress-section">
               <div class="progress-text">
                 <span>測試進度</span>
@@ -267,6 +335,14 @@ function renderMarketApps(platformKey, appsList) {
                 <div class="progress-bar-fill" style="width: ${progressPercent}%; background: ${isCompleted ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-error)'};"></div>
               </div>
             </div>
+            ` : `
+            <div class="progress-section" style="padding-top: 8px;">
+              <div class="progress-text">
+                <span>測試人數</span>
+                <span style="color: var(--md-sys-color-primary); font-weight: 700;">${joinCount} 人</span>
+              </div>
+            </div>
+            `}
           </div>
         `;
     marketList.appendChild(card);

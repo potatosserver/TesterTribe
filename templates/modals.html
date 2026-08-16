@@ -98,6 +98,11 @@
         <textarea id="edit-app-desc" class="form-control" rows="4" required></textarea>
       </div>
 
+      <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" id="edit-app-is-closed" style="width: 20px; height: 20px;">
+        <label for="edit-app-is-closed" style="margin: 0; font-weight: 500;">結束封閉測試（隱藏測試步驟連結的前兩步）</label>
+      </div>
+
       <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
         <button type="button" onclick="confirmDeleteApp()" class="btn btn-error" style="background: var(--md-sys-color-error-container); color: var(--md-sys-color-error);">
           <span class="material-symbols-outlined">delete</span> 下架刪除

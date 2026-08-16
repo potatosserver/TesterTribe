@@ -17,6 +17,24 @@
       <span class="material-symbols-outlined" style="color: var(--md-sys-color-outline);">search</span>
       <input type="text" id="search-input-android" class="search-input" placeholder="搜尋專案名稱、包名或開發者...">
     </div>
+    <div class="filter-controls">
+      <div>
+        <label for="filter-status-android">狀態：</label>
+        <select id="filter-status-android" class="form-control">
+          <option value="all">全部</option>
+          <option value="open">招募中</option>
+          <option value="closed">已結束</option>
+        </select>
+      </div>
+      <div>
+        <label for="filter-sort-android">排序：</label>
+        <select id="filter-sort-android" class="form-control">
+          <option value="auto">自動（綜合權重）</option>
+          <option value="popular">熱門（愛心數）</option>
+          <option value="rating">評價（星星數）</option>
+        </select>
+      </div>
+    </div>
   </div>
 
   <div id="market-app-list-android" class="app-grid"></div>
@@ -47,6 +65,24 @@
     <div class="search-box">
       <span class="material-symbols-outlined" style="color: var(--md-sys-color-outline);">search</span>
       <input type="text" id="search-input-ios" class="search-input" placeholder="搜尋專案名稱、包名或開發者...">
+    </div>
+    <div class="filter-controls">
+      <div>
+        <label for="filter-status-ios">狀態：</label>
+        <select id="filter-status-ios" class="form-control">
+          <option value="all">全部</option>
+          <option value="open">招募中</option>
+          <option value="closed">已結束</option>
+        </select>
+      </div>
+      <div>
+        <label for="filter-sort-ios">排序：</label>
+        <select id="filter-sort-ios" class="form-control">
+          <option value="auto">自動（綜合權重）</option>
+          <option value="popular">熱門（愛心數）</option>
+          <option value="rating">評價（星星數）</option>
+        </select>
+      </div>
     </div>
   </div>
 
