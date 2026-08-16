@@ -151,7 +151,7 @@ async function openAppDetail(appId) {
               <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
                 <h1 style="font-size: 1.6rem; font-weight: 800; margin: 0;">${escapeHTML(appData.name)}</h1>
                 <span class="platform-badge ${platform === 'android' ? 'platform-android' : 'platform-ios'}">
-                  <span class="material-symbols-outlined" style="font-size:14px;">${platform === 'android' ? 'android' : 'phone_iphone'}</span>
+                  <span style="font-size:14px;">${platform === 'android' ? 'android' : '🍎'}</span>
                   ${platform === 'android' ? 'Android' : 'iOS'}
                 </span>
               </div>

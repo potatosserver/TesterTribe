@@ -146,7 +146,7 @@ async function openDevProfile(authorUid, authorName) {
               <div style="display:flex; align-items:center; gap:6px;">
                 <h3 class="app-title">${escapeHTML(appData.name)}</h3>
                 <span class="platform-badge ${platform === 'android' ? 'platform-android' : 'platform-ios'}">
-                  <span class="material-symbols-outlined" style="font-size:12px;">${platform === 'android' ? 'android' : 'phone_iphone'}</span>
+                  <span style="font-size:12px;">${platform === 'android' ? 'android' : '🍎'}</span>
                   ${platform === 'android' ? 'Android' : 'iOS'}
                 </span>
               </div>

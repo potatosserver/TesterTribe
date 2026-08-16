@@ -27,7 +27,7 @@ const MARKET_CONFIG = {
     noMoreMsgId: 'no-more-msg-ios',
     searchInputId: 'search-input-ios',
     title: 'App Store 市集',
-    icon: 'phone_iphone'
+    icon: '🍎'
   }
 };
 
