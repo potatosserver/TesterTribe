@@ -23,9 +23,15 @@ class SPAHandler(http.server.SimpleHTTPRequestHandler):
         static_extensions = {'.html', '.css', '.js', '.json', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff', '.woff2', '.ttf', '.eot', '.map'}
         file_path = DIRECTORY / path.lstrip('/')
         
-        # If path has extension and file exists, serve it
-        if any(path.endswith(ext) for ext in static_extensions) and file_path.is_file():
+        # If file exists (regardless of extension), serve it with correct MIME type
+        if file_path.is_file():
             return super().do_GET()
+        
+        # If path has a static extension but file doesn't exist, return 404
+        # This prevents serving index.html with wrong MIME type for missing static assets
+        if any(path.endswith(ext) for ext in static_extensions):
+            self.send_error(404, "File not found")
+            return
         
         # If it's a directory with index.html, serve it
         if file_path.is_dir():
