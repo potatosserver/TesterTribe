@@ -3,7 +3,7 @@ import { doc, getDoc, collection, query, getDocs, updateDoc, deleteDoc, setDoc, 
 import { db } from './firebase-config.js';
 import { escapeHTML, formatDate } from './utils.js';
 import { getAppIdFromUrl, getStoreFromUrl, platformToStore } from './router.js';
-import { m3Alert, m3Error, m3Success } from './m3-dialog.js';
+import { m3Alert, m3Error, m3Success, m3Confirm } from './m3-dialog.js';
 
 export function setupDetail() {
   window.openAppDetail = openAppDetail;
@@ -65,7 +65,6 @@ async function openAppDetail(appId) {
     const platform = appData.platform || 'android';
     const isAppAuthor = window.currentUser && (window.currentUser.uid === appData.authorUid);
     
-    // Number of required steps based on platform
     const REQUIRED_STEPS = platform === 'ios' ? 1 : 3;
     
     let isLiked = false;
@@ -80,7 +79,6 @@ async function openAppDetail(appId) {
       isJoined = testerSnap.exists();
     }
     
-    // Get step checks from localStorage
     const stepChecks = getStepChecks(id);
     
     function getStepChecked(stepNum, appId) {
@@ -90,22 +88,22 @@ async function openAppDetail(appId) {
     const feedbackQ = query(collection(db, 'apps', id, 'feedbacks'));
     const feedbackSnap = await getDocs(feedbackQ);
     let rawFeedbacks = [];
-
+    
     feedbackSnap.forEach(fSnap => {
       rawFeedbacks.push({ id: fSnap.id, ...fSnap.data() });
     });
-
+    
     rawFeedbacks.sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0));
-
+    
     const myExistingFeedback = window.currentUser ? rawFeedbacks.find(fb => fb.authorUid === window.currentUser.uid) : null;
-
+    
     let feedbackListHtml = '';
     if (rawFeedbacks.length === 0) {
       feedbackListHtml = '<div style="color: #888; text-align: center; padding: 20px 0;">目前尚無社群評論，成為第一個發表評論的人吧！</div>';
     } else {
       rawFeedbacks.forEach((fb) => {
         const isPinned = fb.isPinned || false;
-
+        
         let typeBadge = '';
         if (fb.type === 'review') {
           const starsHtml = '★'.repeat(fb.rating || 5) + '☆'.repeat(5 - (fb.rating || 5));
@@ -115,14 +113,13 @@ async function openAppDetail(appId) {
         } else {
           typeBadge = `<span class="type-badge type-suggestion"><span class="material-symbols-outlined" style="font-size:12px;">lightbulb</span> 功能建議</span>`;
         }
-
+        
         feedbackListHtml += `
           <div class="feedback-item ${isPinned ? 'pinned' : ''}">
             ${isPinned ? `<div class="pinned-badge"><span class="material-symbols-outlined" style="font-size:14px;">push_pin</span> 開發者置頂留言</div>` : ''}
             
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
               <div>${typeBadge} <span style="font-size:0.8rem; color:#888; margin-left:8px;">來自：${escapeHTML(fb.authorName)}</span></div>
-              
               <div style="display:flex; gap:8px;">
                 ${isAppAuthor ? `
                   <button onclick="window.togglePinFeedback('${id}', '${fb.id}', ${isPinned})" class="btn btn-outline" style="padding:2px 8px; font-size:0.75rem;">
@@ -131,37 +128,38 @@ async function openAppDetail(appId) {
                 ` : ''}
               </div>
             </div>
-
+            
             <div style="font-size:0.92rem; line-height:1.5; white-space:pre-line;">${escapeHTML(fb.content)}</div>
           </div>
         `;
       });
     }
-
+    
     const testingOptInUrl = `https://play.google.com/apps/testing/${escapeHTML(appData.packageName)}`;
     const playStoreUrl = `https://play.google.com/store/apps/details?id=${escapeHTML(appData.packageName)}`;
-
+    
     detailContent.innerHTML = `
       <div class="gp-layout">
-        
         <div class="gp-main">
-          <div class="gp-header">
-            <img class="gp-icon" src="${escapeHTML(appData.iconUrl)}" onerror="this.onerror=null; this.src=window.DEFAULT_ICON;">
-            <div>
-              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                <h1 style="font-size: 1.6rem; font-weight: 800; margin: 0;">${escapeHTML(appData.name)}</h1>
-                <span class="platform-badge ${platform === 'android' ? 'platform-android' : 'platform-ios'}">
-                  <span style="font-size:14px;">${platform === 'android' ? 'android' : '🍎'}</span>
-                  ${platform === 'android' ? 'Android' : 'iOS'}
-                </span>
+          <div class="gp-header" style="display: flex; align-items: stretch; gap: 16px; margin-bottom: 20px; flex-wrap: wrap;">
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: space-between; flex-shrink: 0; min-height: 100%;">
+              <img class="gp-icon" src="${escapeHTML(appData.iconUrl)}" onerror="this.onerror=null; this.src=window.DEFAULT_ICON;" style="width: 72px; height: 72px; border-radius: 20px; box-shadow: var(--md-elevation-1);">
+              <span class="platform-badge ${platform === 'android' ? 'platform-android' : 'platform-ios'}" style="white-space: nowrap; display: inline-flex; align-items: center; gap: 4px;">
+                ${platform === 'android' ? '<span class="material-symbols-outlined" style="font-size:14px;">android</span>' : '<span style="font-size:14px;">🍎</span>'}
+                ${platform === 'android' ? 'Android' : 'iOS'}
+              </span>
+            </div>
+            <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center;">
+              <h1 style="font-size: 1.5rem; font-weight: 800; margin: 0 0 4px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(appData.name)}</h1>
+              <div style="font-size: 0.85rem; color: #666; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                包名：<code>${escapeHTML(appData.packageName) || '無'}</code>
               </div>
-              <div style="font-size: 0.9rem; color: #666;">
-                包名：<code>${escapeHTML(appData.packageName) || '無'}</code> | 開發者：<a href="javascript:void(0)" onclick="window.openDevProfile('${appData.authorUid}', '${escapeHTML(appData.authorName)}')" class="author-link">${escapeHTML(appData.authorName) || '匿名'}</a>
-                ${isAppAuthor ? `<button onclick="window.openEditAppModal('${appId}')" class="btn btn-tonal" style="padding:2px 10px; font-size:0.8rem; margin-left:8px;">✏️ 編輯專案</button>` : ''}
+              <div style="font-size: 0.85rem; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                開發者：<a href="javascript:void(0)" onclick="window.openDevProfile('${appData.authorUid}', '${escapeHTML(appData.authorName)}')" class="author-link">${escapeHTML(appData.authorName) || '匿名'}</a>
               </div>
             </div>
           </div>
-
+          
           ${screenshots.length > 0 ? `
             <div class="gp-section">
               <h3 class="gp-section-title">
@@ -172,14 +170,14 @@ async function openAppDetail(appId) {
               </div>
             </div>
           ` : ''}
-
+          
           <div class="gp-section">
             <h3 class="gp-section-title">
               <span class="material-symbols-outlined">description</span> 簡介與測試需求
             </h3>
             <p class="gp-description">${escapeHTML(appData.description)}</p>
           </div>
-
+          
           <div class="gp-section">
             <h3 class="gp-section-title">
               <span class="material-symbols-outlined">link</span> 測試步驟連結
@@ -223,16 +221,15 @@ async function openAppDetail(appId) {
             </div>
           </div>
         </div>
-
-        <!-- 右側邊欄 -->
+        
+        <!-- 右側邊欄：原本的位置 -->
         <div class="gp-sidebar">
           <div class="gp-sidebar-card">
-            
             <div class="timestamp-box">
               <div>📅 <strong>上架時間：</strong>${formatDate(appData.createdAt)}</div>
               <div>✏️ <strong>最後編輯：</strong>${formatDate(appData.updatedAt || appData.createdAt)}</div>
             </div>
-
+            
             <div class="gp-sidebar-item">
               <div class="gp-sidebar-label">愛心收藏</div>
               <button onclick="window.handleToggleLikeDetail('${id}')" class="btn ${isLiked ? 'btn-like-active' : 'btn-tonal'}" id="btn-detail-like-${id}" style="width:100%; padding:10px;">
@@ -240,9 +237,9 @@ async function openAppDetail(appId) {
                 <span id="detail-like-text">${isLiked ? '已按讚' : '點擊按讚'}</span> (<span id="detail-like-count">${appData.likeCount || 0}</span>)
               </button>
             </div>
-
+            
             <hr class="gp-divider">
-
+            
             <div class="gp-sidebar-item">
               <div class="gp-sidebar-label">
                 ${platform === 'ios' ? 'TestFlight 測試進度' : 'Google 封閉測試進度'} 
@@ -260,9 +257,8 @@ async function openAppDetail(appId) {
             </div>
           </div>
         </div>
-
       </div>
-
+      
       <!-- 最下方獨立區塊：社群評價 -->
       <div class="bottom-reviews-section">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap:wrap; gap:12px;">
@@ -273,7 +269,7 @@ async function openAppDetail(appId) {
             </h3>
             <p style="font-size: 0.85rem; color: #666; margin: 4px 0 0 0;">共有 ${appData.ratingCount || 0} 位測試人員評價</p>
           </div>
-
+          
           ${isAppAuthor ? `
             <button class="btn btn-tonal" disabled style="opacity:0.7;">開發者無法評分</button>
           ` : `
@@ -283,11 +279,11 @@ async function openAppDetail(appId) {
             </button>
           `}
         </div>
-
+        
         <div>${feedbackListHtml}</div>
       </div>
     `;
-
+    
     // Attach click handlers for step buttons
     setTimeout(() => {
       document.querySelectorAll('.gp-step-btn').forEach(btn => {
@@ -296,30 +292,25 @@ async function openAppDetail(appId) {
         const checkbox = btn.querySelector('.gp-step-check');
         const stepNum = parseInt(step);
         
-        // Check if step is already completed
         const isCompleted = () => {
           const stepChecks = getStepChecks(id);
           return stepChecks[stepNum] === true;
         };
         
-        // Check if previous step is completed
         const isPrevCompleted = () => {
           if (stepNum <= 1) return true;
           const stepChecks = getStepChecks(id);
           return stepChecks[stepNum - 1] === true;
         };
         
-        // Click on label (not checkbox) - opens link if order allows
         btn.addEventListener('click', (e) => {
-          if (e.target === checkbox) return; // Let checkbox handle its own click
+          if (e.target === checkbox) return;
           
-          // Already completed - just open link
           if (isCompleted()) {
             if (url) window.open(url, '_blank');
             return;
           }
           
-          // Not completed - check sequential order before opening link
           if (!isPrevCompleted()) {
             m3Alert(`請先完成步驟 ${stepNum - 1} 再開啟此步驟連結。`, '順序錯誤');
             return;
@@ -328,18 +319,13 @@ async function openAppDetail(appId) {
           if (url) window.open(url, '_blank');
         });
         
-        // Checkbox change - enforce sequential order
         checkbox.addEventListener('change', (e) => {
-          // Prevent unchecking - once checked, cannot be unchecked
-          // Only exception: leaving test (handled in toggleJoinTestDetail)
           if (!checkbox.checked) {
-            // Re-check the box and prevent the change
             checkbox.checked = true;
             e.preventDefault();
             return;
           }
           
-          // If checking - check order
           if (!isPrevCompleted()) {
             m3Alert(`請先完成步驟 ${stepNum - 1} 再勾選此步驟。`, '順序錯誤');
             checkbox.checked = false;
@@ -358,8 +344,7 @@ async function openAppDetail(appId) {
 
 async function handleToggleLikeDetail(appId) {
   if (!window.currentUser) return m3Alert('請先登入！');
-
-  // Check if current user is the app author
+  
   const appRef = doc(db, 'apps', appId);
   const appSnap = await getDoc(appRef);
   const appData = appSnap.data();
@@ -368,26 +353,23 @@ async function handleToggleLikeDetail(appId) {
     m3Alert('開發者無法為自己的專案按讚！', '無法按讚');
     return;
   }
-
+  
   const likeRef = doc(db, 'apps', appId, 'likes', window.currentUser.uid);
   const likeSnap = await getDoc(likeRef);
-
+  
   if (likeSnap.exists()) {
-    // Unlike
     await deleteDoc(likeRef);
     await updateDoc(appRef, { likeCount: Math.max(0, (await getDoc(appRef)).data()?.likeCount - 1 || 0) });
   } else {
-    // Like
     await setDoc(likeRef, { createdAt: serverTimestamp() });
     await updateDoc(appRef, { likeCount: ((await getDoc(appRef)).data()?.likeCount || 0) + 1 });
   }
-  window.openAppDetail(appId); // Refresh
+  window.openAppDetail(appId);
 }
 
 async function toggleJoinTestDetail(appId, isJoined) {
   if (!window.currentUser) return m3Alert('請先登入！');
   
-  // Get app data to determine platform
   const appRef = doc(db, 'apps', appId);
   const appSnap = await getDoc(appRef);
   const appData = appSnap.data();
@@ -395,7 +377,6 @@ async function toggleJoinTestDetail(appId, isJoined) {
   const REQUIRED_STEPS = platform === 'ios' ? 1 : 3;
   
   if (!isJoined) {
-    // Check if test is already full
     const appSnap2 = await getDoc(doc(db, 'apps', appId));
     const appData2 = appSnap2.data();
     const currentJoinCount = appData2?.joinCount || 0;
@@ -405,7 +386,6 @@ async function toggleJoinTestDetail(appId, isJoined) {
       return;
     }
     
-    // Check if all required steps are completed in order
     const stepChecks = getStepChecks(appId);
     let allStepsCompleted = true;
     for (let i = 1; i <= REQUIRED_STEPS; i++) {
@@ -416,7 +396,6 @@ async function toggleJoinTestDetail(appId, isJoined) {
     }
     
     if (!allStepsCompleted) {
-      // Find the first incomplete step
       let nextStep = 1;
       for (let i = 1; i <= REQUIRED_STEPS; i++) {
         if (stepChecks[i] !== true) {
@@ -429,7 +408,6 @@ async function toggleJoinTestDetail(appId, isJoined) {
       return;
     }
     
-    // Confirm download completion
     const confirmed = await m3Confirm('確定已完成所有步驟並下載測試版 App？', '確認加入測試', {
       confirmText: '已下載完成',
       cancelText: '取消',
@@ -438,7 +416,6 @@ async function toggleJoinTestDetail(appId, isJoined) {
     
     if (!confirmed) return;
   } else {
-    // Leaving test - clear step checks
     clearStepChecks(appId);
   }
   
@@ -446,16 +423,12 @@ async function toggleJoinTestDetail(appId, isJoined) {
   
   try {
     if (isJoined) {
-      // Leaving test
       await deleteDoc(testerRef);
-      // Decrement joinCount
       const appSnap = await getDoc(appRef);
       const currentCount = appSnap.data()?.joinCount || 0;
       await updateDoc(appRef, { joinCount: Math.max(0, currentCount - 1) });
     } else {
-      // Joining test
       await setDoc(testerRef, { joinedAt: serverTimestamp() });
-      // Increment joinCount
       const appSnap = await getDoc(appRef);
       const currentCount = appSnap.data()?.joinCount || 0;
       await updateDoc(appRef, { joinCount: currentCount + 1 });
@@ -466,7 +439,7 @@ async function toggleJoinTestDetail(appId, isJoined) {
     return;
   }
   
-  window.openAppDetail(appId); // Refresh
+  window.openAppDetail(appId);
 }
 
 async function togglePinFeedback(appId, feedbackId, isPinned) {

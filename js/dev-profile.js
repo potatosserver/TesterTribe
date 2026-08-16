@@ -140,15 +140,18 @@ async function openDevProfile(authorUid, authorName) {
 
       card.innerHTML = `
         <div>
-          <div class="app-header">
-            <img class="app-icon" src="${escapeHTML(appData.iconUrl)}" onerror="this.onerror=null; this.src=window.DEFAULT_ICON;">
-            <div>
-              <div style="display:flex; align-items:center; gap:6px;">
-                <h3 class="app-title">${escapeHTML(appData.name)}</h3>
-                <span class="platform-badge ${platform === 'android' ? 'platform-android' : 'platform-ios'}">
+          <div class="app-header" style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: nowrap; overflow-x: auto;">
+            <img class="app-icon" src="${escapeHTML(appData.iconUrl)}" onerror="this.onerror=null; this.src=window.DEFAULT_ICON;" style="width: 56px; height: 56px; border-radius: 16px; box-shadow: var(--md-elevation-1); flex-shrink: 0;">
+            <div style="flex: 1; min-width: 0;">
+              <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px; flex-wrap: nowrap; overflow-x: auto;">
+                <h3 class="app-title" style="margin: 0; font-size: 1.1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(appData.name)}</h3>
+                <span class="platform-badge ${platform === 'android' ? 'platform-android' : 'platform-ios'}" style="white-space: nowrap;">
                   <span style="font-size:12px;">${platform === 'android' ? 'android' : '🍎'}</span>
                   ${platform === 'android' ? 'Android' : 'iOS'}
                 </span>
+              </div>
+              <div style="font-size: 0.75rem; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                包名：<code>${escapeHTML(appData.packageName) || '無'}</code>
               </div>
             </div>
           </div>
