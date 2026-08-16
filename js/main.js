@@ -48,6 +48,12 @@ window.closeMobileDrawer = function(event) {
   }
 };
 
+// Go to market function (used by header logo click)
+window.goToMarket = function() {
+  const store = window.getStoreFromUrl();
+  window.navigate('market', {store});
+};
+
 // Close drawer on escape key
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
