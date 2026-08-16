@@ -184,7 +184,7 @@ async function openAppDetail(appId, storeFromCard, skipNavigation = false) {
                 包名：<code>${escapeHTML(appData.packageName) || '無'}</code>
               </div>
               <div style="font-size: 0.85rem; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                開發者：<a href="javascript:void(0)" onclick="window.navigate('dev-profile', { store: '${appData.store || (appData.platform === 'ios' ? 'app-store' : 'google-play')}', authorUid: '${escapeHTML(appData.authorUid || '')}' })" class="author-link">${escapeHTML(appData.authorName) || '匿名'}</a>
+                開發者：<a href="javascript:void(0)" onclick="window.navigate('dev-profile', { authorUid: '${escapeHTML(appData.authorUid || '')}' })" class="author-link">${escapeHTML(appData.authorName) || '匿名'}</a>
               </div>
             </div>
           </div>

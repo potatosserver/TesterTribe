@@ -230,8 +230,7 @@ async function handleEditAppSubmit(e) {
     
     // Navigate back to the current user's developer profile
     if (window.currentUser) {
-      const store = getStoreFromUrl();
-      window.navigate('dev-profile', { store, authorUid: window.currentUser.uid });
+      window.navigate('dev-profile', { authorUid: window.currentUser.uid });
     } else {
       window.navigate('market-android');
     }
@@ -260,8 +259,7 @@ async function confirmDeleteApp() {
     
     // Navigate back to the current user's developer profile
     if (window.currentUser) {
-      const store = getStoreFromUrl();
-      window.navigate('dev-profile', { store, authorUid: window.currentUser.uid });
+      window.navigate('dev-profile', { authorUid: window.currentUser.uid });
     } else {
       window.navigate('market-android');
     }

@@ -1,5 +1,5 @@
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
-// URL Structure: /market/android, /market/ios, /app/google-play/com.example.app, /dev-profile/google-play/user%40email.com, /login, /home, /terms, /privacy, /guidelines, /contact
+// URL Structure: /market/android, /market/ios, /app/google-play/com.example.app, /dev-profile/userId, /login, /home, /terms, /privacy, /guidelines, /contact
 export const routes = {
   'home': { template: 'home', handler: 'setupHome' },
   'market': { template: 'market', handler: 'setupMarket' },
@@ -98,10 +98,9 @@ export function handlePopState() {
 
   // Special handling for login page: if already logged in, redirect to own dev profile
   if (routeName === 'login' && auth.currentUser) {
-    const store = getStoreFromUrl();
-    // Replace current history entry
-    window.history.replaceState({}, '', `/dev-profile/${store}/${encodeURIComponent(auth.currentUser.uid)}`);
-    applyRoute('dev-profile', { store, authorUid: auth.currentUser.uid });
+    // Replace current history entry - new URL structure without store
+    window.history.replaceState({}, '', `/dev-profile/${encodeURIComponent(auth.currentUser.uid)}`);
+    applyRoute('dev-profile', { authorUid: auth.currentUser.uid });
     return;
   }
 
@@ -127,10 +126,8 @@ export function handlePopState() {
       newParams.packageName = decodeURIComponent(packageName);
     }
   } else if (routeName === 'dev-profile') {
-    const store = parts[1] || 'google-play';
-    const identifier = parts[2];
-    newParams.store = store;
-    newParams.platform = STORE_MAPPING[store] || 'android';
+    // New URL structure: /dev-profile/{authorUid}
+    const identifier = parts[1];
     if (identifier) {
       // Check if it's a UID (no @) or email (has @)
       if (identifier.includes('@')) {
@@ -170,7 +167,7 @@ function applyRoute(routeName, newParams) {
             if (!snapshot.empty) {
               const uid = snapshot.docs[0].id;
               // Redirect to UID-based URL using replaceState to avoid history pollution
-              const newPath = `/dev-profile/${newParams.store}/${encodeURIComponent(uid)}`;
+              const newPath = `/dev-profile/${encodeURIComponent(uid)}`;
               window.history.replaceState({}, '', newPath);
               // Update route params
               routeParams.authorUid = uid;
@@ -211,10 +208,7 @@ export function navigate(routeName, params = {}) {
       newParams.packageName = params.packageName;
     }
   } else if (routeName === 'dev-profile') {
-    const store = params.store || 'google-play';
-    path += `/${store}`;
-    newParams.store = store;
-    newParams.platform = STORE_MAPPING[store] || 'android';
+    // New URL structure: /dev-profile/{authorUid} (no store)
     if (params.authorUid) {
       path += `/${encodeURIComponent(params.authorUid)}`;
       newParams.authorUid = params.authorUid;

@@ -2,7 +2,7 @@
 import { collection, query, where, getDocs, doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { db } from './firebase-config.js';
 import { escapeHTML, formatDate, formatDateOnly } from './utils.js';
-import { getStoreFromUrl, getPlatformFromUrl, getAuthorEmailFromUrl, getAuthorUidFromUrl } from './router.js';
+import { getAuthorEmailFromUrl, getAuthorUidFromUrl } from './router.js';
 import { m3Alert, m3Confirm, m3Error, m3Success } from './m3-dialog.js';
 
 export function setupDevProfile() {

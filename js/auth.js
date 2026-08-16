@@ -3,7 +3,7 @@ import { signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstati
 import { doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { auth, db, provider } from './firebase-config.js';
 import { DEFAULT_AVATAR } from './constants.js';
-import { navigate, getStoreFromUrl } from './router.js';
+import { navigate } from './router.js';
 import { m3Confirm } from './m3-dialog.js';
 
 export function signInWithGoogle() {
@@ -32,8 +32,7 @@ export function setupAuth() {
   // Open my own dev profile
   window.openMyProfile = () => {
     if (window.currentUser) {
-      const store = getStoreFromUrl(); // Get current store from URL
-      window.navigate('dev-profile', { store, authorUid: window.currentUser.uid });
+      window.navigate('dev-profile', { authorUid: window.currentUser.uid });
     }
   };
 
@@ -134,11 +133,7 @@ window.authSetLoginOrigin = setWasOnLoginPage;
 function checkAndRedirectAfterLogin(user) {
   if (getLoginOrigin() && user) {
     setLoginOrigin(false);
-    // Get store from current URL path, fallback to google-play
-    const path = window.location.pathname;
-    const parts = path.split('/').filter(p => p);
-    const store = (parts[1] === 'app-store' || parts[1] === 'google-play') ? parts[1] : 'google-play';
-    window.navigate('dev-profile', { store, authorUid: user.uid });
+    window.navigate('dev-profile', { authorUid: user.uid });
   }
 }
 
