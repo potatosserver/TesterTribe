@@ -66,8 +66,9 @@
   scrollbar-color: var(--md-sys-color-outline-variant) transparent;
 }
 
-body { background-color: var(--md-sys-color-surface); color: var(--md-sys-color-on-surface); margin: 0; padding-bottom: 60px; }
-.container { max-width: 1000px; margin: 0 auto; padding: 0 16px; }
+body { background-color: var(--md-sys-color-surface); color: var(--md-sys-color-on-surface); margin: 0; padding-bottom: 60px; overflow-x: hidden; }
+.container { max-width: 1000px; margin: 0 auto; padding: 0 16px; overflow-x: hidden; }
+#main-content { overflow-x: hidden; }
 
 header { background: var(--md-sys-color-surface-container-low); position: sticky; top: 0; z-index: 1000; margin-bottom: 20px; }
 .header-content { max-width: 1000px; margin: 0 auto; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; position: relative; }
@@ -145,8 +146,8 @@ header { background: var(--md-sys-color-surface-container-low); position: sticky
   background: var(--md-sys-color-surface-container-high);
 }
 
-.app-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 20px; }
-.app-card { background: #ffffff; border-radius: var(--md-shape-corner-large); padding: 22px; border: 1px solid var(--md-sys-color-outline-variant); display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; position: relative; }
+.app-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 20px; max-width: 100%; }
+.app-card { background: #ffffff; border-radius: var(--md-shape-corner-large); padding: 22px; border: 1px solid var(--md-sys-color-outline-variant); display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; position: relative; min-width: 0; }
 .app-card:hover { transform: translateY(-3px); box-shadow: var(--md-elevation-2); }
 
 .urgent-tag { position: absolute; top: 18px; right: 18px; background: #fef2f2; color: #dc2626; font-size: 0.75rem; font-weight: 800; padding: 4px 10px; border-radius: var(--md-shape-corner-full); border: 1px solid #fecaca; display: flex; align-items: center; gap: 2px; }
@@ -155,9 +156,40 @@ header { background: var(--md-sys-color-surface-container-low); position: sticky
 .platform-android { background: #e6f4ea; color: #137333; }
 .platform-ios { background: #f1f3f4; color: #3c4043; }
 
-.app-header { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
-.app-icon { width: 58px; height: 58px; border-radius: var(--md-shape-corner-medium); object-fit: cover; box-shadow: var(--md-elevation-1); }
-.app-title { font-weight: 800; font-size: 1.15rem; margin: 0; }
+.app-header { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; min-width: 0; }
+.app-header > div:last-child,
+.app-header-info {
+  min-width: 0; /* 關鍵：防止 Flex 項目被長文字撐開 */
+  flex: 1 1 0%; /* 允許壓縮，不會把右側元素擠出螢幕 */
+}
+.app-icon { width: 58px; height: 58px; border-radius: var(--md-shape-corner-medium); object-fit: cover; box-shadow: var(--md-elevation-1); flex-shrink: 0; }
+
+/* 標題容器（包含標題 + 平台標籤的那層 flex） */
+.app-header > div:last-child > div:first-child,
+.app-header .app-title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0; /* 關鍵：讓內部標題可壓縮 */
+  flex-wrap: nowrap;
+}
+
+.app-title { 
+  font-weight: 800; 
+  font-size: 1.15rem; 
+  margin: 0; 
+  white-space: nowrap; 
+  overflow: hidden; 
+  text-overflow: ellipsis;
+  min-width: 0; /* 關鍵：允許標題被壓縮 */
+  flex: 1 1 0%; /* 佔據剩餘空間，但可壓縮 */
+}
+
+/* 平台標籤不換行、不被壓縮 */
+.app-header .platform-badge {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
 .author-link { color: var(--md-sys-color-primary); text-decoration: none; font-weight: 600; }
 
 .app-meta-time { font-size: 0.75rem; color: var(--md-sys-color-secondary); margin-bottom: 12px; display: flex; align-items: center; gap: 4px; }
@@ -196,25 +228,25 @@ header { background: var(--md-sys-color-surface-container-low); position: sticky
 .gp-btn-link { padding: 14px; font-size: 0.95rem; text-align: center; width: 100%; }
 
 /* Steps with inline sidebar - desktop: side by side, mobile: stacked */
-.gp-steps-with-sidebar { display: flex; gap: 24px; align-items: stretch; }
-.gp-action-buttons { display: flex; flex-direction: column; gap: 6px; max-width: 420px; flex: 1; }
+.gp-steps-with-sidebar { display: flex; gap: 24px; align-items: stretch; min-width: 0; }
+.gp-action-buttons { display: flex; flex-direction: column; gap: 6px; max-width: 420px; flex: 1; min-width: 0; }
 /* Three main items: 2 groups (content height) + 1 standalone button (content height) */
 .gp-action-buttons { justify-content: space-between; }
 .gp-action-buttons > .gp-step-group { flex: 0 0 auto; display: flex; flex-direction: column; }
 .gp-action-buttons > .gp-step-group .gp-step-btn { flex: 1; }
 /* Standalone button: content height, vertically centered, keep horizontal layout, full width */
 .gp-action-buttons > .gp-step-btn { flex: 0 0 auto; align-self: center; flex-direction: row; width: 100%; }
-.gp-sidebar-inline { flex: 1; min-width: 280px; max-width: 320px; }
+.gp-sidebar-inline { flex: 1; min-width: 280px; max-width: 320px; min-width: 0; }
 .gp-sidebar-inline .gp-sidebar-card { position: sticky; top: 80px; height: 100%; }
 .gp-step-guide { margin: 4px 0; padding: 10px 14px; font-size: 0.8rem; line-height: 1.5; }
 
 @media (max-width: 768px) {
-  .gp-steps-with-sidebar { flex-direction: column; }
-  .gp-action-buttons { max-width: 100%; }
+  .gp-steps-with-sidebar { flex-direction: column; min-width: 0; }
+  .gp-action-buttons { max-width: 100%; min-width: 0; }
   .gp-action-buttons > .gp-step-group,
   .gp-action-buttons > .gp-step-btn { flex: none; }
   .gp-action-buttons > .gp-step-group .gp-step-btn { flex: none; }
-  .gp-sidebar-inline { max-width: 100%; }
+  .gp-sidebar-inline { max-width: 100%; min-width: 0; }
   .gp-sidebar-inline .gp-sidebar-card { position: static; }
 }
 
@@ -722,8 +754,13 @@ header { background: var(--md-sys-color-surface-container-low); position: sticky
     font-size: 0.85rem;
   }
   
+  .app-grid {
+    min-width: 0;
+  }
+  
   .app-card {
     padding: 14px;
+    min-width: 0;
   }
   
   .app-icon {
