@@ -190,7 +190,7 @@ header { background: var(--md-sys-color-surface-container-low); position: sticky
 .gp-section { margin-bottom: 28px; }
 .gp-section-title { font-size: 1.1rem; font-weight: 800; margin: 0 0 12px 0; color: var(--md-sys-color-on-surface); display: flex; align-items: center; gap: 6px; }
 .gp-description { line-height: 1.7; white-space: pre-line; color: var(--md-sys-color-on-surface-variant); font-size: 0.95rem; }
-.gp-action-buttons { display: flex; flex-direction: column; gap: 10px; }
+.gp-action-buttons { display: flex; flex-direction: column; gap: 10px; max-width: 420px; }
 .gp-btn-link { padding: 14px; font-size: 0.95rem; text-align: center; width: 100%; }
 
 /* Step buttons with checkboxes */
@@ -622,11 +622,6 @@ header { background: var(--md-sys-color-surface-container-low); position: sticky
   .modal-card {
     padding: 20px;
     margin: 16px;
-  }
-  
-  .detail-screenshot-img {
-    width: 120px;
-    height: 215px;
   }
   
   .filter-section {
