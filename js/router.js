@@ -12,7 +12,8 @@ export const routes = {
   'terms': { template: 'terms', handler: 'setupTerms' },
   'privacy': { template: 'privacy', handler: 'setupPrivacy' },
   'guidelines': { template: 'guidelines', handler: 'setupGuidelines' },
-  'contact': { template: 'contact', handler: 'setupContact' }
+  'contact': { template: 'contact', handler: 'setupContact' },
+  '404': { template: '404', handler: null }
 };
 
 const STORE_MAPPING = {
@@ -71,11 +72,9 @@ export function handlePopState() {
   
   if (!route) {
     // Replace current history entry instead of pushing new one
-    window.history.replaceState({}, '', '/market-android');
-    // Parse and apply the corrected route
-    const correctedParts = ['market-android'];
-    const newParams = { platform: 'android', store: 'google-play' };
-    applyRoute('market-android', newParams);
+    window.history.replaceState({}, '', '/404');
+    // Apply 404 route
+    applyRoute('404', {});
     return;
   }
 

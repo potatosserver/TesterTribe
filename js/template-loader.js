@@ -37,7 +37,8 @@ export async function loadTemplates() {
     'terms',
     'privacy',
     'guidelines',
-    'contact'
+    'contact',
+    '404'
   ];
 
   // Fallback templates for critical pages if network fails
@@ -53,7 +54,8 @@ export async function loadTemplates() {
     'terms': `<div id="view-terms" class="tab-content"><div class="card"><h2>服務條款</h2><p>內容載入中...</p></div></div>`,
     'privacy': `<div id="view-privacy" class="tab-content"><div class="card"><h2>隱私權政策</h2><p>內容載入中...</p></div></div>`,
     'guidelines': `<div id="view-guidelines" class="tab-content"><div class="card"><h2>社群準則</h2><p>內容載入中...</p></div></div>`,
-    'contact': `<div id="view-contact" class="tab-content"><div class="card"><h2>聯絡我們</h2><p>內容載入中...</p></div></div>`
+    'contact': `<div id="view-contact" class="tab-content"><div class="card"><h2>聯絡我們</h2><p>內容載入中...</p></div></div>`,
+    '404': `<div id="view-404" class="tab-content"><div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; text-align: center; padding: 40px 20px;"><div style="font-size: 8rem; color: var(--md-sys-color-outline-variant); margin-bottom: 16px; line-height: 1;">404</div><h1 style="font-size: 2rem; font-weight: 700; margin: 0 0 12px; color: var(--md-sys-color-on-surface);">找不到頁面</h1><p style="font-size: 1.1rem; color: var(--md-sys-color-secondary); margin: 0 0 32px; max-width: 400px;">抱歉，您訪問的頁面不存在或已被移除。<br>請確認網址是否正確，或返回首頁繼續瀏覽。</p><button class="btn btn-primary" onclick="window.navigate('home')" style="min-width: 160px;"><span class="material-symbols-outlined" style="font-size: 20px;">home</span> 返回首頁</button><button class="btn btn-tonal" onclick="window.navigate('market-android')" style="min-width: 160px; margin-top: 12px;"><span class="material-symbols-outlined" style="font-size: 20px;">store</span> 瀏覽市集</button></div></div>`
   };
 
   const loadResults = await Promise.allSettled(
@@ -91,7 +93,8 @@ export async function loadTemplates() {
     templateCache['terms'] +
     templateCache['privacy'] +
     templateCache['guidelines'] +
-    templateCache['contact'];
+    templateCache['contact'] +
+    templateCache['404'];
   document.getElementById('modal-container').innerHTML = templateCache['modals'];
 }
 

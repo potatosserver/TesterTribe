@@ -16,7 +16,8 @@ const TAB_VIEW_MAP = {
   'terms': 'terms',
   'privacy': 'privacy',
   'guidelines': 'guidelines',
-  'contact': 'contact'
+  'contact': 'contact',
+  '404': '404'
 };
 
 // Internal flag to prevent navigate() loop
