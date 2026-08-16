@@ -3,6 +3,37 @@ import { addDoc, collection, serverTimestamp, query, where, getDocs, doc, getDoc
 import { db } from './firebase-config.js';
 import { m3Alert, m3Error, m3Success } from './m3-dialog.js';
 
+// URL validation helper
+function isValidUrl(url) {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+async function validateImageUrl(url, fieldName) {
+  if (!url) return true; // Optional fields
+  if (!isValidUrl(url)) {
+    throw new Error(`${fieldName} 格式無效，必須是 http:// 或 https:// 開頭`);
+  }
+  // Optional: HEAD request to verify accessibility (with timeout)
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const response = await fetch(url, { method: 'HEAD', mode: 'no-cors', signal: controller.signal });
+    clearTimeout(timeoutId);
+    // no-cors mode doesn't expose status, but if it doesn't throw, it's likely reachable
+  } catch (err) {
+    if (err.name !== 'AbortError') {
+      console.warn(`[Publish] Image URL validation warning for ${fieldName}:`, err.message);
+      // Don't block on network errors, just warn
+    }
+  }
+  return true;
+}
+
 export function setupPublish() {
   window.togglePlatformFields = togglePlatformFields;
 
@@ -19,6 +50,16 @@ export function setupPublish() {
     const screenshotUrl3 = document.getElementById('app-screenshot-url-3').value.trim();
 
     if (!iconUrl) return m3Alert('請輸入 App 圖示網址！');
+
+    // Validate URLs
+    try {
+      await validateImageUrl(iconUrl, 'App 圖示網址');
+      await validateImageUrl(screenshotUrl1, '截圖 1');
+      await validateImageUrl(screenshotUrl2, '截圖 2');
+      await validateImageUrl(screenshotUrl3, '截圖 3');
+    } catch (err) {
+      return m3Alert(err.message, '網址格式錯誤');
+    }
 
     let groupUrl = '';
     let storeUrl = '';

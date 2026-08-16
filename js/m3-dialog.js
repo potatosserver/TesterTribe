@@ -289,7 +289,16 @@ function createDialogElement(type, config, resolve) {
   };
   document.addEventListener('keydown', handleEsc);
   
-  dialog._cleanup = () => document.removeEventListener('keydown', handleEsc);
+  // Cleanup function to prevent memory leaks
+  dialog._cleanup = () => {
+    document.removeEventListener('keydown', handleEsc);
+    // Remove inline event handlers from buttons (they're in HTML, but good practice)
+    const confirmBtn = container.querySelector('[data-role="confirm"]');
+    const cancelBtn = container.querySelector('[data-role="cancel"]');
+    if (confirmBtn) confirmBtn.onclick = null;
+    if (cancelBtn) cancelBtn.onclick = null;
+    scrim.onclick = null;
+  };
   const origHide = dialog.hide;
   dialog.hide = () => { origHide(); dialog._cleanup(); };
   

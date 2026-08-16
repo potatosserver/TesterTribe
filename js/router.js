@@ -135,6 +135,8 @@ export function handlePopState() {
       // Check if it's a UID (no @) or email (has @)
       if (identifier.includes('@')) {
         newParams.authorEmail = decodeURIComponent(identifier);
+        // Mark for URL migration to UID-based URL
+        newParams._migrateToUid = true;
       } else {
         newParams.authorUid = decodeURIComponent(identifier);
       }
@@ -158,6 +160,27 @@ function applyRoute(routeName, newParams) {
     // skipNavigation=true because navigate() was already called (or this is initial load from popstate)
     window.openAppDetail(getPackageNameFromUrl(), store, true);
   } else if (routeName === 'dev-profile') {
+    // Handle URL migration from email-based to UID-based
+    if (newParams._migrateToUid && newParams.authorEmail) {
+      // Fetch user by email to get UID, then redirect
+      import('./firebase-config.js').then(({ db }) => {
+        import('https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js').then(({ collection, query, where, getDocs }) => {
+          const usersQuery = query(collection(db, 'users'), where('email', '==', newParams.authorEmail));
+          getDocs(usersQuery).then(snapshot => {
+            if (!snapshot.empty) {
+              const uid = snapshot.docs[0].id;
+              // Redirect to UID-based URL using replaceState to avoid history pollution
+              const newPath = `/dev-profile/${newParams.store}/${encodeURIComponent(uid)}`;
+              window.history.replaceState({}, '', newPath);
+              // Update route params
+              routeParams.authorUid = uid;
+              delete routeParams.authorEmail;
+              delete routeParams._migrateToUid;
+            }
+          }).catch(err => console.warn('[Router] URL migration failed:', err));
+        });
+      });
+    }
     window.openDevProfile();
   }
 }

@@ -4,6 +4,21 @@ import { m3LoginRequired } from './m3-dialog.js';
 
 const PROTECTED_TABS = ['publish'];
 
+// Tab name to view ID mapping (single source of truth)
+const TAB_VIEW_MAP = {
+  'home': 'home',
+  'market-android': 'market-android',
+  'market-ios': 'market-ios',
+  'app': 'app-detail',
+  'dev-profile': 'dev-profile',
+  'publish': 'publish',
+  'login': 'login',
+  'terms': 'terms',
+  'privacy': 'privacy',
+  'guidelines': 'guidelines',
+  'contact': 'contact'
+};
+
 // Internal flag to prevent navigate() loop
 let isInternalNavigation = false;
 
@@ -14,17 +29,8 @@ export function switchTab(tabName, params = {}, internal = false) {
     return;
   }
   
-  // Map tab names to view IDs
-  let targetTabName = tabName;
-  if (tabName === 'market-android') {
-    targetTabName = 'market-android';
-  } else if (tabName === 'market-ios') {
-    targetTabName = 'market-ios';
-  } else if (tabName === 'app') {
-    targetTabName = 'app-detail'; // The view ID is view-app-detail
-  } else if (tabName === 'home') {
-    targetTabName = 'home'; // The view ID is view-home
-  }
+  // Map tab names to view IDs using centralized map
+  const targetTabName = TAB_VIEW_MAP[tabName] || tabName;
 
   // Hide all tab contents
   document.querySelectorAll('.tab-content').forEach(el => {
@@ -55,7 +61,7 @@ export function switchTab(tabName, params = {}, internal = false) {
     window.fetchMarketAppsAndroid?.();
   } else if (tabName === 'market-ios') {
     window.fetchMarketAppsIos?.();
-  } else if ((tabName === 'devProfile' || tabName === 'dev-profile') && window.currentUser) {
+  } else if (tabName === 'dev-profile' && window.currentUser) {
     // dev-profile handles its own loading
   } else if (tabName === 'home') {
     window.refreshHomeStats?.();

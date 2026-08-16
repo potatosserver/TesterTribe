@@ -33,8 +33,8 @@ async function loadHomeStats() {
     const totalApps = apps.length;
     document.getElementById('stat-projects').textContent = totalApps.toLocaleString();
     
-    // Unique developers (by authorEmail)
-    const uniqueDevelopers = new Set(apps.map(p => p.authorEmail).filter(Boolean));
+    // Unique developers (by authorUid - more reliable than email)
+    const uniqueDevelopers = new Set(apps.map(p => p.authorUid).filter(Boolean));
     document.getElementById('stat-developers').textContent = uniqueDevelopers.size.toLocaleString();
     
     // Total tests (sum of joinCount from each app)
@@ -46,13 +46,13 @@ async function loadHomeStats() {
     const iosApps = apps.filter(p => p.platform === 'ios' || p.store === 'app-store');
     
     console.log('[Home Stats] Android apps:', androidApps.length, 'iOS apps:', iosApps.length);
-    console.log('[Home Stats] iOS apps data:', JSON.stringify(iosApps.map(a => ({ name: a.name, platform: a.platform, store: a.store, authorEmail: a.authorEmail, authorUid: a.authorUid })), null, 2));
+    console.log('[Home Stats] iOS apps data:', JSON.stringify(iosApps.map(a => ({ name: a.name, platform: a.platform, store: a.store, authorUid: a.authorUid })), null, 2));
     
-    const androidDevelopers = new Set(androidApps.map(p => p.authorEmail).filter(Boolean));
-    const iosDevelopers = new Set(iosApps.map(p => p.authorEmail).filter(Boolean));
+    const androidDevelopers = new Set(androidApps.map(p => p.authorUid).filter(Boolean));
+    const iosDevelopers = new Set(iosApps.map(p => p.authorUid).filter(Boolean));
     
     console.log('[Home Stats] Android developers:', androidDevelopers.size, 'iOS developers:', iosDevelopers.size);
-    console.log('[Home Stats] iOS developer emails:', Array.from(iosDevelopers));
+    console.log('[Home Stats] iOS developer UIDs:', Array.from(iosDevelopers));
     
     document.getElementById('android-project-count').textContent = androidApps.length.toLocaleString();
     document.getElementById('android-dev-count').textContent = androidDevelopers.size.toLocaleString();

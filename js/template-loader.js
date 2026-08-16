@@ -1,6 +1,29 @@
 // Template loader - loads HTML templates from /templates directory
 const templateCache = {};
 
+// Error message template for failed template loads
+function createErrorTemplate(name, error) {
+  return `
+    <div id="view-${name}" class="tab-content" style="display: flex; align-items: center; justify-content: center; min-height: 300px; padding: 24px;">
+      <div class="card" style="text-align: center; max-width: 400px;">
+        <div style="font-size: 48px; color: var(--md-sys-color-error, #f2b8b5); margin-bottom: 16px;">
+          <span class="material-symbols-outlined">error_outline</span>
+        </div>
+        <h2 style="margin: 0 0 8px; color: var(--md-sys-color-on-surface, #fff);">載入失敗</h2>
+        <p style="margin: 0 0 16px; color: var(--md-sys-color-on-surface-variant, #b0b0b0);">
+          無法載入 ${name} 頁面
+        </p>
+        <p style="margin: 0 0 24px; font-size: 0.8rem; color: var(--md-sys-color-on-surface-variant, #b0b0b0); font-family: monospace;">
+          ${error?.message || '未知錯誤'}
+        </p>
+        <button class="btn btn-primary" onclick="window.location.reload()">
+          <span class="material-symbols-outlined">refresh</span> 重新整理
+        </button>
+      </div>
+    </div>
+  `;
+}
+
 export async function loadTemplates() {
   const templates = [
     'header',
@@ -43,7 +66,7 @@ export async function loadTemplates() {
         templateCache[name] = await response.text();
       } catch (err) {
         console.warn(`Failed to load template: ${name}, using fallback`, err);
-        templateCache[name] = fallbackTemplates[name] || '';
+        templateCache[name] = fallbackTemplates[name] || createErrorTemplate(name, err);
       }
     })
   );
