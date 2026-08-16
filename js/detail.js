@@ -168,7 +168,7 @@ async function openAppDetail(appId) {
                 包名：<code>${escapeHTML(appData.packageName) || '無'}</code>
               </div>
               <div style="font-size: 0.85rem; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                開發者：<a href="javascript:void(0)" onclick="window.openDevProfile('${appData.authorUid}', '${escapeHTML(appData.authorName)}')" class="author-link">${escapeHTML(appData.authorName) || '匿名'}</a>
+                開發者：<a href="javascript:void(0)" onclick="window.openDevProfile('${appData.authorUid}', '${escapeHTML(appData.authorName)}', '${escapeHTML(appData.authorEmail || '')}')" class="author-link">${escapeHTML(appData.authorName) || '匿名'}</a>
               </div>
             </div>
           </div>

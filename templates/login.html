@@ -35,18 +35,4 @@
       </button>
     </div>
   </div>
-
-  <script type="module">
-    // Check if already logged in and redirect
-    import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
-    import { auth } from './js/firebase-config.js';
-    import { navigate, getStoreFromUrl } from './js/router.js';
-
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        const store = getStoreFromUrl();
-        navigate('dev-profile', { store, authorIdentifier: user.uid });
-      }
-    });
-  </script>
 </div>

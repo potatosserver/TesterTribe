@@ -219,7 +219,7 @@ function renderMarketApps(platformKey, appsList) {
                   </span>
                 </div>
                 <div style="font-size: 0.8rem; color:#666; margin-top: 2px;">
-                  開發者：<a href="javascript:void(0)" onclick="event.stopPropagation(); const store = '${config.store}'; window.location.hash = 'dev-profile/' + store + '/' + encodeURIComponent(this.dataset.authorUid);" class="author-link" data-author-uid="${escapeHTML(appData.authorUid || '')}">${escapeHTML(appData.authorName) || '匿名'}</a>
+                  開發者：<a href="javascript:void(0)" onclick="event.stopPropagation(); const store = '${config.store}'; window.location.hash = 'dev-profile/' + store + '/' + encodeURIComponent(this.dataset.authorEmail);" class="author-link" data-author-email="${escapeHTML(appData.authorEmail || '')}">${escapeHTML(appData.authorName) || '匿名'}</a>
                 </div>
               </div>
             </div>

@@ -1,4 +1,4 @@
-// Hash-based router for deep linking
+import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
 // URL Structure: #market/android, #market/ios, #app/google-play/com.example.app, #dev-profile/google-play/user%40email.com, #login
 export const routes = {
   'market': { template: 'market', handler: 'setupMarket' },
@@ -22,15 +22,39 @@ const REVERSE_STORE_MAPPING = {
 
 let currentRoute = null;
 let routeParams = {};
+let authReady = false;
 
-export function initRouter() {
+// Wait for auth state to be determined
+function waitForAuth() {
+  return new Promise((resolve) => {
+    if (authReady) {
+      resolve();
+      return;
+    }
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, () => {
+      authReady = true;
+      unsubscribe();
+      resolve();
+    });
+    // Timeout fallback
+    setTimeout(() => {
+      authReady = true;
+      unsubscribe();
+      resolve();
+    }, 3000);
+  });
+}
+
+export async function initRouter() {
   window.navigate = navigate; // Mount to window for global access
   window.getStoreFromUrl = getStoreFromUrl;
   window.getPlatformFromUrl = getPlatformFromUrl;
   window.getPackageNameFromUrl = getPackageNameFromUrl;
   window.getAuthorEmailFromUrl = getAuthorEmailFromUrl;
   window.addEventListener('hashchange', handleHashChange);
-  handleHashChange(); // Handle initial load
+  await waitForAuth();
+  handleHashChange(); // Handle initial load after auth is ready
 }
 
 export function handleHashChange() {
@@ -59,6 +83,15 @@ export function handleHashChange() {
         m3Alert('請先登入才能刊登 App 專案！', '需要登入', { confirmText: '登入' });
       });
     }, 0);
+    return;
+  }
+
+  // Special handling for login page: if already logged in, redirect to own dev profile
+  // Use getAuth().currentUser directly since window.currentUser might not be set yet
+  const auth = getAuth();
+  if (routeName === 'login' && auth.currentUser) {
+    const store = getStoreFromUrl();
+    window.navigate('dev-profile', { store, authorEmail: auth.currentUser.email });
     return;
   }
 

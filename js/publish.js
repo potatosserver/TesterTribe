@@ -61,6 +61,7 @@ export function setupPublish() {
         testFlightUrl: testFlightUrl,
         authorName: window.currentUser.displayName,
         authorUid: window.currentUser.uid,
+        authorEmail: window.currentUser.email,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
         likeCount: 0,

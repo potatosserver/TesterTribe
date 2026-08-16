@@ -33,7 +33,7 @@ export function setupAuth() {
   window.openMyProfile = () => {
     if (window.currentUser) {
       const store = getStoreFromUrl(); // Get current store from URL
-      window.navigate('dev-profile', { store, authorIdentifier: window.currentUser.uid });
+      window.navigate('dev-profile', { store, authorEmail: window.currentUser.email });
     }
   };
 
@@ -123,7 +123,7 @@ function checkAndRedirectAfterLogin(user) {
   if (wasOnLoginPage && user) {
     wasOnLoginPage = false;
     const store = getStoreFromUrl();
-    window.navigate('dev-profile', { store, authorIdentifier: user.uid });
+    window.navigate('dev-profile', { store, authorEmail: user.email });
   }
 }
 

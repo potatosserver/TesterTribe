@@ -66,5 +66,5 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupTabs(); // Initialize tab switching
   setupLogin(); // Initialize login page button
   setupMarket(); // Initialize market (must be before initRouter)
-  initRouter();
+  await initRouter();
 });

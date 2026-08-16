@@ -9,16 +9,16 @@ export function setupDevProfile() {
   window.openDevProfile = openDevProfile;
 }
 
-async function openDevProfile(authorUid, authorName) {
+async function openDevProfile(authorUid, authorName, authorEmail) {
   const store = getStoreFromUrl();
-  const authorIdentifier = authorUid || getAuthorEmailFromUrl();
+  const authorIdentifier = authorEmail || authorUid || getAuthorEmailFromUrl();
   
   if (!authorIdentifier) {
     window.switchTab('market');
     return;
   }
 
-  window.navigate('dev-profile', { store, authorIdentifier: authorIdentifier });
+  window.navigate('dev-profile', { store, authorEmail: authorIdentifier });
   
   const loadingEl = document.getElementById('dev-profile-loading');
   const mainEl = document.getElementById('dev-profile-main');
