@@ -196,107 +196,127 @@ async function openAppDetail(appId) {
             <h3 class="gp-section-title">
               <span class="material-symbols-outlined">link</span> 測試步驟連結
             </h3>
-            <div class="gp-action-buttons">
-              ${platform === 'android' ? `
-                <div class="gp-step-btn" data-step="1" data-url="${escapeHTML(appData.groupUrl)}">
-                  <span class="gp-step-check" data-step="1" ${getStepChecked(1, id) ? 'checked' : ''}></span>
-                  <span class="gp-step-content">
-                    <span class="material-symbols-outlined">group_add</span>
-                    <span>加入 Google 測試群組</span>
-                    <span class="material-symbols-outlined gp-step-link-icon">open_in_new</span>
-                  </span>
-                </div>
-                <div class="gp-step-btn" data-step="2" data-url="${escapeHTML(testingOptInUrl)}">
-                  <span class="gp-step-check" data-step="2" ${getStepChecked(2, id) ? 'checked' : ''}></span>
-                  <span class="gp-step-content">
-                    <span class="material-symbols-outlined">person_add</span>
-                    <span>成為測試人員 (Opt-in)</span>
-                    <span class="material-symbols-outlined gp-step-link-icon">open_in_new</span>
-                  </span>
-                </div>
-                <div class="gp-step-btn" data-step="3" data-url="${escapeHTML(playStoreUrl)}">
-                  <span class="gp-step-check" data-step="3" ${getStepChecked(3, id) ? 'checked' : ''}></span>
-                  <span class="gp-step-content">
-                    <span class="material-symbols-outlined">download</span>
-                    <span>前往 Google Play 商店下載測試版 App</span>
-                    <span class="material-symbols-outlined gp-step-link-icon">open_in_new</span>
-                  </span>
-                </div>
-              ` : `
-                <div class="gp-step-btn" data-step="1" data-url="${escapeHTML(appData.storeUrl || appData.testFlightUrl)}">
-                  <span class="gp-step-check" data-step="1" ${getStepChecked(1, id) ? 'checked' : ''}></span>
-                  <span class="gp-step-content">
-                    <span class="material-symbols-outlined">flight_takeoff</span>
-                    <span>加入 TestFlight 測試</span>
-                    <span class="material-symbols-outlined gp-step-link-icon">open_in_new</span>
-                  </span>
-                </div>
-              `}
-            </div>
-          </div>
-        </div>
-        
-        <!-- 右側邊欄：原本的位置 -->
-        <div class="gp-sidebar">
-          <div class="gp-sidebar-card">
-            <div class="timestamp-box">
-              <div>📅 <strong>上架時間：</strong>${formatDate(appData.createdAt)}</div>
-              <div>✏️ <strong>最後編輯：</strong>${formatDate(appData.updatedAt || appData.createdAt)}</div>
-            </div>
-            
-            <div class="gp-sidebar-item">
-              <div class="gp-sidebar-label">愛心收藏</div>
-              <button onclick="window.handleToggleLikeDetail('${id}')" class="btn ${isLiked ? 'btn-like-active' : 'btn-tonal'}" id="btn-detail-like-${id}" style="width:100%; padding:10px;">
-                <span class="material-symbols-outlined">favorite</span>
-                <span id="detail-like-text">${isLiked ? '已按讚' : '點擊按讚'}</span> (<span id="detail-like-count">${appData.likeCount || 0}</span>)
-              </button>
-            </div>
-            
-            <hr class="gp-divider">
-            
-            <div class="gp-sidebar-item">
-              <div class="gp-sidebar-label">
-                ${platform === 'ios' ? 'TestFlight 測試進度' : 'Google 封閉測試進度'} 
-                <span id="detail-progress-text" style="color: ${isCompleted ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-error)'}; font-weight: 700;">
-                  ${joinCount} / ${MAX_TESTERS} 人 (${progressPercent}%)
-                </span>
+            <div class="gp-steps-with-sidebar">
+              <div class="gp-action-buttons">
+                ${platform === 'android' ? `
+                  <!-- Step 1-2: Guide + Link wrapped together in one box -->
+                  <div class="gp-step-group">
+                    <div class="gp-step-guide">
+                      <div>點擊頁面中央上方的「<strong>加入群組</strong>」按鈕。</div>
+                      <div>在彈出視窗中確認您的資訊，點選右下角完成加入。</div>
+                    </div>
+                    <div class="gp-step-btn" data-step="1" data-url="${escapeHTML(appData.groupUrl)}">
+                      <span class="gp-step-check" data-step="1" ${getStepChecked(1, id) ? 'checked' : ''}></span>
+                      <span class="gp-step-content">
+                        <span class="material-symbols-outlined">group_add</span>
+                        <span>加入 Google 測試群組</span>
+                        <span class="material-symbols-outlined gp-step-link-icon">open_in_new</span>
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <!-- Step 3: Guide + Link wrapped together in one box -->
+                  <div class="gp-step-group">
+                    <div class="gp-step-guide">
+                      <div>點擊頁面中的「<strong>成為測試人員 (Become a Tester)</strong>」按鈕。</div>
+                    </div>
+                    <div class="gp-step-btn" data-step="2" data-url="${escapeHTML(testingOptInUrl)}">
+                      <span class="gp-step-check" data-step="2" ${getStepChecked(2, id) ? 'checked' : ''}></span>
+                      <span class="gp-step-content">
+                        <span class="material-symbols-outlined">person_add</span>
+                        <span>成為測試人員 (Opt-in)</span>
+                        <span class="material-symbols-outlined gp-step-link-icon">open_in_new</span>
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <!-- Step 4: Download link -->
+                  <div class="gp-step-btn" data-step="3" data-url="${escapeHTML(playStoreUrl)}">
+                    <span class="gp-step-check" data-step="3" ${getStepChecked(3, id) ? 'checked' : ''}></span>
+                    <span class="gp-step-content">
+                      <span class="material-symbols-outlined">download</span>
+                      <span>前往 Google Play 商店下載測試版 App</span>
+                      <span class="material-symbols-outlined gp-step-link-icon">open_in_new</span>
+                    </span>
+                  </div>
+                ` : `
+                  <div class="gp-step-btn" data-step="1" data-url="${escapeHTML(appData.storeUrl || appData.testFlightUrl)}">
+                    <span class="gp-step-check" data-step="1" ${getStepChecked(1, id) ? 'checked' : ''}></span>
+                    <span class="gp-step-content">
+                      <span class="material-symbols-outlined">flight_takeoff</span>
+                      <span>加入 TestFlight 測試</span>
+                      <span class="material-symbols-outlined gp-step-link-icon">open_in_new</span>
+                    </span>
+                  </div>
+                `}
               </div>
-              <div class="progress-bar-bg" style="margin-bottom:12px;">
-                <div class="progress-bar-fill" style="width: ${progressPercent}%; background: ${isCompleted ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-error)'};"></div>
-              </div>
-              <button onclick="window.toggleJoinTestDetail('${id}', ${isJoined})" class="btn ${isJoined ? 'btn-error' : (isCompleted ? 'btn-tonal' : 'btn-primary')}" style="width:100%; padding:12px;" ${isCompleted && !isJoined ? 'disabled' : ''}>
-                <span class="material-symbols-outlined">${isJoined ? 'cancel' : (isCompleted ? 'check_circle' : 'check_circle')}</span>
-                ${isJoined ? '已加入測試 (點擊退出)' : (isCompleted ? '測試名額已滿' : '回報已加入測試')}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- 最下方獨立區塊：社群評價 -->
-      <div class="bottom-reviews-section">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap:wrap; gap:12px;">
-          <div>
-            <h3 style="font-size: 1.25rem; font-weight: 800; margin: 0; display:flex; align-items:center; gap:8px;">
-              <span class="material-symbols-outlined" style="color:var(--md-sys-color-primary);">forum</span>
-              社群評價與反饋 ${appData.ratingCount && appData.ratingCount > 0 ? `<span style="color:#f59e0b; font-weight: 700;">${(appData.ratingSum / appData.ratingCount).toFixed(1)}</span> <span class="material-symbols-outlined" style="font-size:18px; color:#f59e0b;">star</span>` : '<span style="color:#999;">尚無評價</span>'}
-            </h3>
-            <p style="font-size: 0.85rem; color: #666; margin: 4px 0 0 0;">共有 ${appData.ratingCount || 0} 位測試人員評價</p>
-          </div>
+              
+              <!-- Sidebar info moved here -->
+              <div class="gp-sidebar-inline">
+                <div class="gp-sidebar-card">
+                  <div class="timestamp-box">
+                    <div>📅 <strong>上架時間：</strong>${formatDate(appData.createdAt)}</div>
+                    <div>✏️ <strong>最後編輯：</strong>${formatDate(appData.updatedAt || appData.createdAt)}</div>
+                  </div>
+                  
+                  <div class="gp-sidebar-item">
+                    <div class="gp-sidebar-label">愛心收藏</div>
+                    <button onclick="window.handleToggleLikeDetail('${id}')" class="btn ${isLiked ? 'btn-like-active' : 'btn-tonal'}" id="btn-detail-like-${id}" style="width:100%; padding:10px;">
+                      <span class="material-symbols-outlined">favorite</span>
+                      <span id="detail-like-text">${isLiked ? '已按讚' : '點擊按讚'}</span> (<span id="detail-like-count">${appData.likeCount || 0}</span>)
+                    </button>
+                  </div>
+                  
+                  <hr class="gp-divider">
+                  
+                  <div class="gp-sidebar-item">
+                    <div class="gp-sidebar-label">
+                      ${platform === 'ios' ? 'TestFlight 測試進度' : 'Google 封閉測試進度'} 
+                      <span id="detail-progress-text" style="color: ${isCompleted ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-error)'}; font-weight: 700;">
+                        ${joinCount} / ${MAX_TESTERS} 人 (${progressPercent}%)
+                      </span>
+                    </div>
+                    <div class="progress-bar-bg" style="margin-bottom:12px;">
+                      <div class="progress-bar-fill" style="width: ${progressPercent}%; background: ${isCompleted ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-error)'};"></div>
+                    </div>
+                    <button onclick="window.toggleJoinTestDetail('${id}', ${isJoined})" class="btn ${isJoined ? 'btn-error' : (isCompleted ? 'btn-tonal' : 'btn-primary')}" style="width:100%; padding:12px;" ${isCompleted && !isJoined ? 'disabled' : ''}>
+                      <span class="material-symbols-outlined">${isJoined ? 'cancel' : (isCompleted ? 'check_circle' : 'check_circle')}</span>
+                      ${isJoined ? '已加入測試 (點擊退出)' : (isCompleted ? '測試名額已滿' : '回報已加入測試')}
+                    </button>
+                  </div>
+                </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- 社群評價與反饋：放在 gp-main 內部，寬度自動與左側同寬 -->
+                        <div class="bottom-reviews-section">
+                          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap:wrap; gap:12px;">
+                            <div>
+                              <h3 style="font-size: 1.25rem; font-weight: 800; margin: 0; display:flex; align-items:center; gap:8px;">
+                                <span class="material-symbols-outlined" style="color:var(--md-sys-color-primary);">forum</span>
+                                社群評價與反饋 ${appData.ratingCount && appData.ratingCount > 0 ? `<span style="color:#f59e0b; font-weight: 700;">${(appData.ratingSum / appData.ratingCount).toFixed(1)}</span> <span class="material-symbols-outlined" style="font-size:18px; color:#f59e0b;">star</span>` : '<span style="color:#999;">尚無評價</span>'}
+                              </h3>
+                              <p style="font-size: 0.85rem; color: #666; margin: 4px 0 0 0;">共有 ${appData.ratingCount || 0} 位測試人員評價</p>
+                            </div>
+            
+                            ${isAppAuthor ? `
+                              <button class="btn btn-tonal" disabled style="opacity:0.7;">開發者無法評分</button>
+                            ` : `
+                              <button onclick="window.openFeedbackModal('${id}')" class="btn btn-primary">
+                                <span class="material-symbols-outlined">${myExistingFeedback ? 'edit_note' : 'rate_review'}</span> 
+                                ${myExistingFeedback ? '更新我的評論 / 反饋' : '發表評論 / 回報 Bug'}
+                              </button>
+                            `}
+                          </div>
           
-          ${isAppAuthor ? `
-            <button class="btn btn-tonal" disabled style="opacity:0.7;">開發者無法評分</button>
-          ` : `
-            <button onclick="window.openFeedbackModal('${id}')" class="btn btn-primary">
-              <span class="material-symbols-outlined">${myExistingFeedback ? 'edit_note' : 'rate_review'}</span> 
-              ${myExistingFeedback ? '更新我的評論 / 反饋' : '發表評論 / 回報 Bug'}
-            </button>
-          `}
-        </div>
-        
-        <div>${feedbackListHtml}</div>
-      </div>
-    `;
+                          <div>${feedbackListHtml}</div>
+                        </div>
+
+                      </div>
+                    `;
     
     // Attach click handlers for step buttons
     setTimeout(() => {

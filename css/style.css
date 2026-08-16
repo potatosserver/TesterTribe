@@ -178,8 +178,10 @@ header { background: var(--md-sys-color-surface-container-low); position: sticky
 .badge-like { background: var(--color-like-bg); color: var(--color-like); }
 
 .gp-layout { display: flex; gap: 28px; align-items: flex-start; }
-@media (max-width: 768px) { .gp-layout { flex-direction: column; } }
-.gp-main { flex: 2; width: 100%; }
+@media (max-width: 1024px) { 
+  .gp-layout { flex-direction: column; } 
+}
+.gp-main { flex: 2; width: 100%; min-width: 0; }
 .gp-sidebar { flex: 1; width: 100%; position: sticky; top: 80px; }
 
 .gp-sidebar-card { background: #ffffff; padding: 24px; border-radius: var(--md-shape-corner-large); border: 1px solid var(--md-sys-color-outline-variant); box-shadow: var(--md-elevation-1); }
@@ -193,12 +195,35 @@ header { background: var(--md-sys-color-surface-container-low); position: sticky
 .gp-action-buttons { display: flex; flex-direction: column; gap: 10px; max-width: 420px; }
 .gp-btn-link { padding: 14px; font-size: 0.95rem; text-align: center; width: 100%; }
 
+/* Steps with inline sidebar - desktop: side by side, mobile: stacked */
+.gp-steps-with-sidebar { display: flex; gap: 24px; align-items: stretch; }
+.gp-action-buttons { display: flex; flex-direction: column; gap: 6px; max-width: 420px; flex: 1; }
+/* Three main items: 2 groups (content height) + 1 standalone button (content height) */
+.gp-action-buttons { justify-content: space-between; }
+.gp-action-buttons > .gp-step-group { flex: 0 0 auto; display: flex; flex-direction: column; }
+.gp-action-buttons > .gp-step-group .gp-step-btn { flex: 1; }
+/* Standalone button: content height, vertically centered, keep horizontal layout, full width */
+.gp-action-buttons > .gp-step-btn { flex: 0 0 auto; align-self: center; flex-direction: row; width: 100%; }
+.gp-sidebar-inline { flex: 1; min-width: 280px; max-width: 320px; }
+.gp-sidebar-inline .gp-sidebar-card { position: sticky; top: 80px; height: 100%; }
+.gp-step-guide { margin: 4px 0; padding: 10px 14px; font-size: 0.8rem; line-height: 1.5; }
+
+@media (max-width: 768px) {
+  .gp-steps-with-sidebar { flex-direction: column; }
+  .gp-action-buttons { max-width: 100%; }
+  .gp-action-buttons > .gp-step-group,
+  .gp-action-buttons > .gp-step-btn { flex: none; }
+  .gp-action-buttons > .gp-step-group .gp-step-btn { flex: none; }
+  .gp-sidebar-inline { max-width: 100%; }
+  .gp-sidebar-inline .gp-sidebar-card { position: static; }
+}
+
 /* Step buttons with checkboxes */
 .gp-step-btn {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 16px;
+  padding: 16px 18px;
   background: #ffffff;
   border: 1px solid var(--md-sys-color-outline-variant);
   border-radius: var(--md-shape-corner-medium);
@@ -206,6 +231,9 @@ header { background: var(--md-sys-color-surface-container-low); position: sticky
   transition: all 0.2s;
   text-align: left;
 }
+
+/* Content width limit for reviews section (matches gp-action-buttons left column) */
+.bottom-reviews-section { max-width: 420px; }
 .gp-step-btn:hover {
   border-color: var(--md-sys-color-primary);
   background: var(--md-sys-color-primary-container);
@@ -233,9 +261,35 @@ header { background: var(--md-sys-color-surface-container-low); position: sticky
   content: '';
   width: 6px;
   height: 12px;
-  border: solid var(--md-sys-color-on-primary);
+  border: solid var(--md-sys-color_on-primary);
   border-width: 0 2px 2px 0;
   transform: rotate(45deg) translateY(-1px);
+}
+.gp-step-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: #ffffff;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-shape-corner-medium);
+  overflow: hidden;
+}
+.gp-step-group .gp-step-guide {
+  margin: 0;
+  border-radius: 0;
+  border: none;
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+  padding: 10px 14px;
+  background: #ffffff;
+}
+.gp-step-group .gp-step-btn {
+  margin: 0;
+  border-radius: 0;
+  border: none;
+  background: transparent;
+}
+.gp-step-group .gp-step-btn:hover {
+  background: var(--md-sys-color-primary-container);
 }
 .gp-step-content {
   display: flex;
@@ -559,10 +613,6 @@ header { background: var(--md-sys-color-surface-container-low); position: sticky
   
   .gp-layout {
     gap: 16px;
-  }
-  
-  .gp-sidebar {
-    position: static;
   }
   
   /* Detail page mobile: keep same horizontal layout as desktop */
