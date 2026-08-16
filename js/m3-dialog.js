@@ -142,18 +142,38 @@ function createDialogElement(type, config, resolve) {
   
   // Icon (optional) - 24dp, centered, NO container background
   let iconHtml = '';
+  let iconColorClass = '';
   if (config.icon) {
     const iconColor = config.destructive ? 'error' : config.iconColor;
-    iconHtml = `
-      <div style="
-        display: flex;
-        justify-content: center;
-        margin: 16px 0 8px;
-        color: var(--md-sys-color-${iconColor}, ${config.destructive ? '#f2b8b5' : '#bcb5f0'});
-      ">
-        <span class="material-symbols-outlined" style="font-size: 24px;">${config.icon}</span>
-      </div>
-    `;
+    if (type === 'success') {
+      iconHtml = `
+        <div style="
+          display: flex;
+          justify-content: center;
+          margin: 24px 0 16px;
+          width: 80px;
+          height: 80px;
+          margin-left: auto;
+          margin-right: auto;
+          border-radius: 50%;
+          background: var(--md-sys-color-primary-container, #e8eaff);
+          align-items: center;
+        ">
+          <span class="material-symbols-outlined" style="font-size: 40px; color: var(--md-sys-color-primary, #6200ee);">${config.icon}</span>
+        </div>
+      `;
+    } else {
+      iconHtml = `
+        <div style="
+          display: flex;
+          justify-content: center;
+          margin: 16px 0 8px;
+          color: var(--md-sys-color-${iconColor}, ${config.destructive ? '#f2b8b5' : '#bcb5f0'});
+        ">
+          <span class="material-symbols-outlined" style="font-size: 24px;">${config.icon}</span>
+        </div>
+      `;
+    }
   }
   
   // Title - Headline Small (20sp/1.25rem), Medium (500), left-aligned
@@ -193,7 +213,7 @@ function createDialogElement(type, config, resolve) {
   const confirmColor = config.destructive ? 'error' : (colorMap[config.confirmColor] || 'primary');
   const confirmTextColor = config.destructive ? 'error' : confirmColor;
   
-  if (type === 'alert') {
+  if (type === 'alert' || type === 'success') {
     actionsHtml = createButton(config.confirmText, confirmTextColor, true);
   } else {
     // Cancel button - Text Button, Primary color
@@ -346,8 +366,31 @@ export function m3Error(message, title) {
   });
 }
 
+// Success Dialog - Material 3 style with celebration animation
+export function showM3Success(message, title, options = {}) {
+  return new Promise((resolve) => {
+    const config = {
+      title: title || '成功',
+      message: message || '',
+      confirmText: options.confirmText || '好',
+      confirmColor: options.confirmColor || 'primary',
+      icon: options.icon || 'check_circle',
+      iconColor: options.iconColor || 'primary',
+      onConfirm: options.onConfirm || (() => {}),
+      ...options
+    };
+    queueSuccessDialog(config, resolve);
+  });
+}
+
+function queueSuccessDialog(config, resolve) {
+  dialogQueue.push({ type: 'success', config, resolve });
+  processDialogQueue();
+}
+
+// Backward compatibility
 export function m3Success(message, title) {
-  return showM3Alert(message, title || '成功', { 
+  return showM3Success(message, title || '成功', { 
     icon: 'check_circle', 
     iconColor: 'primary',
     confirmColor: 'primary'

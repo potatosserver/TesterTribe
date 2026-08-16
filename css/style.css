@@ -266,7 +266,8 @@ header { background: var(--md-sys-color-surface-container-low); position: sticky
 .form-control { width: 100%; padding: 12px 16px; border: 1px solid var(--md-sys-color-outline); border-radius: var(--md-shape-corner-medium); outline: none; }
 
 .detail-screenshots { display: flex; gap: 12px; margin: 12px 0; overflow-x: auto; padding-bottom: 8px; }
-.detail-screenshot-img { width: 140px; height: 250px; border-radius: 12px; object-fit: cover; border: 1px solid var(--md-sys-color-outline-variant); cursor: pointer; }
+.detail-screenshot-img { height: 200px; width: auto; border-radius: 12px; object-fit: contain; border: 1px solid var(--md-sys-color-outline-variant); cursor: zoom-in; background: var(--md-sys-color-surface-container); }
+.detail-screenshot-img:hover { transform: scale(1.02); transition: transform 0.2s ease; }
 
 .feedback-item { background: var(--md-sys-color-surface-container); border-radius: var(--md-shape-corner-medium); padding: 18px; margin-bottom: 12px; border: 1px solid var(--md-sys-color-outline-variant); position: relative; }
 .feedback-item.pinned { border: 2px solid var(--md-sys-color-primary); background: #f0f9ff; }

@@ -11,6 +11,7 @@ export function setupDetail() {
   window.toggleJoinTestDetail = toggleJoinTestDetail;
   window.togglePinFeedback = togglePinFeedback;
   window.openFeedbackModal = openFeedbackModal;
+  window.openScreenshotLightbox = openScreenshotLightbox;
 }
 
 function getStepChecks(appId) {
@@ -179,7 +180,7 @@ async function openAppDetail(appId) {
                 <span class="material-symbols-outlined">smartphone</span> 畫面截圖
               </h3>
               <div class="detail-screenshots">
-                ${screenshots.map(url => `<img src="${escapeHTML(url)}" class="detail-screenshot-img" onclick="window.open('${escapeHTML(url)}', '_blank')">`).join('')}
+                ${screenshots.map(url => `<img src="${escapeHTML(url)}" class="detail-screenshot-img" onclick="openScreenshotLightbox('${escapeHTML(url)}')">`).join('')}
               </div>
             </div>
           ` : ''}
@@ -472,4 +473,27 @@ function openFeedbackModal(appId) {
   document.getElementById('feedback-content').value = '';
   document.getElementById('rating-stars-box').style.display = 'block';
   document.querySelectorAll('.gp-star-btn').forEach(btn => btn.classList.remove('active'));
+}
+
+function openScreenshotLightbox(url) {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:10000;display:flex;align-items:center;justify-content:center;cursor:zoom-out;';
+  overlay.onclick = () => overlay.remove();
+  
+  const img = document.createElement('img');
+  img.src = url;
+  img.style.cssText = 'max-width:90%;max-height:90%;object-fit:contain;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,0.5);';
+  img.onclick = (e) => e.stopPropagation();
+  
+  overlay.appendChild(img);
+  document.body.appendChild(overlay);
+  
+  // Close on ESC
+  const onEsc = (e) => {
+    if (e.key === 'Escape') {
+      overlay.remove();
+      document.removeEventListener('keydown', onEsc);
+    }
+  };
+  document.addEventListener('keydown', onEsc);
 }
