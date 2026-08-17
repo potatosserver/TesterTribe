@@ -4,6 +4,7 @@ import { db } from './firebase-config.js';
 import { PAGE_SIZE } from './constants.js';
 import { escapeHTML, formatDate } from './utils.js';
 import { cachedGetDocs, invalidateCache } from './cache.js';
+import { showSkeleton, hideSkeleton, createEmptyState, toast } from './utils.js';
 
 let currentPlatformFilter = 'all'; // UI state for chips (not in URL)
 
@@ -86,6 +87,9 @@ function setupMarketPlatform(platformKey) {
         
         console.log('[Market Search] Platform:', platformKey, 'Keyword:', keyword);
         
+        // Add loading state to search box
+        searchInput.classList.add('loading');
+        
         try {
           // Search Firestore for apps matching keyword in name, packageName, or authorName
           // We need to do multiple queries since Firestore doesn't support OR across fields
@@ -154,6 +158,8 @@ function setupMarketPlatform(platformKey) {
             return nameMatch || pkgMatch || authorMatch;
           });
           renderMarketApps(platformKey, filtered);
+        } finally {
+          searchInput.classList.remove('loading');
         }
       }, 300);
     });
@@ -175,6 +181,68 @@ function setupMarketPlatform(platformKey) {
     });
   }
   
+  // Mobile filter bottom sheet
+  const filterToggleBtn = document.getElementById(`btn-filter-${platformKey}`);
+  if (filterToggleBtn) {
+    // Show button on mobile
+    const checkMobile = () => {
+      filterToggleBtn.style.display = window.innerWidth < 768 ? 'inline-flex' : 'none';
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    filterToggleBtn.addEventListener('click', () => {
+      const bottomSheet = createBottomSheet({
+        title: '篩選與排序',
+        content: `
+          <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div>
+              <label style="font-weight: 600; margin-bottom: 8px; display: block;">狀態篩選</label>
+              <select id="bottom-filter-status-${platformKey}" class="form-control">
+                <option value="all">全部</option>
+                <option value="open">招募中</option>
+                <option value="closed">已結束</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-weight: 600; margin-bottom: 8px; display: block;">排序方式</label>
+              <select id="bottom-filter-sort-${platformKey}" class="form-control">
+                <option value="auto">自動（綜合權重）</option>
+                <option value="popular">熱門（愛心數）</option>
+                <option value="rating">評價（星星數）</option>
+              </select>
+            </div>
+            <div style="display: flex; gap: 12px; margin-top: 8px;">
+              <button id="bottom-filter-reset-${platformKey}" class="btn btn-outlined" style="flex: 1;">重置</button>
+              <button id="bottom-filter-apply-${platformKey}" class="btn btn-primary" style="flex: 1;">套用</button>
+            </div>
+          </div>
+        `,
+        onClose: () => {}
+      });
+      
+      // Sync current values
+      const bottomStatus = bottomSheet.querySelector(`#bottom-filter-status-${platformKey}`);
+      const bottomSort = bottomSheet.querySelector(`#bottom-filter-sort-${platformKey}`);
+      if (bottomStatus) bottomStatus.value = statusFilter.value;
+      if (bottomSort) bottomSort.value = sortFilter.value;
+      
+      // Apply button
+      bottomSheet.querySelector(`#bottom-filter-apply-${platformKey}`).addEventListener('click', () => {
+        statusFilter.value = bottomStatus.value;
+        sortFilter.value = bottomSort.value;
+        renderMarketApps(platformKey, state.loadedApps);
+        bottomSheet.remove();
+      });
+      
+      // Reset button
+      bottomSheet.querySelector(`#bottom-filter-reset-${platformKey}`).addEventListener('click', () => {
+        bottomStatus.value = 'all';
+        bottomSort.value = 'auto';
+      });
+    });
+  }
+  
   // Initial load
   fetchMarketApps(platformKey, true);
 }
@@ -184,6 +252,7 @@ async function fetchMarketApps(platformKey, isInitial = false) {
   const state = marketState[platformKey];
   const btnLoadMore = document.getElementById(config.btnLoadMoreId);
   const noMoreMsg = document.getElementById(config.noMoreMsgId);
+  const marketList = document.getElementById(config.listId);
   
   // Use skipCache for initial load to ensure fresh data
   const skipCache = isInitial;
@@ -194,6 +263,10 @@ async function fetchMarketApps(platformKey, isInitial = false) {
     state.lastVisibleDoc = null;
     btnLoadMore.style.display = 'inline-flex';
     noMoreMsg.style.display = 'none';
+    
+    // Show skeleton loaders for initial load
+    marketList.innerHTML = '';
+    showSkeleton(marketList, 'app-card', 6);
   }
 
   btnLoadMore.disabled = true;
@@ -279,6 +352,7 @@ async function fetchMarketApps(platformKey, isInitial = false) {
     }
   } catch (err) {
     console.error('Fetch market apps error:', err);
+    toast.error('載入市集資料失敗');
   } finally {
     btnLoadMore.disabled = false;
   }
@@ -340,10 +414,29 @@ function renderMarketApps(platformKey, appsList) {
     });
   }
   
+  // Clear skeleton loaders
   marketList.innerHTML = '';
 
   if (filteredApps.length === 0) {
-    marketList.innerHTML = '<div style="color: #888; grid-column: 1/-1; text-align: center; padding: 40px 0;">沒有找到相關的專案。</div>';
+    // Use new empty state component
+    const emptyState = createEmptyState({
+      icon: 'search_off',
+      title: '沒有找到相關的專案',
+      description: '嘗試調整篩選條件或搜尋關鍵字',
+      action: {
+        label: '清除篩選',
+        onClick: () => {
+          const statusFilter = document.getElementById(`filter-status-${platformKey}`);
+          const sortFilter = document.getElementById(`filter-sort-${platformKey}`);
+          const searchInput = document.getElementById(config.searchInputId);
+          if (statusFilter) statusFilter.value = 'all';
+          if (sortFilter) sortFilter.value = 'auto';
+          if (searchInput) searchInput.value = '';
+          renderMarketApps(platformKey, appsList);
+        }
+      }
+    });
+    marketList.appendChild(emptyState);
     return;
   }
 
@@ -367,7 +460,7 @@ function renderMarketApps(platformKey, appsList) {
     card.innerHTML = `
           <div>
             <div class="app-header">
-              <img class="app-icon" src="${escapeHTML(appData.iconUrl)}" onerror="this.onerror=null; this.src=window.DEFAULT_ICON;">
+              <img class="app-icon" src="${escapeHTML(appData.iconUrl)}" loading="lazy" onerror="this.onerror=null; this.src=window.DEFAULT_ICON;">
               <div>
                 <div style="display:flex; align-items:center; gap:6px;">
                   <h3 class="app-title">${escapeHTML(appData.name)}</h3>

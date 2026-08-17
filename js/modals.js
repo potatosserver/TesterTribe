@@ -75,7 +75,7 @@ async function submitFeedback() {
   }
 
   try {
-    await addDoc(collection(db, 'apps', appId, 'feedbacks'), {
+    const feedbackRef = await addDoc(collection(db, 'apps', appId, 'feedbacks'), {
       type: type,
       content: content,
       rating: type === 'review' ? rating : null,
@@ -86,6 +86,39 @@ async function submitFeedback() {
       isPinned: false
     });
 
+    // Update UI immediately without page reload
+    const feedbackList = document.querySelector('.gp-section:last-child > div:last-child');
+    if (feedbackList) {
+      // Remove "no feedback" message if exists
+      const noFeedbackMsg = feedbackList.querySelector('div[style*="text-align: center"]');
+      if (noFeedbackMsg) noFeedbackMsg.remove();
+      
+      // Create new feedback element
+      const starsHtml = type === 'review' ? '★'.repeat(rating) + '☆'.repeat(5 - rating) : '';
+      const typeBadge = type === 'review' 
+        ? `<span class="type-badge type-review"><span style="color:#f59e0b;">${starsHtml}</span></span>`
+        : type === 'bug'
+          ? `<span class="type-badge type-bug"><span class="material-symbols-outlined" style="font-size:12px;">bug_report</span> Bug 回報</span>`
+          : `<span class="type-badge type-suggestion"><span class="material-symbols-outlined" style="font-size:12px;">lightbulb</span> 功能建議</span>`;
+      
+      const newFeedbackHtml = `
+        <div class="feedback-item" style="animation: slideIn 0.3s ease;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-weight: 600; font-size: 0.9rem;">${escapeHTML(window.currentUser.displayName)}</span>
+              ${type === 'review' ? `<span style="color:#f59e0b;">${starsHtml}</span>` : typeBadge}
+            </div>
+            <div style="display:flex; gap:8px;">
+              ${window.currentUser.uid === window.currentUser.uid ? '' : ''}
+            </div>
+          </div>
+          <div style="font-size:0.92rem; line-height:1.5; white-space:pre-line;">${escapeHTML(content)}</div>
+        </div>
+      `;
+      feedbackList.insertAdjacentHTML('afterbegin', newFeedbackHtml);
+    }
+    
+    // Update rating count and average if review
     if (type === 'review') {
       const appRef = doc(db, 'apps', appId);
       const appSnap = await getDoc(appRef);
@@ -93,12 +126,20 @@ async function submitFeedback() {
       const newCount = (data.ratingCount || 0) + 1;
       const newSum = (data.ratingSum || 0) + rating;
       await updateDoc(appRef, { ratingCount: newCount, ratingSum: newSum });
+      
+      // Update UI
+      const ratingCountEl = document.querySelector('[style*="color:#f59e0b; font-weight: 700"]');
+      if (ratingCountEl) {
+        ratingCountEl.textContent = (newSum / newCount).toFixed(1);
+      }
+      const ratingCountText = document.querySelector('p[style*="font-size: 0.85rem; color: #666"]');
+      if (ratingCountText) {
+        ratingCountText.textContent = `共有 ${newCount} 位測試人員評價`;
+      }
     }
 
-    m3Success('送出成功！');
+    toast('送出成功！', 'success');
     closeFeedbackModal();
-    const store = getStoreFromUrl();
-    window.openAppDetail(appId, store);
   } catch (err) {
     m3Error('送出失敗：' + err.message);
   }

@@ -4,6 +4,7 @@ import { db } from './firebase-config.js';
 import { escapeHTML, formatDate } from './utils.js';
 import { getPackageNameFromUrl, getStoreFromUrl, platformToStore } from './router.js';
 import { m3Alert, m3Error, m3Success, m3Confirm } from './m3-dialog.js';
+import { createStepProgress, updateStepProgress, toast } from './utils.js';
 
 export function setupDetail() {
   window.openAppDetail = openAppDetail;
@@ -108,6 +109,8 @@ async function openAppDetail(appId, storeFromCard, skipNavigation = false) {
     const stepChecks = getStepChecks(id);
     
     function getStepChecked(stepNum, appId) {
+      // If user has joined the test, all steps are considered completed
+      if (isJoined) return true;
       return stepChecks[stepNum] || false;
     }
     
@@ -151,7 +154,7 @@ async function openAppDetail(appId, storeFromCard, skipNavigation = false) {
               </div>
               <div style="display:flex; gap:8px;">
                 ${isAppAuthor ? `
-                  <button onclick="window.togglePinFeedback('${id}', '${fb.id}', ${isPinned})" class="btn btn-outline" style="padding:2px 8px; font-size:0.75rem;">
+                  <button onclick="window.togglePinFeedback('${id}', '${fb.id}', ${isPinned})" data-feedback-id="${fb.id}" class="btn btn-outline" style="padding:2px 8px; font-size:0.75rem;">
                     <span class="material-symbols-outlined" style="font-size:14px;">push_pin</span> ${isPinned ? '取消置頂' : '置頂此留言'}
                   </button>
                 ` : ''}
@@ -211,6 +214,7 @@ async function openAppDetail(appId, storeFromCard, skipNavigation = false) {
             <h3 class="gp-section-title">
               <span class="material-symbols-outlined">link</span> 測試步驟連結
             </h3>
+            
             <div class="gp-steps-with-sidebar">
               <div class="gp-action-buttons">
                 ${!appData.isClosed && platform === 'android' ? `
@@ -221,7 +225,7 @@ async function openAppDetail(appId, storeFromCard, skipNavigation = false) {
                       <div>在彈出視窗中確認您的資訊，點選右下角完成加入。</div>
                     </div>
                     <div class="gp-step-btn" data-step="1" data-url="${escapeHTML(appData.groupUrl)}">
-                      <span class="gp-step-check" data-step="1" ${getStepChecked(1, id) ? 'checked' : ''}></span>
+                      <span class="gp-step-indicator" data-step="1">${getStepChecked(1, id) ? '<span class="material-symbols-outlined">check</span>' : '1'}</span>
                       <span class="gp-step-content">
                         <span class="material-symbols-outlined">group_add</span>
                         <span>加入 Google 測試群組</span>
@@ -236,7 +240,7 @@ async function openAppDetail(appId, storeFromCard, skipNavigation = false) {
                       <div>點擊頁面中的「<strong>成為測試人員 (Become a Tester)</strong>」按鈕。</div>
                     </div>
                     <div class="gp-step-btn" data-step="2" data-url="${escapeHTML(testingOptInUrl)}">
-                      <span class="gp-step-check" data-step="2" ${getStepChecked(2, id) ? 'checked' : ''}></span>
+                      <span class="gp-step-indicator" data-step="2">${getStepChecked(2, id) ? '<span class="material-symbols-outlined">check</span>' : '2'}</span>
                       <span class="gp-step-content">
                         <span class="material-symbols-outlined">person_add</span>
                         <span>成為測試人員 (Opt-in)</span>
@@ -248,7 +252,7 @@ async function openAppDetail(appId, storeFromCard, skipNavigation = false) {
                 ${platform === 'android' ? `
                   <!-- Step 4: Download link (always shown for Android) -->
                   <div class="gp-step-btn" data-step="${!appData.isClosed ? '3' : '1'}" data-url="${escapeHTML(playStoreUrl)}">
-                    <span class="gp-step-check" data-step="${!appData.isClosed ? '3' : '1'}" ${getStepChecked(!appData.isClosed ? 3 : 1, id) ? 'checked' : ''}></span>
+                    <span class="gp-step-indicator" data-step="${!appData.isClosed ? '3' : '1'}">${getStepChecked(!appData.isClosed ? 3 : 1, id) ? '<span class="material-symbols-outlined">check</span>' : (!appData.isClosed ? '3' : '1')}</span>
                     <span class="gp-step-content">
                       <span class="material-symbols-outlined">download</span>
                       <span>${!appData.isClosed ? '前往 Google Play 商店下載測試版 App' : '前往 Google Play 商店下載 App'}</span>
@@ -257,7 +261,7 @@ async function openAppDetail(appId, storeFromCard, skipNavigation = false) {
                   </div>
                 ` : `
                   <div class="gp-step-btn" data-step="1" data-url="${escapeHTML(appData.storeUrl || appData.testFlightUrl)}">
-                    <span class="gp-step-check" data-step="1" ${getStepChecked(1, id) ? 'checked' : ''}></span>
+                    <span class="gp-step-indicator" data-step="1">${getStepChecked(1, id) ? '<span class="material-symbols-outlined">check</span>' : '1'}</span>
                     <span class="gp-step-content">
                       <span class="material-symbols-outlined">flight_takeoff</span>
                       <span>加入 TestFlight 測試</span>
@@ -296,7 +300,7 @@ async function openAppDetail(appId, storeFromCard, skipNavigation = false) {
                     <div class="progress-bar-bg" style="margin-bottom:12px;">
                       <div class="progress-bar-fill" style="width: ${progressPercent}%; background: ${isCompleted ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-error)'};"></div>
                     </div>
-                    <button onclick="window.toggleJoinTestDetail('${id}', ${isJoined})" class="btn ${isJoined ? 'btn-error' : (isCompleted ? 'btn-tonal' : 'btn-primary')}" style="width:100%; padding:12px;" ${isCompleted && !isJoined ? 'disabled' : ''}>
+                    <button onclick="window.toggleJoinTestDetail('${id}', ${isJoined})" data-app-id="${id}" class="btn ${isJoined ? 'btn-error' : (isCompleted ? 'btn-tonal' : 'btn-primary')}" style="width:100%; padding:12px;" ${isCompleted && !isJoined ? 'disabled' : ''}>
                       <span class="material-symbols-outlined">${isJoined ? 'cancel' : (isCompleted ? 'check_circle' : 'check_circle')}</span>
                       ${isJoined ? '已加入測試 (點擊退出)' : (isCompleted ? '測試名額已滿' : '回報已加入測試')}
                     </button>
@@ -345,6 +349,30 @@ async function openAppDetail(appId, storeFromCard, skipNavigation = false) {
                       </div>
                     `;
     
+    // Initialize step progress indicator
+    const stepLabels = platform === 'android' && !appData.isClosed 
+      ? ['加入群組', '成為測試人員', '下載 App']
+      : platform === 'android'
+        ? ['下載 App']
+        : ['加入 TestFlight'];
+    const stepProgress = createStepProgress(stepLabels);
+    const container = document.getElementById('step-progress-container');
+    if (container) {
+      container.appendChild(stepProgress);
+    }
+    
+    // Update step progress based on current state (stepChecks already declared above at line ~109)
+    // If user has joined the test, all steps are completed
+    let completedCount = isJoined ? stepLabels.length : 0;
+    if (!isJoined) {
+      stepLabels.forEach((_, index) => {
+        if (stepChecks[index + 1] === true) {
+          completedCount++;
+        }
+      });
+    }
+    updateStepProgress(stepProgress, completedCount);
+    
     // Attach click handlers for step buttons
     setTimeout(() => {
       document.querySelectorAll('.gp-step-btn').forEach(btn => {
@@ -354,16 +382,20 @@ async function openAppDetail(appId, storeFromCard, skipNavigation = false) {
         
         const step = btn.dataset.step;
         const url = btn.dataset.url;
-        const checkbox = btn.querySelector('.gp-step-check');
+        const indicator = btn.querySelector('.gp-step-indicator');
         const stepNum = parseInt(step);
         
         const isCompleted = () => {
+          // If user has joined the test, all steps are completed
+          if (isJoined) return true;
           const stepChecks = getStepChecks(id);
           return stepChecks[stepNum] === true;
         };
         
         const isPrevCompleted = () => {
           if (stepNum <= 1) return true;
+          // If user has joined the test, all previous steps are completed
+          if (isJoined) return true;
           const stepChecks = getStepChecks(id);
           return stepChecks[stepNum - 1] === true;
         };
@@ -377,20 +409,35 @@ async function openAppDetail(appId, storeFromCard, skipNavigation = false) {
             return;
           }
           
+          // If already joined, all steps are completed - just open the link
+          if (isJoined) {
+            console.log('[StepBtn] User already joined, opening URL:', url);
+            window.open(url, '_blank');
+            return;
+          }
+          
           const completed = isCompleted();
-          const isChecked = checkbox.classList.contains('checked');
+          const isChecked = indicator.classList.contains('checked');
           
           console.log('[StepBtn] State:', { step: stepNum, completed, isChecked });
           
           if (!isChecked) {
-            // Trying to check
+            // Trying to check - also open the link
             if (!isPrevCompleted()) {
-              await m3Alert(`請先完成步驟 ${stepNum - 1} 再勾選此步驟。`, '順序錯誤');
+              await m3Alert(`請先完成步驟 ${stepNum - 1} 再進行此步驟。`, '順序錯誤');
               return;
             }
-            console.log('[StepBtn] Checking step', stepNum);
-            checkbox.classList.add('checked');
+            console.log('[StepBtn] Checking step and opening link', stepNum);
+            indicator.classList.add('checked');
+            indicator.innerHTML = '<span class="material-symbols-outlined">check</span>';
             setStepCheck(id, stepNum, true);
+            // Update progress indicator
+            updateStepProgress(stepProgress, stepNum);
+            // Open the link
+            if (url) {
+              console.log('[StepBtn] Opening URL:', url);
+              window.open(url, '_blank');
+            }
           } else if (completed && url) {
             // Already checked and step completed - open the link
             console.log('[StepBtn] Opening URL:', url);
@@ -421,15 +468,37 @@ async function handleToggleLikeDetail(appId) {
   const likeRef = doc(db, 'apps', appId, 'likes', window.currentUser.uid);
   const likeSnap = await getDoc(likeRef);
   
+  const btn = document.getElementById(`btn-detail-like-${appId}`);
+  const likeText = document.getElementById('detail-like-text');
+  const likeCountEl = document.getElementById('detail-like-count');
+  const currentCount = parseInt(likeCountEl?.textContent || '0');
+  
   if (likeSnap.exists()) {
     await deleteDoc(likeRef);
-    await updateDoc(appRef, { likeCount: Math.max(0, (await getDoc(appRef)).data()?.likeCount - 1 || 0) });
+    // Update UI immediately
+    if (btn) btn.classList.remove('btn-like-active');
+    if (btn) btn.classList.add('btn-tonal');
+    if (likeText) likeText.textContent = '點擊按讚';
+    if (likeCountEl) likeCountEl.textContent = Math.max(0, currentCount - 1);
+    toast('已取消按讚', 'info');
   } else {
     await setDoc(likeRef, { createdAt: serverTimestamp() });
-    await updateDoc(appRef, { likeCount: ((await getDoc(appRef)).data()?.likeCount || 0) + 1 });
+    // Update UI immediately
+    if (btn) btn.classList.remove('btn-tonal');
+    if (btn) btn.classList.add('btn-like-active');
+    if (likeText) likeText.textContent = '已按讚';
+    if (likeCountEl) likeCountEl.textContent = currentCount + 1;
+    toast('已加入收藏', 'success');
   }
-  const store = getStoreFromUrl();
-  window.openAppDetail(appId, store);
+  
+  // Sync count with server (background)
+  try {
+    const updatedSnap = await getDoc(appRef);
+    const serverCount = updatedSnap.data()?.likeCount || 0;
+    if (likeCountEl) likeCountEl.textContent = serverCount;
+  } catch (err) {
+    console.warn('Failed to sync like count:', err);
+  }
 }
 
 async function toggleJoinTestDetail(appId, isJoined) {
@@ -441,12 +510,16 @@ async function toggleJoinTestDetail(appId, isJoined) {
   const platform = appData?.platform || (appData?.store === 'app-store' ? 'ios' : 'android');
   const isClosed = appData?.isClosed === true;
   const REQUIRED_STEPS = platform === 'ios' ? 1 : 3;
+  const MAX_TESTERS = 12;
+  
+  // Get UI elements for immediate update
+  const joinBtn = document.querySelector(`button[data-app-id="${appId}"]`);
+  const progressText = document.getElementById('detail-progress-text');
+  const progressFill = document.querySelector('.progress-bar-fill');
   
   if (!isJoined) {
-    const appSnap2 = await getDoc(doc(db, 'apps', appId));
-    const appData2 = appSnap2.data();
-    const currentJoinCount = appData2?.joinCount || 0;
-    const MAX_TESTERS = 12;
+    // Check capacity before joining
+    const currentJoinCount = appData?.joinCount || 0;
     if (currentJoinCount >= MAX_TESTERS) {
       m3Alert(`測試名額已滿（${MAX_TESTERS} 人），無法加入。`, '名額已滿');
       return;
@@ -485,39 +558,188 @@ async function toggleJoinTestDetail(appId, isJoined) {
       if (!confirmed) return;
     }
   } else {
+    // Confirm before leaving
+    const confirmedLeave = await m3Confirm('確定要退出測試嗎？這將清除您的步驟進度記錄。', '確認退出測試', {
+      confirmText: '確定退出',
+      cancelText: '取消',
+      destructive: true
+    });
+    
+    if (!confirmedLeave) return;
     clearStepChecks(appId);
   }
   
   const testerRef = doc(db, 'apps', appId, 'testers', window.currentUser.uid);
   
   try {
+    let newJoinCount;
     if (isJoined) {
       await deleteDoc(testerRef);
       const appSnap = await getDoc(appRef);
       const currentCount = appSnap.data()?.joinCount || 0;
-      await updateDoc(appRef, { joinCount: Math.max(0, currentCount - 1) });
+      newJoinCount = Math.max(0, currentCount - 1);
+      await updateDoc(appRef, { joinCount: newJoinCount });
     } else {
       await setDoc(testerRef, { joinedAt: serverTimestamp() });
       const appSnap = await getDoc(appRef);
       const currentCount = appSnap.data()?.joinCount || 0;
-      await updateDoc(appRef, { joinCount: currentCount + 1 });
+      newJoinCount = currentCount + 1;
+      await updateDoc(appRef, { joinCount: newJoinCount });
     }
+    
+    // Update UI immediately without page reload
+    const newProgressPercent = Math.round((newJoinCount / MAX_TESTERS) * 100);
+    const newIsCompleted = newJoinCount >= MAX_TESTERS;
+    const newJoinedState = !isJoined; // new state after toggle
+    
+    if (joinBtn) {
+      joinBtn.className = `btn ${newJoinedState ? 'btn-error' : 'btn-primary'} ${newIsCompleted && newJoinedState ? 'disabled' : ''}`;
+      joinBtn.style.cssText = 'width:100%; padding:12px;';
+      joinBtn.innerHTML = `<span class="material-symbols-outlined">${newJoinedState ? 'cancel' : 'check_circle'}</span> ${newJoinedState ? '已加入測試 (點擊退出)' : '回報已加入測試'}`;
+      joinBtn.onclick = () => window.toggleJoinTestDetail(appId, newJoinedState);
+      if (newIsCompleted && newJoinedState) joinBtn.disabled = true;
+    }
+    
+    if (progressText) {
+      progressText.textContent = `${newJoinCount} / ${MAX_TESTERS} 人 (${newProgressPercent}%)`;
+      progressText.style.color = newIsCompleted ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-error)';
+    }
+    
+    if (progressFill) {
+      progressFill.style.width = `${newProgressPercent}%`;
+      progressFill.style.background = newIsCompleted ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-error)';
+    }
+    
+    // Update step progress indicator based on new joined state
+    const stepProgress = document.querySelector('.gp-step-progress');
+    if (stepProgress) {
+      if (newJoinedState) {
+        // Joined: mark all steps as completed
+        updateStepProgress(stepProgress, REQUIRED_STEPS);
+      } else {
+        // Left: clear all step progress (reset to 0)
+        updateStepProgress(stepProgress, 0);
+      }
+    }
+    
+    // Enable click-to-open-link for all steps when joined
+    if (newJoinedState) {
+      document.querySelectorAll('.gp-step-btn').forEach(btn => {
+        btn.dataset.stepBound = 'false'; // Re-bind handlers
+      });
+      // Re-attach handlers
+      setTimeout(() => {
+        document.querySelectorAll('.gp-step-btn').forEach(btn => {
+          if (btn.dataset.stepBound === 'true') return;
+          btn.dataset.stepBound = 'true';
+          const step = btn.dataset.step;
+          const url = btn.dataset.url;
+          const indicator = btn.querySelector('.gp-step-indicator');
+          const stepNum = parseInt(step);
+          
+          btn.addEventListener('click', async (e) => {
+            if (!window.currentUser) {
+              await m3LoginRequired('請先登入才能操作測試步驟');
+              return;
+            }
+            // If already joined, all steps are completed - just open the link
+            window.open(url, '_blank');
+          });
+        });
+      }, 0);
+    } else {
+      // When leaving, reset step indicators to show step numbers (not checkmarks)
+      // and restore the original click behavior (check step -> open link)
+      document.querySelectorAll('.gp-step-btn').forEach(btn => {
+        btn.dataset.stepBound = 'false';
+      });
+      setTimeout(() => {
+        document.querySelectorAll('.gp-step-btn').forEach(btn => {
+          if (btn.dataset.stepBound === 'true') return;
+          btn.dataset.stepBound = 'true';
+          const step = btn.dataset.step;
+          const url = btn.dataset.url;
+          const indicator = btn.querySelector('.gp-step-indicator');
+          const stepNum = parseInt(step);
+          
+          // Reset indicator to show step number
+          indicator.innerHTML = stepNum;
+          indicator.classList.remove('checked');
+          
+          btn.addEventListener('click', async (e) => {
+            if (!window.currentUser) {
+              await m3LoginRequired('請先登入才能操作測試步驟');
+              return;
+            }
+            
+            const stepChecks = getStepChecks(appId);
+            const isCompleted = stepChecks[stepNum] === true;
+            const isPrevCompleted = stepNum <= 1 || stepChecks[stepNum - 1] === true;
+            
+            if (!isCompleted && isPrevCompleted) {
+              // Mark this step as completed
+              setStepCheck(appId, stepNum, true);
+              indicator.innerHTML = '<span class="material-symbols-outlined">check</span>';
+              indicator.classList.add('checked');
+              window.open(url, '_blank');
+            } else if (isCompleted) {
+              // Already completed, just open link
+              window.open(url, '_blank');
+            } else {
+              // Previous step not completed
+              m3Alert(`請先完成步驟 ${stepNum - 1}`, '步驟順序錯誤');
+            }
+          });
+        });
+      }, 0);
+    }
+    
+    toast.success(newJoinedState ? '已加入測試' : '已退出測試');
+    
   } catch (err) {
     console.error('更新測試狀態失敗:', err);
     m3Error('操作失敗：' + err.message);
     return;
   }
-  
-  const store = getStoreFromUrl();
-  window.openAppDetail(appId, store);
 }
 
 async function togglePinFeedback(appId, feedbackId, isPinned) {
   if (!window.currentUser) return;
   const fbRef = doc(db, 'apps', appId, 'feedbacks', feedbackId);
   await updateDoc(fbRef, { isPinned: !isPinned });
-  const store = getStoreFromUrl();
-  window.openAppDetail(appId, store);
+  
+  // Update UI immediately without page reload
+  // isPinned = current state, !isPinned = new state after toggle
+  const newPinnedState = !isPinned;
+  // Use data-feedback-id selector which doesn't change
+  const btn = document.querySelector(`button[data-feedback-id="${feedbackId}"]`);
+  if (btn) {
+    btn.innerHTML = `<span class="material-symbols-outlined" style="font-size:14px;">push_pin</span> ${newPinnedState ? '取消置頂' : '置頂此留言'}`;
+    btn.onclick = () => window.togglePinFeedback(appId, feedbackId, newPinnedState);
+    if (newPinnedState) btn.classList.add('pinned-active');
+    else btn.classList.remove('pinned-active');
+  }
+  
+  // Update feedback item pinned state
+  const feedbackItem = btn?.closest('.feedback-item');
+  if (feedbackItem) {
+    if (newPinnedState) {
+      feedbackItem.classList.add('pinned');
+      // Move to top
+      const container = feedbackItem.parentElement;
+      if (container) container.prepend(feedbackItem);
+      // Add pinned badge if not exists
+      if (!feedbackItem.querySelector('.pinned-badge')) {
+        feedbackItem.insertAdjacentHTML('afterbegin', `<div class="pinned-badge"><span class="material-symbols-outlined" style="font-size:14px;">push_pin</span> 開發者置頂留言</div>`);
+      }
+    } else {
+      feedbackItem.classList.remove('pinned');
+      const badge = feedbackItem.querySelector('.pinned-badge');
+      if (badge) badge.remove();
+    }
+  }
+  
+  toast.info(newPinnedState ? '已置頂留言' : '已取消置頂');
 }
 
 function openFeedbackModal(appId) {

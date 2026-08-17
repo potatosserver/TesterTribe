@@ -4,6 +4,7 @@ import { db } from './firebase-config.js';
 import { escapeHTML, formatDate, formatDateOnly } from './utils.js';
 import { getAuthorEmailFromUrl, getAuthorUidFromUrl } from './router.js';
 import { m3Alert, m3Confirm, m3Error, m3Success } from './m3-dialog.js';
+import { createEmptyState, showSkeleton, hideSkeleton, toast } from './utils.js';
 
 export function setupDevProfile() {
   window.openDevProfile = openDevProfile;
@@ -23,9 +24,27 @@ async function openDevProfile() {
   
   const loadingEl = document.getElementById('dev-profile-loading');
   const mainEl = document.getElementById('dev-profile-main');
+  const gridEl = document.getElementById('dev-apps-grid');
+  const emptyStateEl = document.getElementById('dev-empty-state');
+  
   loadingEl.style.display = 'block';
   mainEl.style.display = 'none';
-  document.getElementById('dev-empty-state').style.display = 'none';
+  emptyStateEl.style.display = 'none';
+  gridEl.innerHTML = '';
+
+  // Show skeleton loaders for hero stats and app cards
+  showSkeleton('#dev-stat-apps', 'stat');
+  showSkeleton('#dev-stat-testers', 'stat');
+  showSkeleton('#dev-stat-likes', 'stat');
+  showSkeleton('#dev-profile-name', 'title');
+  showSkeleton('#dev-profile-email', 'text');
+  showSkeleton('#dev-join-date', 'text');
+  showSkeleton('#dev-profile-avatar', 'avatar');
+  // Show 3 skeleton cards
+  for (let i = 0; i < 3; i++) {
+    const skeletonCard = showSkeleton(gridEl, 'app-card');
+    gridEl.appendChild(skeletonCard);
+  }
 
   try {
     // Fetch user by UID (preferred) or Email (fallback)
@@ -58,6 +77,17 @@ async function openDevProfile() {
     const email = userData.email || '無公開信箱';
     const photoURL = userData.photoURL || '';
     const createdAt = userData.createdAt?.toDate ? userData.createdAt.toDate() : null;
+
+    // Hide skeletons and show actual content
+    hideSkeleton('#dev-stat-apps');
+    hideSkeleton('#dev-stat-testers');
+    hideSkeleton('#dev-stat-likes');
+    hideSkeleton('#dev-profile-name');
+    hideSkeleton('#dev-profile-email');
+    hideSkeleton('#dev-join-date');
+    hideSkeleton('#dev-profile-avatar');
+    // Clear skeleton cards
+    gridEl.innerHTML = '';
 
     document.getElementById('dev-profile-name').innerText = escapeHTML(displayName);
     document.getElementById('dev-profile-email').innerText = escapeHTML(email);
@@ -98,11 +128,20 @@ async function openDevProfile() {
     document.getElementById('dev-total-apps').innerText = apps.length;
 
     // Render apps
-    const gridEl = document.getElementById('dev-apps-grid');
     gridEl.innerHTML = '';
 
     if (apps.length === 0) {
-      document.getElementById('dev-empty-state').style.display = 'block';
+      // Use new empty state component
+      const emptyState = createEmptyState({
+        icon: 'folder_open',
+        title: '目前沒有發布任何專案',
+        description: '這位開發者尚未在 TesterTribe 刊登封閉測試專案',
+        action: {
+          label: '瀏覽市集其他專案',
+          onClick: () => window.navigate('market-android')
+        }
+      });
+      gridEl.appendChild(emptyState);
       loadingEl.style.display = 'none';
       mainEl.style.display = 'block';
       return;
@@ -155,7 +194,7 @@ async function openDevProfile() {
       card.innerHTML = `
         <div>
           <div class="app-header" style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: nowrap; overflow-x: auto;">
-            <img class="app-icon" src="${escapeHTML(appData.iconUrl)}" onerror="this.onerror=null; this.src=window.DEFAULT_ICON;" style="width: 56px; height: 56px; border-radius: 16px; box-shadow: var(--md-elevation-1); flex-shrink: 0;">
+            <img class="app-icon" src="${escapeHTML(appData.iconUrl)}" loading="lazy" onerror="this.onerror=null; this.src=window.DEFAULT_ICON;" style="width: 56px; height: 56px; border-radius: 16px; box-shadow: var(--md-elevation-1); flex-shrink: 0;">
             <div style="flex: 1; min-width: 0;">
               <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px; flex-wrap: nowrap; overflow-x: auto;">
                 <h3 class="app-title" style="margin: 0; font-size: 1.1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(appData.name)}</h3>
@@ -206,6 +245,16 @@ async function openDevProfile() {
     console.error(err);
     loadingEl.style.display = 'none';
     mainEl.style.display = 'block';
-    document.getElementById('dev-apps-grid').innerHTML = '<div style="color: var(--md-sys-color-error); text-align: center; padding: 40px;">載入失敗，請稍後再試</div>';
+    gridEl.innerHTML = '';
+    const errorState = createEmptyState({
+      icon: 'error_outline',
+      title: '載入失敗',
+      description: '無法載入開發者資料，請稍後再試',
+      action: {
+        label: '重新整理',
+        onClick: () => window.openDevProfile()
+      }
+    });
+    gridEl.appendChild(errorState);
   }
 }

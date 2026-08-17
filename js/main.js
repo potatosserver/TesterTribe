@@ -6,6 +6,12 @@ import { setupTabs } from './tabs.js';
 import { setupLogin } from './auth.js';
 import { initRouter, navigate } from './router.js';
 import { setupMarket } from './market.js';
+import { 
+  setupLazyImages, 
+  trapFocus, 
+  animateCountUpElements,
+  toast 
+} from './utils.js';
 
 // Make constants globally available for templates
 import { DEFAULT_AVATAR, DEFAULT_ICON, PAGE_SIZE } from './constants.js';
@@ -13,7 +19,12 @@ window.DEFAULT_AVATAR = DEFAULT_AVATAR;
 window.DEFAULT_ICON = DEFAULT_ICON;
 window.PAGE_SIZE = PAGE_SIZE;
 
+// Make toast globally available
+window.toast = toast;
+
 // Mobile drawer functions
+let drawerFocusCleanup = null;
+
 window.toggleMobileDrawer = function() {
   const drawer = document.getElementById('mobile-drawer');
   const backdrop = document.getElementById('drawer-backdrop');
@@ -24,6 +35,14 @@ window.toggleMobileDrawer = function() {
     backdrop.classList.toggle('active');
     hamburger.classList.toggle('active', isOpening);
     document.body.style.overflow = drawer.classList.contains('active') ? 'hidden' : '';
+    
+    // Focus trap for accessibility
+    if (isOpening) {
+      drawerFocusCleanup = trapFocus(drawer);
+    } else if (drawerFocusCleanup) {
+      drawerFocusCleanup();
+      drawerFocusCleanup = null;
+    }
   }
 };
 
@@ -45,6 +64,10 @@ window.closeMobileDrawer = function(event) {
     backdrop.classList.remove('active');
     hamburger.classList.remove('active');
     document.body.style.overflow = '';
+    if (drawerFocusCleanup) {
+      drawerFocusCleanup();
+      drawerFocusCleanup = null;
+    }
   }
 };
 
@@ -64,6 +87,47 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  // Ignore if typing in input/textarea
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) {
+    return;
+  }
+  
+  // / - Focus search (on market page)
+  if (e.key === '/' && !e.ctrlKey && !e.metaKey) {
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) {
+      e.preventDefault();
+      searchInput.focus();
+    }
+  }
+  
+  // G - Go to Home
+  if (e.key === 'g' && !e.ctrlKey && !e.metaKey) {
+    const store = window.getStoreFromUrl();
+    window.navigate('home', {store});
+  }
+  
+  // M - Go to Market
+  if (e.key === 'm' && !e.ctrlKey && !e.metaKey) {
+    const store = window.getStoreFromUrl();
+    window.navigate('market', {store});
+  }
+  
+  // P - Go to Publish
+  if (e.key === 'p' && !e.ctrlKey && !e.metaKey) {
+    window.navigate('publish');
+  }
+  
+  // D - Go to Dev Profile (if logged in)
+  if (e.key === 'd' && !e.ctrlKey && !e.metaKey) {
+    if (window.currentUser) {
+      window.navigate('dev-profile');
+    }
+  }
+});
+
 // Initialize the app when DOM is ready
 document.addEventListener('DOMContentLoaded', async () => {
   await loadTemplates();
@@ -73,4 +137,27 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupLogin(); // Initialize login page button
   setupMarket(); // Initialize market (must be before initRouter)
   await initRouter();
+  
+  // Initialize lazy loading for images
+  setupLazyImages();
+  
+  // Initialize count-up animations for hero stats
+  animateCountUpElements('.stat-number[data-count]', { duration: 1500 });
+  
+  // Initialize count-up for platform stats on home page
+  animateCountUpElements('#android-project-count, #android-dev-count, #ios-project-count, #ios-dev-count', { duration: 1200 });
+  
+  // Initialize count-up for dev profile stats
+  animateCountUpElements('#dev-stat-apps, #dev-stat-testers, #dev-stat-likes', { duration: 1200 });
+  
+  // Register Service Worker for PWA
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js')
+      .then((registration) => {
+        console.log('[SW] Registered:', registration.scope);
+      })
+      .catch((error) => {
+        console.log('[SW] Registration failed:', error);
+      });
+  }
 });

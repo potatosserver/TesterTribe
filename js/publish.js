@@ -2,6 +2,7 @@
 import { addDoc, collection, serverTimestamp, query, where, getDocs, doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { db } from './firebase-config.js';
 import { m3Alert, m3Error, m3Success } from './m3-dialog.js';
+import { setupFormValidation, toast } from './utils.js';
 
 // URL validation helper
 function isValidUrl(url) {
@@ -38,9 +39,56 @@ export function setupPublish() {
   window.togglePlatformFields = togglePlatformFields;
 
   const appForm = document.getElementById('app-form');
+  
+  // Setup real-time form validation
+  const validation = setupFormValidation(appForm, {
+    platform: [
+      { required: true, message: '請選擇平台' }
+    ],
+    name: [
+      { required: true, message: '請輸入 App 名稱' },
+      { minLength: 2, message: 'App 名稱至少 2 字元' },
+      { maxLength: 100, message: 'App 名稱最多 100 字元' }
+    ],
+    packageName: [
+      { required: true, message: '請輸入包名 / Bundle ID' },
+      { pattern: /^[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*)+$/, message: '包名格式錯誤 (如 com.example.app)' }
+    ],
+    groupUrl: [
+      { pattern: /^https?:\/\/.+/, message: '請輸入有效的網址' }
+    ],
+    testflightUrl: [
+      { pattern: /^https?:\/\/.+/, message: '請輸入有效的 TestFlight 連結' }
+    ],
+    iconUrl: [
+      { required: true, message: 'App 圖示網址為必填' },
+      { pattern: /^https?:\/\/.+/, message: '請輸入有效的圖片網址' }
+    ],
+    screenshotUrl1: [
+      { pattern: /^https?:\/\/.+/, message: '請輸入有效的圖片網址' }
+    ],
+    screenshotUrl2: [
+      { pattern: /^https?:\/\/.+/, message: '請輸入有效的圖片網址' }
+    ],
+    screenshotUrl3: [
+      { pattern: /^https?:\/\/.+/, message: '請輸入有效的圖片網址' }
+    ],
+    description: [
+      { required: true, message: '請填寫簡介與測試需求' },
+      { minLength: 20, message: '描述至少 20 字元' },
+      { maxLength: 5000, message: '描述最多 5000 字元' }
+    ]
+  });
+
   appForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!window.currentUser) return m3Alert('請先登入！');
+
+    // Validate all fields first
+    if (!validation.validateAll()) {
+      toast.error('請修正表單錯誤後再送出');
+      return;
+    }
 
     const platform = document.getElementById('app-platform').value;
     const packageName = document.getElementById('app-package-name').value.trim();
@@ -49,9 +97,7 @@ export function setupPublish() {
     const screenshotUrl2 = document.getElementById('app-screenshot-url-2').value.trim();
     const screenshotUrl3 = document.getElementById('app-screenshot-url-3').value.trim();
 
-    if (!iconUrl) return m3Alert('請輸入 App 圖示網址！');
-
-    // Validate URLs
+    // Validate URLs (async check)
     try {
       await validateImageUrl(iconUrl, 'App 圖示網址');
       await validateImageUrl(screenshotUrl1, '截圖 1');
@@ -118,12 +164,13 @@ export function setupPublish() {
         ratingCount: 0
       });
 
-      m3Success('App 專案刊登成功！');
+      toast.success('App 專案刊登成功！');
       appForm.reset();
+      validation.reset();
       window.fetchMarketApps?.(true);
       window.navigate('market-android');
     } catch (err) { 
-      m3Error('發布失敗：' + err.message); 
+      toast.error('發布失敗：' + err.message); 
     }
     finally {
       submitBtn.disabled = false;

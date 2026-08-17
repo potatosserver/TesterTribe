@@ -1,5 +1,61 @@
 // Template loader - loads HTML templates from /templates directory
+import { showSkeleton, hideSkeleton } from './utils.js';
+
 const templateCache = {};
+
+// Show skeleton while loading templates
+function showTemplateSkeleton() {
+  const mainContent = document.getElementById('main-content');
+  if (mainContent) {
+    mainContent.innerHTML = `
+      <div id="view-home" class="tab-content active">
+        <div class="hero-banner">
+          ${showSkeleton('hero')}
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card">${showSkeleton('stat')}</div>
+          <div class="stat-card">${showSkeleton('stat')}</div>
+          <div class="stat-card">${showSkeleton('stat')}</div>
+        </div>
+      </div>
+      <div id="view-market-android" class="tab-content">
+        <div class="hero-banner">${showSkeleton('hero')}</div>
+        <div class="app-grid">${showSkeleton('card').repeat(6)}</div>
+      </div>
+      <div id="view-market-ios" class="tab-content">
+        <div class="hero-banner">${showSkeleton('hero')}</div>
+        <div class="app-grid">${showSkeleton('card').repeat(6)}</div>
+      </div>
+      <div id="view-app-detail" class="tab-content">
+        <div class="card">${showSkeleton('card')}</div>
+      </div>
+      <div id="view-dev-profile" class="tab-content">
+        <div class="card">${showSkeleton('card')}</div>
+      </div>
+      <div id="view-publish" class="tab-content">
+        <div class="card">${showSkeleton('card')}</div>
+      </div>
+      <div id="view-login" class="tab-content">
+        <div class="card">${showSkeleton('card')}</div>
+      </div>
+      <div id="view-terms" class="tab-content">
+        <div class="card">${showSkeleton('card')}</div>
+      </div>
+      <div id="view-privacy" class="tab-content">
+        <div class="card">${showSkeleton('card')}</div>
+      </div>
+      <div id="view-guidelines" class="tab-content">
+        <div class="card">${showSkeleton('card')}</div>
+      </div>
+      <div id="view-contact" class="tab-content">
+        <div class="card">${showSkeleton('card')}</div>
+      </div>
+      <div id="view-404" class="tab-content">
+        <div class="card">${showSkeleton('card')}</div>
+      </div>
+    `;
+  }
+}
 
 // Error message template for failed template loads
 function createErrorTemplate(name, error) {
@@ -25,6 +81,9 @@ function createErrorTemplate(name, error) {
 }
 
 export async function loadTemplates() {
+  // Show skeleton loaders immediately
+  showTemplateSkeleton();
+  
   const templates = [
     'header',
     'home',

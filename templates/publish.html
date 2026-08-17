@@ -5,29 +5,33 @@
       刊登新測試 App 專案
     </h2>
 
-    <form id="app-form">
+    <form id="app-form" novalidate>
       <div class="form-group">
         <label>選擇 App 平台</label>
-        <select id="app-platform" class="form-control" onchange="togglePlatformFields('publish')">
+        <select id="app-platform" name="platform" class="form-control" onchange="togglePlatformFields('publish')">
           <option value="android">Android App</option>
           <option value="ios">iOS App (TestFlight)</option>
         </select>
+        <div class="form-error" aria-live="polite"></div>
       </div>
 
       <div class="form-group">
         <label>App 名稱</label>
-        <input type="text" id="app-name" class="form-control" placeholder="例如：記帳小助手 Beta" required>
+        <input type="text" id="app-name" name="name" class="form-control" placeholder="例如：記帳小助手 Beta" required>
+        <div class="form-error" aria-live="polite"></div>
       </div>
 
       <div class="form-group">
         <label id="label-package-name">Android 應用程式包名 (Package Name)</label>
-        <input type="text" id="app-package-name" class="form-control" placeholder="例如：com.example.myapp" required>
+        <input type="text" id="app-package-name" name="packageName" class="form-control" placeholder="例如：com.example.myapp" required>
+        <div class="form-error" aria-live="polite"></div>
       </div>
 
       <div id="android-fields">
         <div class="form-group">
           <label>Google 群組連結</label>
-          <input type="url" id="group-url" class="form-control" placeholder="https://groups.google.com/g/...">
+          <input type="url" id="group-url" name="groupUrl" class="form-control" placeholder="https://groups.google.com/g/...">
+          <div class="form-error" aria-live="polite"></div>
         </div>
         <p style="font-size: 0.8rem; color: var(--md-sys-color-primary); margin-top: -10px; margin-bottom: 16px;">
           成為測試人員與 Google Play 商店連結將根據包名自動生成！
@@ -37,29 +41,35 @@
       <div id="ios-fields" style="display: none;">
         <div class="form-group">
           <label>TestFlight 加入測試連結</label>
-          <input type="url" id="testflight-url" class="form-control" placeholder="https://testflight.apple.com/join/...">
+          <input type="url" id="testflight-url" name="testflightUrl" class="form-control" placeholder="https://testflight.apple.com/join/...">
+          <div class="form-error" aria-live="polite"></div>
         </div>
       </div>
 
       <div class="form-group">
         <label>1. App 圖示網址 (必填)</label>
-        <input type="url" id="app-icon-url" class="form-control" placeholder="https://example.com/icon.png" required>
+        <input type="url" id="app-icon-url" name="iconUrl" class="form-control" placeholder="https://example.com/icon.png" required>
+        <div class="form-error" aria-live="polite"></div>
       </div>
 
       <div class="form-group">
         <label>2. App 畫面截圖網址 (最多 3 張)</label>
-        <input type="url" id="app-screenshot-url-1" class="form-control" placeholder="https://example.com/screenshot1.png (選填)" style="margin-top: 8px;">
-        <input type="url" id="app-screenshot-url-2" class="form-control" placeholder="https://example.com/screenshot2.png (選填)" style="margin-top: 8px;">
-        <input type="url" id="app-screenshot-url-3" class="form-control" placeholder="https://example.com/screenshot3.png (選填)" style="margin-top: 8px;">
+        <input type="url" id="app-screenshot-url-1" name="screenshotUrl1" class="form-control" placeholder="https://example.com/screenshot1.png (選填)" style="margin-top: 8px;">
+        <div class="form-error" aria-live="polite"></div>
+        <input type="url" id="app-screenshot-url-2" name="screenshotUrl2" class="form-control" placeholder="https://example.com/screenshot2.png (選填)" style="margin-top: 8px;">
+        <div class="form-error" aria-live="polite"></div>
+        <input type="url" id="app-screenshot-url-3" name="screenshotUrl3" class="form-control" placeholder="https://example.com/screenshot3.png (選填)" style="margin-top: 8px;">
+        <div class="form-error" aria-live="polite"></div>
       </div>
 
       <div class="form-group">
         <label>簡介與測試需求</label>
-        <textarea id="app-desc" class="form-control" rows="4" placeholder="詳細描述您的 App 特色與測試需求..." required></textarea>
+        <textarea id="app-desc" name="description" class="form-control" rows="4" placeholder="詳細描述您的 App 特色與測試需求..." required></textarea>
+        <div class="form-error" aria-live="polite"></div>
       </div>
 
       <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
-        <input type="checkbox" id="app-is-closed" style="width: 20px; height: 20px;">
+        <input type="checkbox" id="app-is-closed" name="isClosed" style="width: 20px; height: 20px;">
         <label for="app-is-closed" style="margin: 0; font-weight: 500;">結束封閉測試（隱藏測試步驟連結的前兩步）</label>
       </div>
 

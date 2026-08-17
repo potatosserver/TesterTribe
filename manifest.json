@@ -1,0 +1,21 @@
+{
+  "name": "TesterTribe - 開發者互助測試社群",
+  "short_name": "TesterTribe",
+  "description": "Android/iOS 開發者互助測試社群，尋找測試人員、發布封閉測試專案",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1976D2",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%231976D2' width='100' height='100' rx='20'/><text x='50' y='65' font-size='50' text-anchor='middle' fill='white'>👥</text></svg>",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["developer", "productivity", "social"],
+  "lang": "zh-TW",
+  "dir": "ltr"
+}
