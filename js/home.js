@@ -41,9 +41,17 @@ async function loadHomeStats() {
     const totalTests = apps.reduce((sum, p) => sum + (p.joinCount || 0), 0);
     document.getElementById('stat-tests').textContent = totalTests.toLocaleString();
     
-    // Platform-specific stats - handle both 'platform' and 'store' fields for backward compatibility
-    const androidApps = apps.filter(p => p.platform === 'android' || p.store === 'google-play');
-    const iosApps = apps.filter(p => p.platform === 'ios' || p.store === 'app-store');
+    // Platform-specific stats - prioritize 'platform' field, fallback to 'store' for backward compatibility
+    // This avoids double-counting apps that have both fields set
+    const getPlatform = (app) => {
+      if (app.platform === 'android' || app.platform === 'ios') return app.platform;
+      if (app.store === 'google-play') return 'android';
+      if (app.store === 'app-store') return 'ios';
+      return 'unknown';
+    };
+    
+    const androidApps = apps.filter(p => getPlatform(p) === 'android');
+    const iosApps = apps.filter(p => getPlatform(p) === 'ios');
     
     console.log('[Home Stats] Android apps:', androidApps.length, 'iOS apps:', iosApps.length);
     console.log('[Home Stats] iOS apps data:', JSON.stringify(iosApps.map(a => ({ name: a.name, platform: a.platform, store: a.store, authorUid: a.authorUid })), null, 2));

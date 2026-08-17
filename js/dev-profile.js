@@ -54,7 +54,7 @@ async function openDevProfile() {
     }
       
     const userData = userSnap.data();
-    const displayName = userData.displayName || authorName || '匿名開發者';
+    const displayName = userData.displayName || userData.authorName || '匿名開發者';
     const email = userData.email || '無公開信箱';
     const photoURL = userData.photoURL || '';
     const createdAt = userData.createdAt?.toDate ? userData.createdAt.toDate() : null;

@@ -1,6 +1,8 @@
 // Material 3 Basic Dialog - Strict Spec Implementation
 // https://m3.material.io/components/dialogs/specs
 
+import { escapeHTML } from './utils.js';
+
 let dialogContainer = null;
 let dialogQueue = [];
 let isDialogShowing = false;
@@ -345,16 +347,6 @@ function createButton(text, colorKey, isConfirm) {
       ${escapeHTML(text)}
     </button>
   `;
-}
-
-function escapeHTML(str) {
-  if (!str) return '';
-  return String(str)
-    .replace(/&/g, '&')
-    .replace(/</g, '<')
-    .replace(/>/g, '>')
-    .replace(/"/g, '"')
-    .replace(/'/g, '&#039;');
 }
 
 // Convenience functions

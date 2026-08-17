@@ -240,13 +240,13 @@ async function fetchMarketApps(platformKey, isInitial = false) {
       skipCache: skipCache || !!state.lastVisibleDoc 
     });
 
-    // Combine results, avoiding duplicates by packageName
-    const seenPackageNames = new Set();
+    // Combine results, avoiding duplicates by document ID (Firestore document ID is unique)
+    const seenIds = new Set();
     const combinedResults = [];
     
     [...results, ...storeResults].forEach(app => {
-      if (!seenPackageNames.has(app.packageName)) {
-        seenPackageNames.add(app.packageName);
+      if (!seenIds.has(app.id)) {
+        seenIds.add(app.id);
         combinedResults.push(app);
       }
     });

@@ -2,7 +2,6 @@
 import { addDoc, updateDoc, doc, getDoc, collection, serverTimestamp, deleteDoc, setDoc, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { db } from './firebase-config.js';
 import { m3Alert, m3Error, m3Success, m3Confirm } from './m3-dialog.js';
-import { getStoreFromUrl } from './router.js';
 
 export function setupModals() {
   // Feedback modal

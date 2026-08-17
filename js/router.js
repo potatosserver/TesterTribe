@@ -1,5 +1,5 @@
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
-// URL Structure: /market/android, /market/ios, /app/google-play/com.example.app, /dev-profile/userId, /login, /home, /terms, /privacy, /guidelines, /contact
+// URL Structure: /market/android, /market/ios, /app/android/com.example.app, /dev-profile/userId, /login, /home, /terms, /privacy, /guidelines, /contact
 export const routes = {
   'home': { template: 'home', handler: 'setupHome' },
   'market': { template: 'market', handler: 'setupMarket' },
