@@ -336,6 +336,7 @@ async function fetchMarketApps(platformKey, isInitial = false) {
     if (snapshot.empty) {
       btnLoadMore.style.display = 'none';
       noMoreMsg.style.display = 'block';
+      renderMarketApps(platformKey, state.loadedApps);
       return;
     }
 
@@ -418,24 +419,40 @@ function renderMarketApps(platformKey, appsList) {
   marketList.innerHTML = '';
 
   if (filteredApps.length === 0) {
-    // Use new empty state component
-    const emptyState = createEmptyState({
+    // Determine if this is a "no results" (filtered) or "empty store" (initial) state
+    const searchInput = document.getElementById(config.searchInputId);
+    const statusFilter = document.getElementById(`filter-status-${platformKey}`);
+    const sortFilter = document.getElementById(`filter-sort-${platformKey}`);
+    
+    const isFiltered = (searchInput && searchInput.value.trim() !== '') || 
+                       (statusFilter && statusFilter.value !== 'all');
+
+    const emptyConfig = isFiltered ? {
       icon: 'search_off',
       title: '沒有找到相關的專案',
       description: '嘗試調整篩選條件或搜尋關鍵字',
       action: {
         label: '清除篩選',
         onClick: () => {
-          const statusFilter = document.getElementById(`filter-status-${platformKey}`);
-          const sortFilter = document.getElementById(`filter-sort-${platformKey}`);
-          const searchInput = document.getElementById(config.searchInputId);
           if (statusFilter) statusFilter.value = 'all';
           if (sortFilter) sortFilter.value = 'auto';
           if (searchInput) searchInput.value = '';
           renderMarketApps(platformKey, appsList);
         }
       }
-    });
+    } : {
+      icon: 'storefront',
+      title: '市集目前空空如也',
+      description: '還沒有開發者刊登專案，快來成為第一個分享者吧！',
+      action: {
+        label: '立即刊登',
+        onClick: () => {
+          window.navigate('publish');
+        }
+      }
+    };
+
+    const emptyState = createEmptyState(emptyConfig);
     marketList.appendChild(emptyState);
     return;
   }

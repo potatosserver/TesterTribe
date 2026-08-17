@@ -301,6 +301,9 @@
   background: var(--md-sys-color-surface-container);
   border: 1px solid var(--md-sys-color-outline-variant);
   border-radius: var(--md-shape-corner-large);
+  width: 100%;
+  margin: 0 auto;
+  grid-column: 1 / -1;
 }
 
 .empty-state-icon {
