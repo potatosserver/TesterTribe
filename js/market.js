@@ -34,8 +34,8 @@ const MARKET_CONFIG = {
 
 // State stored in object to avoid closure issues
 const marketState = {
-  android: { loadedApps: [], lastVisibleDoc: null },
-  ios: { loadedApps: [], lastVisibleDoc: null }
+  android: { loadedApps: [], lastVisibleDoc: null, initialised: false },
+  ios: { loadedApps: [], lastVisibleDoc: null, initialised: false }
 };
 
 export function setupMarket() {
@@ -44,6 +44,11 @@ export function setupMarket() {
   // The iOS platform can be loaded on demand via `window.loadIosMarket()` which is
   // called from the UI when the iOS tab is selected.
   setupMarketPlatform('android');
+
+  // Ensure detail module is loaded so window.openAppDetail is available for card clicks
+  import('./detail.js').then(mod => {
+    if (typeof mod.setupDetail === 'function') mod.setupDetail();
+  }).catch(err => console.error('[Market] Failed to load detail module:', err));
 
   // Expose helpers for on‑demand loading
   window.fetchMarketAppsAndroid = () => fetchMarketApps('android', true);
@@ -54,6 +59,13 @@ export function setupMarket() {
     if (!marketState.ios.initialised) {
       marketState.ios.initialised = true;
       setupMarketPlatform('ios');
+    }
+  };
+  window.loadAndroidMarket = () => {
+    console.log('[Market Debug] loadAndroidMarket called, initialised:', marketState.android.initialised);
+    if (!marketState.android.initialised) {
+      marketState.android.initialised = true;
+      setupMarketPlatform('android');
     }
   };
 
@@ -70,6 +82,13 @@ function setupMarketPlatform(platformKey) {
   console.log('[Market Debug] setupMarketPlatform called:', platformKey);
   const config = MARKET_CONFIG[platformKey];
   const state = marketState[platformKey];
+  
+  // Prevent duplicate initialization
+  if (state.initialised) {
+    console.log('[Market Debug] Platform already initialised:', platformKey);
+    return;
+  }
+  state.initialised = true;
   
   // Load more button
   const btnLoadMore = document.getElementById(config.btnLoadMoreId);

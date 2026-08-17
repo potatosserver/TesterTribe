@@ -59,7 +59,18 @@ export function switchTab(tabName, params = {}, internal = false) {
   
   // Load data for specific tabs
   if (tabName === 'market-android') {
-    window.fetchMarketAppsAndroid?.();
+    console.log('[Tabs Debug] market-android tab selected, loadAndroidMarket exists:', typeof window.loadAndroidMarket);
+    // Ensure Android platform is initialised (sets up listeners + first fetch) before any fetch
+    if (typeof window.loadAndroidMarket === 'function') {
+      window.loadAndroidMarket();
+    } else {
+      console.warn('[Tabs Debug] loadAndroidMarket not yet available, market module may not be loaded');
+      // Trigger market module load via router
+      import('./market.js').then(mod => {
+        if (typeof mod.setupMarket === 'function') mod.setupMarket();
+        if (typeof window.loadAndroidMarket === 'function') window.loadAndroidMarket();
+      });
+    }
   } else if (tabName === 'market-ios') {
     console.log('[Tabs Debug] market-ios tab selected, loadIosMarket exists:', typeof window.loadIosMarket);
     // Ensure iOS platform is initialised (sets up listeners + first fetch) before any fetch

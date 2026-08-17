@@ -158,9 +158,13 @@ function applyRoute(routeName, newParams) {
     // Dynamically import the detail module only when needed
     import('./detail.js')
       .then(mod => {
+        // setupDetail() attaches openAppDetail to window
+        if (typeof mod.setupDetail === 'function') mod.setupDetail();
         const store = getStoreFromUrl();
         // skipNavigation=true because navigate() was already called (or this is initial load from popstate)
-        mod.openAppDetail(getPackageNameFromUrl(), store, true);
+        if (typeof window.openAppDetail === 'function') {
+          window.openAppDetail(getPackageNameFromUrl(), store, true);
+        }
       })
       .catch(err => console.error('[Router] Failed to load detail module:', err));
   } else if (routeName === 'dev-profile') {
@@ -202,9 +206,9 @@ export function navigate(routeName, params = {}) {
           marketInitialized = true;
         }
         // Trigger the first fetch for the selected platform
-        if (platform === 'android' && typeof mod.fetchMarketAppsAndroid === 'function') {
-          mod.fetchMarketAppsAndroid();
-        } else if (platform === 'ios' && typeof mod.fetchMarketAppsIos === 'function') {
+        // Note: setupMarketPlatform() already triggers the initial fetch, so we only need to
+        // ensure the platform is initialised (for iOS, loadIosMarket does this; for Android, it's done in setupMarket)
+        if (platform === 'ios' && typeof mod.fetchMarketAppsIos === 'function') {
           console.log('[Router Debug] iOS platform selected, calling loadIosMarket');
           // Ensure iOS platform is initialised (setupMarketPlatform already triggers first fetch)
           if (typeof window.loadIosMarket === 'function') {
@@ -212,6 +216,8 @@ export function navigate(routeName, params = {}) {
           }
           // Do NOT call fetchMarketAppsIos again - setupMarketPlatform already did it
         }
+        // For Android, setupMarket() -> setupMarketPlatform('android') already called fetchMarketAppsAndroid
+        // so we do NOT call it again here.
       })
       .catch(err => console.error('[Router] Failed to load market module:', err));
   } else if (routeName === 'market') {
