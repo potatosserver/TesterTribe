@@ -103,7 +103,7 @@ function createDialogElement(type, config, resolve) {
     left: 50%;
     transform: translate(-50%, -50%) scale(0.9);
     z-index: 10001;
-    width: 100%;
+    width: 90%;
     max-width: 560px;
     max-height: 90vh;
     overflow-y: auto;
