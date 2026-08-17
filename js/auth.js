@@ -9,7 +9,7 @@ import {
   browserLocalPersistence,
   inMemoryPersistence
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
-import { doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
+import { doc, getDoc, setDoc, serverTimestamp, collection } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { auth, db, provider } from './firebase-config.js';
 import { DEFAULT_AVATAR } from './constants.js';
 import { navigate } from './router.js';
@@ -81,6 +81,9 @@ export async function signInWithGoogle() {
 }
 
 export function setupAuth() {
+  // Handle redirect result from redirect login flow
+  handleRedirectResult().catch(console.error);
+
   // Profile dropdown
   window.toggleProfileDropdown = (e) => { 
     e.stopPropagation(); 
@@ -142,22 +145,34 @@ export function setupAuth() {
         if (accEmail) accEmail.innerText = user.email;
 
         // Sync user data to Firestore users collection
+        // Public data goes to users/{uid}, sensitive data (email) goes to users/{uid}/private/contact
         try {
           const userRef = doc(db, 'users', user.uid);
           const userSnap = await getDoc(userRef);
           if (!userSnap.exists()) {
             await setDoc(userRef, {
               displayName: user.displayName,
-              email: user.email,
               photoURL: user.photoURL,
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp()
+            });
+            // Create private subcollection for sensitive data
+            const privateRef = doc(collection(db, 'users', user.uid, 'private'), 'contact');
+            await setDoc(privateRef, {
+              email: user.email,
               createdAt: serverTimestamp(),
               updatedAt: serverTimestamp()
             });
           } else {
             await setDoc(userRef, {
               displayName: user.displayName,
-              email: user.email,
               photoURL: user.photoURL,
+              updatedAt: serverTimestamp()
+            }, { merge: true });
+            // Update private subcollection
+            const privateRef = doc(collection(db, 'users', user.uid, 'private'), 'contact');
+            await setDoc(privateRef, {
+              email: user.email,
               updatedAt: serverTimestamp()
             }, { merge: true });
           }

@@ -74,9 +74,21 @@ async function openDevProfile() {
       
     const userData = userSnap.data();
     const displayName = userData.displayName || userData.authorName || '匿名開發者';
-    const email = userData.email || '無公開信箱';
     const photoURL = userData.photoURL || '';
     const createdAt = userData.createdAt?.toDate ? userData.createdAt.toDate() : null;
+
+    // Handle email visibility: only show if the viewer is the owner
+    let email = '';
+    if (window.currentUser && window.currentUser.uid === actualUid) {
+      try {
+        const privateSnap = await getDoc(doc(db, 'users', actualUid, 'private', 'contact'));
+        if (privateSnap.exists()) {
+          email = privateSnap.data().email || '';
+        }
+      } catch (err) {
+        console.error('無法讀取私有信箱資料:', err);
+      }
+    }
 
     // Hide skeletons and show actual content
     hideSkeleton('#dev-stat-apps');
