@@ -974,7 +974,8 @@ header { background: var(--md-sys-color-surface-container-low); position: sticky
 
 .filter-section { display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px; }
 .search-box { background: var(--md-sys-color-surface-container-low); border-radius: var(--md-shape-corner-full); padding: 6px 20px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--md-sys-color-outline-variant); box-shadow: var(--md-elevation-1); }
-.search-input { border: none; background: transparent; width: 100%; padding: 10px 0; font-size: 0.95rem; outline: none; }
+.search-input { border: none; background: transparent; width: 100%; padding: 10px 0; font-size: 0.95rem; outline: none; box-shadow: none; -webkit-tap-highlight-color: transparent; }
+.search-input:focus { outline: none; box-shadow: none; }
 
 /* M3 Style Filter Controls */
 .filter-controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
