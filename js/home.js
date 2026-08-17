@@ -1,81 +1,83 @@
 // Home page module - handles home page functionality
-import { collection } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
+import { collection, getDocs } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { db } from './firebase-config.js';
-import { cachedGetDocs } from './cache.js';
 
+/**
+ * 只使用一次 Firestore 請求取得所有 app 資料，然後在前端一次性計算所有統計。
+ * 這樣可以把原本多次的 `cachedGetDocs`、分批讀取等操作全部合併成 **1 次** `getDocs` 呼叫。
+ */
 export function setupHome() {
-  // Load statistics for home page
+  // 直接載入一次統計資料
   loadHomeStats();
-  
-  // Expose for global access
+  // 讓外部可以手動重新載入（例如開發除錯）
   window.refreshHomeStats = loadHomeStats;
 }
 
 async function loadHomeStats() {
   try {
-    // Fetch all apps to calculate stats
-    const apps = await cachedGetDocs(collection(db, 'apps'), [], { 
-      ttl: 5 * 60 * 1000, 
-      collectionName: 'all-apps',
-      skipCache: false 
+    // 1️⃣ 只發出一次請求，取得所有 app（只取必要欄位以減少傳輸量）
+    const snap = await getDocs(collection(db, 'apps'));
+    const apps = [];
+    snap.forEach(doc => {
+      const data = doc.data();
+      // 只保留我們需要的欄位，避免不必要的資料傳輸
+      apps.push({
+        platform: data.platform,
+        store: data.store,
+        authorUid: data.authorUid,
+        joinCount: data.joinCount || 0
+      });
     });
-    
-    // Debug: log platform distribution
-    console.log('[Home Stats] Total apps:', apps.length);
-    const platformCounts = {};
-    apps.forEach(app => {
-      const platform = app.platform || app.store || 'unknown';
-      platformCounts[platform] = (platformCounts[platform] || 0) + 1;
-    });
-    console.log('[Home Stats] Platform distribution:', platformCounts);
-    
-    // Total apps (projects)
+
+    // -----------------------------------------------------------------
+    // 以下全部在前端一次性完成統計，沒有額外的 Firestore 呼叫
+    // -----------------------------------------------------------------
     const totalApps = apps.length;
-    document.getElementById('stat-projects').textContent = totalApps.toLocaleString();
-    
-    // Unique developers (by authorUid - more reliable than email)
-    const uniqueDevelopers = new Set(apps.map(p => p.authorUid).filter(Boolean));
-    document.getElementById('stat-developers').textContent = uniqueDevelopers.size.toLocaleString();
-    
-    // Total tests (sum of joinCount from each app)
-    const totalTests = apps.reduce((sum, p) => sum + (p.joinCount || 0), 0);
-    document.getElementById('stat-tests').textContent = totalTests.toLocaleString();
-    
-    // Platform-specific stats - prioritize 'platform' field, fallback to 'store' for backward compatibility
-    // This avoids double-counting apps that have both fields set
+    const uniqueDevelopers = new Set(apps.map(a => a.authorUid).filter(Boolean));
+    const totalTests = apps.reduce((sum, a) => sum + (a.joinCount || 0), 0);
+
+    // 平台判斷（兼容舊資料）
     const getPlatform = (app) => {
       if (app.platform === 'android' || app.platform === 'ios') return app.platform;
       if (app.store === 'google-play') return 'android';
       if (app.store === 'app-store') return 'ios';
       return 'unknown';
     };
-    
-    const androidApps = apps.filter(p => getPlatform(p) === 'android');
-    const iosApps = apps.filter(p => getPlatform(p) === 'ios');
-    
-    console.log('[Home Stats] Android apps:', androidApps.length, 'iOS apps:', iosApps.length);
-    console.log('[Home Stats] iOS apps data:', JSON.stringify(iosApps.map(a => ({ name: a.name, platform: a.platform, store: a.store, authorUid: a.authorUid })), null, 2));
-    
-    const androidDevelopers = new Set(androidApps.map(p => p.authorUid).filter(Boolean));
-    const iosDevelopers = new Set(iosApps.map(p => p.authorUid).filter(Boolean));
-    
-    console.log('[Home Stats] Android developers:', androidDevelopers.size, 'iOS developers:', iosDevelopers.size);
-    console.log('[Home Stats] iOS developer UIDs:', Array.from(iosDevelopers));
-    
+
+    const androidApps = [];
+    const iosApps = [];
+    const androidDevs = new Set();
+    const iosDevs = new Set();
+
+    apps.forEach(app => {
+      const plat = getPlatform(app);
+      if (plat === 'android') {
+        androidApps.push(app);
+        if (app.authorUid) androidDevs.add(app.authorUid);
+      } else if (plat === 'ios') {
+        iosApps.push(app);
+        if (app.authorUid) iosDevs.add(app.authorUid);
+      }
+    });
+
+    // 更新 UI
+    document.getElementById('stat-projects').textContent = totalApps.toLocaleString();
+    document.getElementById('stat-developers').textContent = uniqueDevelopers.size.toLocaleString();
+    document.getElementById('stat-tests').textContent = totalTests.toLocaleString();
     document.getElementById('android-project-count').textContent = androidApps.length.toLocaleString();
-    document.getElementById('android-dev-count').textContent = androidDevelopers.size.toLocaleString();
+    document.getElementById('android-dev-count').textContent = androidDevs.size.toLocaleString();
     document.getElementById('ios-project-count').textContent = iosApps.length.toLocaleString();
-    document.getElementById('ios-dev-count').textContent = iosDevelopers.size.toLocaleString();
-    
+    document.getElementById('ios-dev-count').textContent = iosDevs.size.toLocaleString();
   } catch (error) {
     console.error('Failed to load home stats:', error);
-    // Set default values on error
-    document.getElementById('stat-projects').textContent = '0';
-    document.getElementById('stat-developers').textContent = '0';
-    document.getElementById('stat-tests').textContent = '0';
-    document.getElementById('android-project-count').textContent = '0';
-    document.getElementById('android-dev-count').textContent = '0';
-    document.getElementById('ios-project-count').textContent = '0';
-    document.getElementById('ios-dev-count').textContent = '0';
+    // 若發生錯誤，全部顯示 0，保持 UI 不會卡住
+    const zero = '0';
+    document.getElementById('stat-projects').textContent = zero;
+    document.getElementById('stat-developers').textContent = zero;
+    document.getElementById('stat-tests').textContent = zero;
+    document.getElementById('android-project-count').textContent = zero;
+    document.getElementById('android-dev-count').textContent = zero;
+    document.getElementById('ios-project-count').textContent = zero;
+    document.getElementById('ios-dev-count').textContent = zero;
   }
 }

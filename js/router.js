@@ -29,6 +29,8 @@ const REVERSE_STORE_MAPPING = {
 let currentRoute = null;
 let routeParams = {};
 let authReady = false;
+// Track whether the market module has been initialised to avoid mutating the imported module object
+let marketInitialized = false;
 
 // Wait for auth state to be determined
 function waitForAuth() {
@@ -148,36 +150,33 @@ export function handlePopState() {
 function applyRoute(routeName, newParams) {
   routeParams = newParams;
   currentRoute = routeName;
-  switchTab(routeName, newParams, true); // internal = true to prevent navigate() loop
-  
-  // Load data for detail and dev-profile tabs when navigating via URL
+  // internal navigation to avoid pushing history again
+  switchTab(routeName, newParams, true);
+
+  // Load data for detail and dev‑profile tabs when navigating via URL
   if (routeName === 'app') {
-    const store = getStoreFromUrl();
-    // skipNavigation=true because navigate() was already called (or this is initial load from popstate)
-    window.openAppDetail(getPackageNameFromUrl(), store, true);
+    // Dynamically import the detail module only when needed
+    import('./detail.js')
+      .then(mod => {
+        const store = getStoreFromUrl();
+        // skipNavigation=true because navigate() was already called (or this is initial load from popstate)
+        mod.openAppDetail(getPackageNameFromUrl(), store, true);
+      })
+      .catch(err => console.error('[Router] Failed to load detail module:', err));
   } else if (routeName === 'dev-profile') {
-    // Handle URL migration from email-based to UID-based
-    if (newParams._migrateToUid && newParams.authorEmail) {
-      // Fetch user by email to get UID, then redirect
-      import('./firebase-config.js').then(({ db }) => {
-        import('https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js').then(({ collection, query, where, getDocs }) => {
-          const usersQuery = query(collection(db, 'users'), where('email', '==', newParams.authorEmail));
-          getDocs(usersQuery).then(snapshot => {
-            if (!snapshot.empty) {
-              const uid = snapshot.docs[0].id;
-              // Redirect to UID-based URL using replaceState to avoid history pollution
-              const newPath = `/dev-profile/${encodeURIComponent(uid)}`;
-              window.history.replaceState({}, '', newPath);
-              // Update route params
-              routeParams.authorUid = uid;
-              delete routeParams.authorEmail;
-              delete routeParams._migrateToUid;
-            }
-          }).catch(err => console.warn('[Router] URL migration failed:', err));
-        });
-      });
-    }
-    window.openDevProfile();
+    // Lazy‑load dev‑profile module and ensure it is initialised before use
+    import('./dev-profile.js')
+      .then(mod => {
+        if (typeof mod.setupDevProfile === 'function') {
+          mod.setupDevProfile();
+        }
+        if (typeof window.openDevProfile === 'function') {
+          window.openDevProfile();
+        } else if (typeof mod.openDevProfile === 'function') {
+          mod.openDevProfile();
+        }
+      })
+      .catch(err => console.error('[Router] Failed to load dev‑profile module:', err));
   }
 }
 
@@ -192,6 +191,29 @@ export function navigate(routeName, params = {}) {
     const store = routeName === 'market-android' ? 'google-play' : 'app-store';
     newParams.platform = platform;
     newParams.store = store;
+    // Lazy‑load the market module and initialise it only once (using router‑level flag)
+    import('./market.js')
+      .then(mod => {
+        if (!marketInitialized) {
+          // Initialise market (sets up both platforms, but iOS will be lazy‑loaded later)
+          if (typeof mod.setupMarket === 'function') {
+            mod.setupMarket();
+          }
+          marketInitialized = true;
+        }
+        // Trigger the first fetch for the selected platform
+        if (platform === 'android' && typeof mod.fetchMarketAppsAndroid === 'function') {
+          mod.fetchMarketAppsAndroid();
+        } else if (platform === 'ios' && typeof mod.fetchMarketAppsIos === 'function') {
+          console.log('[Router Debug] iOS platform selected, calling loadIosMarket');
+          // Ensure iOS platform is initialised (setupMarketPlatform already triggers first fetch)
+          if (typeof window.loadIosMarket === 'function') {
+            window.loadIosMarket();
+          }
+          // Do NOT call fetchMarketAppsIos again - setupMarketPlatform already did it
+        }
+      })
+      .catch(err => console.error('[Router] Failed to load market module:', err));
   } else if (routeName === 'market') {
     // Legacy redirect - use replaceState to avoid history pollution
     window.history.replaceState({}, '', '/market-android');
@@ -216,6 +238,18 @@ export function navigate(routeName, params = {}) {
       path += `/${encodeURIComponent(params.authorEmail)}`;
       newParams.authorEmail = params.authorEmail;
     }
+    // Lazy‑load the dev‑profile module and initialise it before use
+    import('./dev-profile.js')
+      .then(mod => {
+        // Ensure the global helper is set (idempotent)
+        if (typeof mod.setupDevProfile === 'function') {
+          mod.setupDevProfile();
+        }
+        if (typeof mod.openDevProfile === 'function') {
+          mod.openDevProfile();
+        }
+      })
+      .catch(err => console.error('[Router] Failed to load dev‑profile module:', err));
   } else if (routeName === 'login') {
     // No additional params needed
   } else if (routeName === 'terms' || routeName === 'privacy' || routeName === 'guidelines' || routeName === 'contact') {

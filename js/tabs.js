@@ -61,7 +61,18 @@ export function switchTab(tabName, params = {}, internal = false) {
   if (tabName === 'market-android') {
     window.fetchMarketAppsAndroid?.();
   } else if (tabName === 'market-ios') {
-    window.fetchMarketAppsIos?.();
+    console.log('[Tabs Debug] market-ios tab selected, loadIosMarket exists:', typeof window.loadIosMarket);
+    // Ensure iOS platform is initialised (sets up listeners + first fetch) before any fetch
+    if (typeof window.loadIosMarket === 'function') {
+      window.loadIosMarket();
+    } else {
+      console.warn('[Tabs Debug] loadIosMarket not yet available, market module may not be loaded');
+      // Trigger market module load via router
+      import('./market.js').then(mod => {
+        if (typeof mod.setupMarket === 'function') mod.setupMarket();
+        if (typeof window.loadIosMarket === 'function') window.loadIosMarket();
+      });
+    }
   } else if (tabName === 'dev-profile' && window.currentUser) {
     // dev-profile handles its own loading
   } else if (tabName === 'home') {

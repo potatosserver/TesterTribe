@@ -5,7 +5,6 @@ import { setupAuth } from './auth.js';
 import { setupTabs } from './tabs.js';
 import { setupLogin } from './auth.js';
 import { initRouter, navigate } from './router.js';
-import { setupMarket } from './market.js';
 import { 
   setupLazyImages, 
   trapFocus, 
@@ -135,7 +134,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupAuth(); // Initialize auth (profile dropdown, logout, etc.)
   setupTabs(); // Initialize tab switching
   setupLogin(); // Initialize login page button
-  setupMarket(); // Initialize market (must be before initRouter)
   await initRouter();
   
   // Initialize lazy loading for images

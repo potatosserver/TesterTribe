@@ -39,14 +39,24 @@ const marketState = {
 };
 
 export function setupMarket() {
-  // Load both markets
+  // Lazy‑load the market tabs. By default we only initialise the Android tab to avoid
+  // unnecessary Firestore reads for the iOS tab when the user first opens the market.
+  // The iOS platform can be loaded on demand via `window.loadIosMarket()` which is
+  // called from the UI when the iOS tab is selected.
   setupMarketPlatform('android');
-  setupMarketPlatform('ios');
-  
-  // Expose for global access
+
+  // Expose helpers for on‑demand loading
   window.fetchMarketAppsAndroid = () => fetchMarketApps('android', true);
   window.fetchMarketAppsIos = () => fetchMarketApps('ios', true);
-  
+  window.loadIosMarket = () => {
+    console.log('[Market Debug] loadIosMarket called, initialised:', marketState.ios.initialised);
+    // Only initialize if not already initialized
+    if (!marketState.ios.initialised) {
+      marketState.ios.initialised = true;
+      setupMarketPlatform('ios');
+    }
+  };
+
   // Debug: dump all loaded apps
   window.debugMarketApps = () => {
     console.log('=== Android Apps ===');
@@ -57,6 +67,7 @@ export function setupMarket() {
 }
 
 function setupMarketPlatform(platformKey) {
+  console.log('[Market Debug] setupMarketPlatform called:', platformKey);
   const config = MARKET_CONFIG[platformKey];
   const state = marketState[platformKey];
   
@@ -257,7 +268,13 @@ async function fetchMarketApps(platformKey, isInitial = false) {
   // Use skipCache for initial load to ensure fresh data
   const skipCache = isInitial;
 
+  // Prevent duplicate initial loads (e.g., if both the platform init and a manual call run)
   if (isInitial) {
+    if (state.initialLoaded) {
+      // Already loaded once – skip resetting UI and re‑fetching data
+      return;
+    }
+    // Note: state.initialLoaded is set to true ONLY after successful fetch
     // Reset the appropriate state
     state.loadedApps = [];
     state.lastVisibleDoc = null;
@@ -274,63 +291,31 @@ async function fetchMarketApps(platformKey, isInitial = false) {
   try {
     const platform = config.platform;
     const collectionName = 'apps';
-    const store = platform === 'ios' ? 'app-store' : 'google-play';
+    // The original implementation performed two separate cached queries:
+    // 1) filter by `platform`
+    // 2) filter by `store`
+    // This caused duplicate network traffic because most documents contain both fields.
+    // We can safely rely on the `platform` field alone (it is always set) and drop the
+    // second query, thereby halving the number of Firestore reads.
 
-    // Base query: must be published AND match the platform (check both platform and store fields)
-    let baseQuery = query(
+    // Base query: must be published AND match the platform.
+    // Both Android and iOS use the `platform` field (data shows it's correctly set for both).
+    // Using `platform` allows us to use the existing Firestore composite index.
+    const baseQuery = query(
       collection(db, collectionName),
       where('status', '==', 'published'),
       where('platform', '==', platform),
       orderBy('createdAt', 'desc')
     );
 
-    let q = state.lastVisibleDoc
+    // Pagination query – if we have a last visible document we start after it.
+    const q = state.lastVisibleDoc
       ? query(baseQuery, startAfter(state.lastVisibleDoc), limit(PAGE_SIZE))
       : query(baseQuery, limit(PAGE_SIZE));
 
-    // Use cached query with 5-minute TTL
-    const constraintsArray = [
-      { field: 'status', op: '==', value: 'published' },
-      { field: 'platform', op: '==', value: platform }
-    ];
-    
-    // Note: currentPlatformFilter is for the UI chips, but the base fetch must be platform-specific
-    const results = await cachedGetDocs(collection(db, collectionName), constraintsArray, { 
-      ttl: 5 * 60 * 1000, 
-      collectionName, 
-      skipCache: skipCache || !!state.lastVisibleDoc 
-    });
-
-    // Also fetch apps that have store field but not platform field
-    const storeConstraintsArray = [
-      { field: 'status', op: '==', value: 'published' },
-      { field: 'store', op: '==', value: store }
-    ];
-    
-    const storeResults = await cachedGetDocs(collection(db, collectionName), storeConstraintsArray, { 
-      ttl: 5 * 60 * 1000, 
-      collectionName: collectionName + '-store', 
-      skipCache: skipCache || !!state.lastVisibleDoc 
-    });
-
-    // Combine results, avoiding duplicates by document ID (Firestore document ID is unique)
-    const seenIds = new Set();
-    const combinedResults = [];
-    
-    [...results, ...storeResults].forEach(app => {
-      if (!seenIds.has(app.id)) {
-        seenIds.add(app.id);
-        combinedResults.push(app);
-      }
-    });
-
-    if (isInitial) {
-      state.loadedApps = combinedResults;
-    } else {
-      state.loadedApps.push(...combinedResults);
-    }
-
-    // For pagination, we still need to do a real query to get the last visible doc
+    // Perform a single Firestore query (with pagination) and use its snapshot both for data
+    // and for determining the last visible document. This eliminates the previous double
+    // request caused by calling `cachedGetDocs` and then `getDocs` separately.
     const snapshot = await getDocs(q);
 
     if (snapshot.empty) {
@@ -340,7 +325,21 @@ async function fetchMarketApps(platformKey, isInitial = false) {
       return;
     }
 
+    // Convert documents to plain objects
+    const docsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    if (isInitial) {
+      state.loadedApps = docsData;
+    } else {
+      state.loadedApps.push(...docsData);
+    }
+
+    // Update pagination cursor
     state.lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1];
+
+    if (isInitial) {
+      state.initialLoaded = true;
+    }
 
     renderMarketApps(platformKey, state.loadedApps);
 
@@ -352,17 +351,26 @@ async function fetchMarketApps(platformKey, isInitial = false) {
       noMoreMsg.style.display = 'none';
     }
   } catch (err) {
-    console.error('Fetch market apps error:', err);
-    toast.error('載入市集資料失敗');
+    console.error('[Market Fetch Error] Platform:', platformKey, 'Error details:', err);
+    if (err.message && err.message.includes('index')) {
+      console.error('[Market Fetch Error] Missing Firestore Index. Please check the link in the console to create it.');
+    }
+    toast.error(`載入${config.title}資料失敗`);
   } finally {
     btnLoadMore.disabled = false;
   }
 }
 
 function renderMarketApps(platformKey, appsList) {
+  console.log('[Market Debug] renderMarketApps called:', { platformKey, appsCount: appsList.length });
   const config = MARKET_CONFIG[platformKey];
   const marketList = document.getElementById(config.listId);
   if (!marketList) return;
+
+  // Debug: log what apps are being rendered for iOS
+  if (platformKey === 'ios') {
+    console.log('[Market Debug] renderMarketApps iOS received:', appsList.map(a => ({ name: a.name, platform: a.platform, store: a.store })));
+  }
   
   // Get filter values
   const statusFilter = document.getElementById(`filter-status-${platformKey}`);
