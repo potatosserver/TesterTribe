@@ -1,13 +1,83 @@
 // Authentication module
-import { signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
+import { 
+  signInWithPopup, 
+  signInWithRedirect, 
+  getRedirectResult,
+  signOut, 
+  onAuthStateChanged,
+  setPersistence,
+  browserLocalPersistence,
+  inMemoryPersistence
+} from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
 import { doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { auth, db, provider } from './firebase-config.js';
 import { DEFAULT_AVATAR } from './constants.js';
 import { navigate } from './router.js';
 import { m3Confirm } from './m3-dialog.js';
 
-export function signInWithGoogle() {
-  return signInWithPopup(auth, provider);
+// Detect iOS Safari - popup is almost always blocked there
+function isIOSSafari() {
+  const ua = navigator.userAgent;
+  return /iPad|iPhone|iPod/.test(ua) && /Safari/.test(ua) && !/Chrome|CriOS|FxiOS/.test(ua);
+}
+
+// Initialize auth persistence with fallback
+export async function initAuthPersistence() {
+  try {
+    await setPersistence(auth, browserLocalPersistence);
+  } catch (err) {
+    console.warn('IndexedDB persistence failed, falling back to in-memory:', err);
+    try {
+      await setPersistence(auth, inMemoryPersistence);
+    } catch (e) {
+      console.error('All persistence modes failed:', e);
+    }
+  }
+}
+
+// Handle redirect result when page loads after redirect flow
+export async function handleRedirectResult() {
+  try {
+    const result = await getRedirectResult(auth);
+    if (result?.user) {
+      // Redirect login successful, navigate to dev profile
+      // Use navigate if available, otherwise fallback to direct URL change
+      if (window.navigate) {
+        window.navigate('dev-profile', { authorUid: result.user.uid });
+      } else {
+        window.location.href = `/dev-profile/${encodeURIComponent(result.user.uid)}`;
+      }
+    }
+  } catch (err) {
+    console.error('Redirect result handling failed:', err);
+  }
+}
+
+export async function signInWithGoogle() {
+  // iOS Safari: use redirect directly (popup almost always blocked)
+  if (isIOSSafari()) {
+    await initAuthPersistence();
+    return signInWithRedirect(auth, provider);
+  }
+
+  // Other platforms: try popup first
+  try {
+    return await signInWithPopup(auth, provider);
+  } catch (popupErr) {
+    // Popup blocked or closed by user -> fallback to redirect
+    const isPopupBlocked = popupErr.code === 'auth/popup-blocked' ||
+                           popupErr.code === 'auth/popup-closed-by-user' ||
+                           popupErr.code === 'auth/cancelled-popup-request' ||
+                           popupErr.message?.includes('blocked') ||
+                           popupErr.message?.includes('closed');
+    
+    if (isPopupBlocked) {
+      console.log('Popup blocked/closed, falling back to redirect...');
+      await initAuthPersistence();
+      return signInWithRedirect(auth, provider);
+    }
+    throw popupErr; // Re-throw other errors (network, config, etc.)
+  }
 }
 
 export function setupAuth() {

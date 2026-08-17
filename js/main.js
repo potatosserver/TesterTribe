@@ -1,7 +1,7 @@
 // Main entry point - imports all modules and initializes the app
 import { initializeApp } from './app.js';
 import { loadTemplates } from './template-loader.js';
-import { setupAuth } from './auth.js';
+import { setupAuth, initAuthPersistence } from './auth.js';
 import { setupTabs } from './tabs.js';
 import { setupLogin } from './auth.js';
 import { initRouter, navigate } from './router.js';
@@ -20,6 +20,9 @@ window.PAGE_SIZE = PAGE_SIZE;
 
 // Make toast globally available
 window.toast = toast;
+
+// Initialize auth persistence early (before any auth operations)
+initAuthPersistence();
 
 // Mobile drawer functions
 let drawerFocusCleanup = null;
@@ -131,10 +134,13 @@ document.addEventListener('keydown', (e) => {
 document.addEventListener('DOMContentLoaded', async () => {
   await loadTemplates();
   initializeApp();
-  setupAuth(); // Initialize auth (profile dropdown, logout, etc.)
   setupTabs(); // Initialize tab switching
   setupLogin(); // Initialize login page button
   await initRouter();
+  
+  // Handle redirect result after router is initialized (navigate is available)
+  const { handleRedirectResult } = await import('./auth.js');
+  handleRedirectResult();
   
   // Initialize lazy loading for images
   setupLazyImages();
