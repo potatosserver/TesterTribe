@@ -198,14 +198,20 @@ function setLoginOrigin(value) {
 export function setWasOnLoginPage(value) {
   setLoginOrigin(value);
 }
-window.authSetLoginOrigin = setWasOnLoginPage;
 
+// Check if user just logged in (coming from login page) and redirect to dev profile
 function checkAndRedirectAfterLogin(user) {
-  if (getLoginOrigin() && user) {
-    setLoginOrigin(false);
-    window.navigate('dev-profile', { authorUid: user.uid });
+  if (user && getLoginOrigin()) {
+    setLoginOrigin(false); // Clear origin to prevent repeated redirects
+    if (window.navigate) {
+      window.navigate('dev-profile', { authorUid: user.uid });
+    } else {
+      window.location.href = `/dev-profile/${encodeURIComponent(user.uid)}`;
+    }
   }
 }
+
+window.authSetLoginOrigin = setWasOnLoginPage;
 
 export function setupLogin() {
   const btn = document.getElementById('btn-login-page');

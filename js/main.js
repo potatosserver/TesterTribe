@@ -134,6 +134,7 @@ document.addEventListener('keydown', (e) => {
 document.addEventListener('DOMContentLoaded', async () => {
   await loadTemplates();
   initializeApp();
+  setupAuth(); // Initialize auth listeners and UI updates
   setupTabs(); // Initialize tab switching
   setupLogin(); // Initialize login page button
   await initRouter();
