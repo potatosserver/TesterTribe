@@ -20,7 +20,10 @@ const app = initializeApp(firebaseConfig);
 // 已設定 reCAPTCHA v3 Site Key
 const RECAPTCHA_V3_SITE_KEY='6LcCLostAAAAAG_uh5TUAZF409hs2YHZLUh0P5Ml';
 
-if (RECAPTCHA_V3_SITE_KEY !== 'YOUR_RECAPTCHA_V3_SITE_KEY') {
+// 開發環境建議暫時禁用 App Check，或使用 Debug Provider
+if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+  console.log('[App Check] 偵測到本地開發環境，跳過 reCAPTCHA 初始化以避免攔截');
+} else if (RECAPTCHA_V3_SITE_KEY !== 'YOUR_RECAPTCHA_V3_SITE_KEY') {
   try {
     initializeAppCheck(app, {
       provider: new ReCaptchaV3Provider(RECAPTCHA_V3_SITE_KEY),

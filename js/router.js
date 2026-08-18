@@ -179,6 +179,13 @@ function applyRoute(routeName, newParams) {
         }
       })
       .catch(err => console.error('[Router] Failed to load dev‑profile module:', err));
+  } else if (routeName === 'publish') {
+    // Lazy‑load publish module and initialize it
+    import('./publish.js')
+      .then(mod => {
+        if (typeof mod.setupPublish === 'function') mod.setupPublish();
+      })
+      .catch(err => console.error('[Router] Failed to load publish module:', err));
   }
 }
 

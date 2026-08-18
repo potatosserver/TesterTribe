@@ -1,44 +1,41 @@
 // Publish module - handle new app submission
-import { addDoc, collection, serverTimestamp, query, where, getDocs, doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
-import { db } from './firebase-config.js';
-import { m3Alert, m3Error, m3Success } from './m3-dialog.js';
+import { db, auth } from './firebase-config.js';
+import { collection, addDoc, query, where, getDocs, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
+import { m3Alert, m3Error, m3Success, m3LoginRequired } from './m3-dialog.js';
 import { setupFormValidation, toast } from './utils.js';
 
-// URL validation helper
-function isValidUrl(url) {
-  try {
-    const parsed = new URL(url);
-    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
-  } catch {
-    return false;
-  }
-}
+let isSubmitting = false;
 
-async function validateImageUrl(url, fieldName) {
-  if (!url) return true; // Optional fields
-  if (!isValidUrl(url)) {
-    throw new Error(`${fieldName} 格式無效，必須是 http:// 或 https:// 開頭`);
+export function togglePlatformFields(formType) {
+  const platformSelectId = formType === 'publish' ? 'app-platform' : `${formType}-app-platform`;
+  const platform = document.getElementById(platformSelectId).value;
+  const prefix = formType === 'publish' ? '' : formType + '-';
+  const androidFields = document.getElementById(`${prefix}android-fields`);
+  const iosFields = document.getElementById(`${prefix}ios-fields`);
+  const labelPackageName = document.getElementById(`${prefix}label-package-name`);
+
+  if (platform === 'android') {
+    androidFields.style.display = 'block';
+    iosFields.style.display = 'none';
+    labelPackageName.innerText = 'Android 應用程式包名 (Package Name)';
+  } else {
+    androidFields.style.display = 'none';
+    iosFields.style.display = 'block';
+    labelPackageName.innerText = 'iOS Bundle ID';
   }
-  // Optional: HEAD request to verify accessibility (with timeout)
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
-    const response = await fetch(url, { method: 'HEAD', mode: 'no-cors', signal: controller.signal });
-    clearTimeout(timeoutId);
-    // no-cors mode doesn't expose status, but if it doesn't throw, it's likely reachable
-  } catch (err) {
-    if (err.name !== 'AbortError') {
-      console.warn(`[Publish] Image URL validation warning for ${fieldName}:`, err.message);
-      // Don't block on network errors, just warn
-    }
-  }
-  return true;
 }
 
 export function setupPublish() {
   window.togglePlatformFields = togglePlatformFields;
 
   const appForm = document.getElementById('app-form');
+  
+  // Prevent multiple initializations
+  if (appForm?.dataset.initialized === 'true') {
+    console.log('[Publish] Already initialized, skipping');
+    return;
+  }
+  if (appForm) appForm.dataset.initialized = 'true';
   
   // Setup custom email toggle
   const customEmailToggle = document.getElementById('app-custom-email-enabled');
@@ -92,130 +89,174 @@ export function setupPublish() {
     ]
   });
 
-  appForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (!window.currentUser) return m3Alert('請先登入！');
+  // Move button binding to the end to ensure DOM is ready
+  const submitBtn = document.getElementById('btn-submit');
+  if (!submitBtn) {
+    console.error('[Publish] Critical Error: Submit button not found in DOM');
+    return;
+  }
 
-    // Validate all fields first
-    if (!validation.validateAll()) {
-      toast.error('請修正表單錯誤後再送出');
-      return;
-    }
+  // Prevent multiple click handlers
+  if (submitBtn.dataset.listenerAttached === 'true') {
+    console.log('[Publish] Click listener already attached, skipping');
+    return;
+  }
+  submitBtn.dataset.listenerAttached = 'true';
 
-    const platform = document.getElementById('app-platform').value;
-    const packageName = document.getElementById('app-package-name').value.trim();
-    const iconUrl = document.getElementById('app-icon-url').value.trim();
-    const screenshotUrl1 = document.getElementById('app-screenshot-url-1').value.trim();
-    const screenshotUrl2 = document.getElementById('app-screenshot-url-2').value.trim();
-    const screenshotUrl3 = document.getElementById('app-screenshot-url-3').value.trim();
-
-    // Validate URLs (async check)
+  submitBtn.addEventListener('click', async (e) => {
+    console.log('[Publish] Submit button clicked');
+    
     try {
-      await validateImageUrl(iconUrl, 'App 圖示網址');
-      await validateImageUrl(screenshotUrl1, '截圖 1');
-      await validateImageUrl(screenshotUrl2, '截圖 2');
-      await validateImageUrl(screenshotUrl3, '截圖 3');
-    } catch (err) {
-      return m3Alert(err.message, '網址格式錯誤');
-    }
+      if (!window.currentUser) {
+        console.error('[Publish] No current user found');
+        return m3Alert('請先登入！');
+      }
+      console.log('[Publish] User authenticated:', window.currentUser.uid);
 
-    const screenshotUrls = [screenshotUrl1, screenshotUrl2, screenshotUrl3].filter(url => url);
-    if (screenshotUrls.length > 3) {
-      return m3Alert('最多只能上傳 3 張截圖', '截圖數量超過限制');
-    }
+      // Validate all fields first
+      console.log('[Publish] Running form validation...');
+      if (!validation.validateAll()) {
+        console.warn('[Publish] Form validation failed');
+        toast.error('請修正表單錯誤後再送出');
+        return;
+      }
+      console.log('[Publish] Form validation passed');
 
-    let groupUrl = '';
-    let storeUrl = '';
-    let testFlightUrl = '';
+      const platform = document.getElementById('app-platform').value;
+      const packageName = document.getElementById('app-package-name').value.trim();
+      const iconUrl = document.getElementById('app-icon-url').value.trim();
+      const screenshotUrl1 = document.getElementById('app-screenshot-url-1').value.trim();
+      const screenshotUrl2 = document.getElementById('app-screenshot-url-2').value.trim();
+      const screenshotUrl3 = document.getElementById('app-screenshot-url-3').value.trim();
 
-    if (platform === 'android') {
-      groupUrl = document.getElementById('group-url').value.trim();
-      storeUrl = `https://play.google.com/apps/testing/${packageName}`;
-    } else {
-      testFlightUrl = document.getElementById('testflight-url').value.trim();
-      storeUrl = testFlightUrl;
-    }
+      // Validate URLs (async check)
+      try {
+        console.log('[Publish] Validating image URLs...');
+        await validateImageUrl(iconUrl, 'App 圖示網址');
+        await validateImageUrl(screenshotUrl1, '截圖 1');
+        await validateImageUrl(screenshotUrl2, '截圖 2');
+        await validateImageUrl(screenshotUrl3, '截圖 3');
+        console.log('[Publish] Image URLs validated');
+      } catch (err) {
+        console.error('[Publish] Image URL validation error:', err.message);
+        return m3Alert(err.message, '網址格式錯誤');
+      }
 
-    const isClosed = document.getElementById('app-is-closed').checked;
-    const customEmailEnabled = document.getElementById('app-custom-email-enabled').checked;
-    const customEmailInstruction = document.getElementById('custom-email-instruction').value.trim();
-    const customEmailUrl = document.getElementById('custom-email-url').value.trim();
+      const screenshotUrls = [screenshotUrl1, screenshotUrl2, screenshotUrl3].filter(url => url);
+      if (screenshotUrls.length > 3) {
+        console.warn('[Publish] Too many screenshots');
+        return m3Alert('最多只能上傳 3 張截圖', '截圖數量超過限制');
+      }
 
-    // Check for duplicate packageName
-    const appsRef = collection(db, 'apps');
-    const dupQuery = query(appsRef, where('packageName', '==', packageName), where('platform', '==', platform));
-    const dupSnap = await getDocs(dupQuery);
-    if (!dupSnap.empty) {
-      const existingApp = dupSnap.docs[0].data();
-      return m3Alert(`此包名已被使用！\n已存在：${existingApp.name} (${existingApp.platform})`, '包名重複');
-    }
+      let groupUrl = '';
+      let storeUrl = '';
+      let testFlightUrl = '';
 
-    const submitBtn = document.getElementById('btn-submit');
-    submitBtn.disabled = true;
-    submitBtn.innerText = '發布中...';
+      if (platform === 'android') {
+        groupUrl = document.getElementById('group-url').value.trim();
+        storeUrl = `https://play.google.com/apps/testing/${packageName}`;
+      } else {
+        testFlightUrl = document.getElementById('testflight-url').value.trim();
+        storeUrl = testFlightUrl;
+      }
 
-    try {
-          const screenshotUrls = [screenshotUrl1, screenshotUrl2, screenshotUrl3].filter(url => url);
+      const isClosed = document.getElementById('app-is-closed').checked;
+      const customEmailEnabled = document.getElementById('app-custom-email-enabled').checked;
+      const customEmailInstruction = document.getElementById('custom-email-instruction').value.trim();
+      const customEmailUrl = document.getElementById('custom-email-url').value.trim();
 
-          // Determine store field based on platform for backward compatibility
-          const store = platform === 'ios' ? 'app-store' : 'google-play';
+      // Check for duplicate packageName
+      console.log('[Publish] Checking for duplicate packageName:', packageName);
+      const appsRef = collection(db, 'apps');
+      const dupQuery = query(appsRef, where('packageName', '==', packageName), where('platform', '==', platform));
+      const dupSnap = await getDocs(dupQuery);
+      if (!dupSnap.empty) {
+        const existingApp = dupSnap.docs[0].data();
+        console.warn('[Publish] Duplicate app found:', existingApp.name);
+        return m3Alert(`此包名已被使用！\n已存在：${existingApp.name} (${existingApp.platform})`, '包名重複');
+      }
+      console.log('[Publish] No duplicate found');
 
-          await addDoc(collection(db, 'apps'), {
-            name: document.getElementById('app-name').value,
-            platform: platform,
-            store: store,
-            status: 'published',
-            packageName: packageName,
-            iconUrl: iconUrl,
-            screenshotUrls: screenshotUrls,
-            description: document.getElementById('app-desc').value,
-            groupUrl: groupUrl,
-            storeUrl: storeUrl,
-            testFlightUrl: testFlightUrl,
-            isClosed: isClosed,
-            customEmailEnabled: customEmailEnabled,
-            customEmailInstruction: customEmailInstruction,
-            customEmailUrl: customEmailUrl,
-            authorName: window.currentUser.displayName,
-            authorUid: window.currentUser.uid,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-            likeCount: 0,
-            joinCount: 0,
-            ratingSum: 0,
-            ratingCount: 0
-          });
+      submitBtn.disabled = true;
+      submitBtn.innerText = '發布中...';
 
+      console.log('[Publish] Attempting to add document to Firestore...');
+      const finalScreenshotUrls = [screenshotUrl1, screenshotUrl2, screenshotUrl3].filter(url => url);
+
+      // Determine store field based on platform for backward compatibility
+      const store = platform === 'ios' ? 'app-store' : 'google-play';
+
+      await addDoc(collection(db, 'apps'), {
+        name: document.getElementById('app-name').value,
+        platform: platform,
+        store: store,
+        status: 'published',
+        packageName: packageName,
+        iconUrl: iconUrl,
+        screenshotUrls: finalScreenshotUrls,
+        description: document.getElementById('app-desc').value,
+        groupUrl: groupUrl,
+        storeUrl: storeUrl,
+        testFlightUrl: testFlightUrl,
+        isClosed: isClosed,
+        customEmailEnabled: customEmailEnabled,
+        customEmailInstruction: customEmailInstruction,
+        customEmailUrl: customEmailUrl,
+        authorName: window.currentUser.displayName,
+        authorUid: window.currentUser.uid,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        likeCount: 0,
+        joinCount: 0,
+        ratingSum: 0,
+        ratingCount: 0
+      });
+
+      console.log('[Publish] Firestore addDoc successful');
       toast.success('App 專案刊登成功！');
       appForm.reset();
       validation.reset();
       window.fetchMarketApps?.(true);
       window.navigate('market-android');
     } catch (err) { 
+      console.error('[Publish] Submission failed:', err); 
       toast.error('發布失敗：' + err.message); 
     }
     finally {
+      console.log('[Publish] Submission process finished');
       submitBtn.disabled = false;
       submitBtn.innerText = '發布 App 至市集';
     }
   });
 }
 
-function togglePlatformFields(formType) {
-  const platformSelectId = formType === 'publish' ? 'app-platform' : `${formType}-app-platform`;
-  const platform = document.getElementById(platformSelectId).value;
-  const prefix = formType === 'publish' ? '' : formType + '-';
-  const androidFields = document.getElementById(`${prefix}android-fields`);
-  const iosFields = document.getElementById(`${prefix}ios-fields`);
-  const labelPackageName = document.getElementById(`${prefix}label-package-name`);
-
-  if (platform === 'android') {
-    androidFields.style.display = 'block';
-    iosFields.style.display = 'none';
-    labelPackageName.innerText = 'Android 應用程式包名 (Package Name)';
-  } else {
-    androidFields.style.display = 'none';
-    iosFields.style.display = 'block';
-    labelPackageName.innerText = 'iOS Bundle ID';
+// URL validation helper
+function isValidUrl(url) {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
   }
+}
+
+async function validateImageUrl(url, fieldName) {
+  if (!url) return true; // Optional fields
+  if (!isValidUrl(url)) {
+    throw new Error(`${fieldName} 格式無效，必須是 http:// 或 https:// 開頭`);
+  }
+  // Optional: HEAD request to verify accessibility (with timeout)
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const response = await fetch(url, { method: 'HEAD', mode: 'no-cors', signal: controller.signal });
+    clearTimeout(timeoutId);
+    // no-cors mode doesn't expose status, but if it doesn't throw, it's likely reachable
+  } catch (err) {
+    if (err.name !== 'AbortError') {
+      console.warn(`[Publish] Image URL validation warning for ${fieldName}:`, err.message);
+      // Don't block on network errors, just warn
+    }
+  }
+  return true;
 }

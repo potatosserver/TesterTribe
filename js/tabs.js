@@ -86,6 +86,13 @@ export function switchTab(tabName, params = {}, internal = false) {
     }
   } else if (tabName === 'dev-profile' && window.currentUser) {
     // dev-profile handles its own loading
+  } else if (tabName === 'publish') {
+    // Lazy-load publish module and initialize it
+    import('./publish.js')
+      .then(mod => {
+        if (typeof mod.setupPublish === 'function') mod.setupPublish();
+      })
+      .catch(err => console.error('[Tabs] Failed to load publish module:', err));
   } else if (tabName === 'home') {
     window.refreshHomeStats?.();
   }

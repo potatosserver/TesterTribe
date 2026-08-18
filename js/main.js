@@ -6,6 +6,7 @@ import { setupTabs } from './tabs.js';
 import { setupLogin } from './auth.js';
 import { setupModals } from './modals.js';
 import { initRouter, navigate } from './router.js';
+import { setupPublish } from './publish.js';
 import { 
   setupLazyImages, 
   trapFocus, 
@@ -139,6 +140,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupTabs(); // Initialize tab switching
   setupLogin(); // Initialize login page button
   setupModals(); // Initialize modals (feedback, edit app)
+  setupPublish(); // Initialize publish form handlers
   await initRouter();
   
   // Handle redirect result after router is initialized (navigate is available)

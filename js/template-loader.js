@@ -107,7 +107,8 @@ export async function loadTemplates() {
     'market': `<div id="view-market-android" class="tab-content active"><div class="hero-banner"><h1 class="hero-title">Google Play 市集</h1></div><div id="market-app-list-android" class="app-grid"></div></div><div id="view-market-ios" class="tab-content"><div class="hero-banner"><h1 class="hero-title">App Store 市集</h1></div><div id="market-app-list-ios" class="app-grid"></div></div>`,
     'app-detail': `<div id="view-app-detail" class="tab-content"><div id="detail-content">載入中...</div></div>`,
     'dev-profile': `<div id="view-dev-profile" class="tab-content"><div id="dev-profile-content"><div id="dev-profile-loading">載入中...</div><div id="dev-profile-main" style="display:none;"></div></div></div>`,
-    'publish': `<div id="view-publish" class="tab-content"><div class="card"><h2>刊登新測試 App 專案</h2><form id="app-form"><div class="form-group"><label>App 名稱</label><input type="text" id="app-name" class="form-control" required></div><button type="submit" class="btn btn-primary">發布</button></form></div></div>`,
+    // Fallback publish template with proper button type and id
+    'publish': `<div id="view-publish" class="tab-content"><div class="card"><h2>刊登新測試 App 專案</h2><form id="app-form"><div class="form-group"><label>App 名稱</label><input type="text" id="app-name" class="form-control" required></div><button type="button" id="btn-submit" class="btn btn-primary">發布</button></form></div></div>`,
     'modals': `<div id="feedback-modal" style="display:none;"></div><div id="edit-app-modal" style="display:none;"></div>`,
     'login': `<div id="view-login" class="tab-content"><div class="card"><h2>登入</h2><button id="btn-login-page" class="btn btn-primary">使用 Google 登入</button></div></div>`,
     'terms': `<div id="view-terms" class="tab-content"><div class="card"><h2>服務條款</h2><p>內容載入中...</p></div></div>`,
