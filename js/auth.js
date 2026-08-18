@@ -93,16 +93,16 @@ export function setupAuth() {
   window.addEventListener('click', window.closeProfileDropdown);
 
   // Logout
-  window.handleLogout = async () => { 
-    window.closeProfileDropdown(); 
-    const confirmed = await m3Confirm('確定登出？', '確認登出');
-    if (confirmed) { 
-      await signOut(auth); 
-      window.navigate('market-android'); 
-    } 
-  };
+    window.handleLogout = async () => {
+      window.closeProfileDropdown();
+      const confirmed = await m3Confirm('確定登出？', '確認登出');
+      if (confirmed) {
+        await signOut(auth);
+        window.navigate('login');
+      }
+    };
 
-  // Open my own dev profile
+    // Open my own dev profile
   window.openMyProfile = () => {
     if (window.currentUser) {
       window.navigate('dev-profile', { authorUid: window.currentUser.uid });
