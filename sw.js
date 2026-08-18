@@ -95,34 +95,23 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
-  // Cache first for static assets (CSS, JS, images)
+  // Network first for static assets (CSS, JS, images) to ensure updates are seen
   if (request.destination === 'style' || 
       request.destination === 'script' || 
-      request.destination === 'image' ||
-      request.destination === 'font') {
+      request.destination === 'image') {
     event.respondWith(
-      caches.match(request)
-        .then((cachedResponse) => {
-          if (cachedResponse) {
-            // Update cache in background
-            fetch(request).then((response) => {
-              if (response.ok) {
-                caches.open(CACHE_NAME).then((cache) => cache.put(request, response));
-              }
-            }).catch(() => {});
-            return cachedResponse;
+      fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
           }
-          return fetch(request).then((response) => {
-            if (response.ok) {
-              const responseClone = response.clone();
-              caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
-            }
-            return response;
-          });
+          return response;
         })
+        .catch(() => caches.match(request))
     );
     return;
-  }
+  } 
   
   // Default: network first
   event.respondWith(
