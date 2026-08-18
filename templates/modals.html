@@ -72,6 +72,20 @@
           <label>Google 群組連結</label>
           <input type="url" id="edit-group-url" class="form-control" placeholder="https://groups.google.com/g/...">
         </div>
+        <div class="form-group" style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+          <input type="checkbox" id="edit-app-custom-email-enabled" name="customEmailEnabled" style="width: 20px; height: 20px;">
+          <label for="edit-app-custom-email-enabled" style="margin: 0; font-weight: 500;">使用自訂 Email 收集方式 (替換 Google 群組)</label>
+        </div>
+        <div id="edit-custom-email-fields" style="display: none; border-left: 3px solid var(--md-sys-color-primary); padding-left: 12px; margin-bottom: 16px;">
+          <div class="form-group">
+            <label>填寫說明</label>
+            <input type="text" id="edit-custom-email-instruction" class="form-control" placeholder="例如：請填寫 Google 表單，或點擊 Thread 主頁頂貼文連結">
+          </div>
+          <div class="form-group">
+            <label>自訂網址</label>
+            <input type="url" id="edit-custom-email-url" class="form-control" placeholder="https://forms.gle/...">
+          </div>
+        </div>
       </div>
 
       <div id="edit-ios-fields" style="display: none;">

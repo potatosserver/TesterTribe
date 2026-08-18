@@ -222,14 +222,18 @@ async function openAppDetail(appId, storeFromCard, skipNavigation = false) {
                   <!-- Step 1-2: Guide + Link wrapped together in one box -->
                   <div class="gp-step-group">
                     <div class="gp-step-guide">
-                      <div>點擊頁面中央上方的「<strong>加入群組</strong>」按鈕。</div>
-                      <div>在彈出視窗中確認您的資訊，點選右下角完成加入。</div>
+                      ${appData.customEmailEnabled ? `
+                        <div style="font-weight: 600; color: var(--md-sys-color-primary); margin-bottom: 4px;">${escapeHTML(appData.customEmailInstruction || '請參考以下說明加入測試')}</div>
+                      ` : `
+                        <div>點擊頁面中央上方的「<strong>加入群組</strong>」按鈕。</div>
+                        <div>在彈出視窗中確認您的資訊，點選右下角完成加入。</div>
+                      `}
                     </div>
-                    <div class="gp-step-btn" data-step="1" data-url="${escapeHTML(appData.groupUrl)}">
+                    <div class="gp-step-btn" data-step="1" data-url="${escapeHTML(appData.customEmailEnabled ? (appData.customEmailUrl || appData.groupUrl) : appData.groupUrl)}">
                       <span class="gp-step-indicator" data-step="1">${getStepChecked(1, id) ? '<span class="material-symbols-outlined">check</span>' : '1'}</span>
                       <span class="gp-step-content">
-                        <span class="material-symbols-outlined">group_add</span>
-                        <span>加入 Google 測試群組</span>
+                        <span class="material-symbols-outlined">${appData.customEmailEnabled ? 'mail' : 'group_add'}</span>
+                        <span>${appData.customEmailEnabled ? '提交測試申請' : '加入 Google 測試群組'}</span>
                         <span class="material-symbols-outlined gp-step-link-icon">open_in_new</span>
                       </span>
                     </div>

@@ -16,6 +16,18 @@ export function setupModals() {
   window.closeEditAppModal = closeEditAppModal;
   window.confirmDeleteApp = confirmDeleteApp;
   
+  // Setup custom email toggle for edit modal
+  const editCustomEmailToggle = document.getElementById('edit-app-custom-email-enabled');
+  const editCustomEmailFields = document.getElementById('edit-custom-email-fields');
+  const editGroupUrlField = document.getElementById('edit-group-url').parentElement;
+  if (editCustomEmailToggle && editCustomEmailFields) {
+    editCustomEmailToggle.addEventListener('change', () => {
+      const isEnabled = editCustomEmailToggle.checked;
+      editCustomEmailFields.style.display = isEnabled ? 'block' : 'none';
+      if (editGroupUrlField) editGroupUrlField.style.display = isEnabled ? 'none' : 'block';
+    });
+  }
+
   // Form handlers
   document.getElementById('edit-app-form').addEventListener('submit', handleEditAppSubmit);
 
@@ -192,6 +204,19 @@ async function loadAppDataForEdit(docId) {
     document.getElementById('edit-app-desc').value = appData.description || '';
     document.getElementById('edit-app-is-closed').checked = appData.isClosed === true;
 
+    // Custom Email fields
+    const customEmailEnabled = appData.customEmailEnabled === true;
+    const customEmailToggle = document.getElementById('edit-app-custom-email-enabled');
+    const customEmailFields = document.getElementById('edit-custom-email-fields');
+    const groupUrlField = document.getElementById('edit-group-url').parentElement;
+    if (customEmailToggle && customEmailFields) {
+      customEmailToggle.checked = customEmailEnabled;
+      customEmailFields.style.display = customEmailEnabled ? 'block' : 'none';
+      if (groupUrlField) groupUrlField.style.display = customEmailEnabled ? 'none' : 'block';
+      document.getElementById('edit-custom-email-instruction').value = appData.customEmailInstruction || '';
+      document.getElementById('edit-custom-email-url').value = appData.customEmailUrl || '';
+    }
+
     togglePlatformFields('edit');
   } catch (err) {
     console.error('載入編輯資料失敗:', err);
@@ -250,6 +275,9 @@ async function handleEditAppSubmit(e) {
   }
 
   const isClosed = document.getElementById('edit-app-is-closed').checked;
+  const customEmailEnabled = document.getElementById('edit-app-custom-email-enabled').checked;
+  const customEmailInstruction = document.getElementById('edit-custom-email-instruction').value.trim();
+  const customEmailUrl = document.getElementById('edit-custom-email-url').value.trim();
 
   const submitBtn = document.getElementById('edit-btn-submit');
   submitBtn.disabled = true;
@@ -273,6 +301,9 @@ async function handleEditAppSubmit(e) {
       storeUrl: storeUrl,
       testFlightUrl: testFlightUrl,
       isClosed: isClosed,
+      customEmailEnabled: customEmailEnabled,
+      customEmailInstruction: customEmailInstruction,
+      customEmailUrl: customEmailUrl,
       updatedAt: serverTimestamp()
     };
 

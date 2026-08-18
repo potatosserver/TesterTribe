@@ -40,6 +40,18 @@ export function setupPublish() {
 
   const appForm = document.getElementById('app-form');
   
+  // Setup custom email toggle
+  const customEmailToggle = document.getElementById('app-custom-email-enabled');
+  const customEmailFields = document.getElementById('custom-email-fields');
+  const groupUrlField = document.getElementById('group-url').parentElement;
+  if (customEmailToggle && customEmailFields) {
+    customEmailToggle.addEventListener('change', () => {
+      const isEnabled = customEmailToggle.checked;
+      customEmailFields.style.display = isEnabled ? 'block' : 'none';
+      if (groupUrlField) groupUrlField.style.display = isEnabled ? 'none' : 'block';
+    });
+  }
+
   // Setup real-time form validation
   const validation = setupFormValidation(appForm, {
     platform: [
@@ -125,6 +137,9 @@ export function setupPublish() {
     }
 
     const isClosed = document.getElementById('app-is-closed').checked;
+    const customEmailEnabled = document.getElementById('app-custom-email-enabled').checked;
+    const customEmailInstruction = document.getElementById('custom-email-instruction').value.trim();
+    const customEmailUrl = document.getElementById('custom-email-url').value.trim();
 
     // Check for duplicate packageName
     const appsRef = collection(db, 'apps');
@@ -158,6 +173,9 @@ export function setupPublish() {
             storeUrl: storeUrl,
             testFlightUrl: testFlightUrl,
             isClosed: isClosed,
+            customEmailEnabled: customEmailEnabled,
+            customEmailInstruction: customEmailInstruction,
+            customEmailUrl: customEmailUrl,
             authorName: window.currentUser.displayName,
             authorUid: window.currentUser.uid,
             createdAt: serverTimestamp(),
