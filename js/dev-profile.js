@@ -6,6 +6,10 @@ import { getAuthorEmailFromUrl, getAuthorUidFromUrl } from './router.js';
 import { m3Alert, m3Confirm, m3Error, m3Success } from './m3-dialog.js';
 import { createEmptyState, showSkeleton, hideSkeleton, toast } from './utils.js';
 
+// Ensure detail module is loaded for openAppDetail
+import { setupDetail } from './detail.js';
+setupDetail();
+
 export function setupDevProfile() {
   window.openDevProfile = openDevProfile;
 }

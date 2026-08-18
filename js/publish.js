@@ -107,6 +107,11 @@ export function setupPublish() {
       return m3Alert(err.message, '網址格式錯誤');
     }
 
+    const screenshotUrls = [screenshotUrl1, screenshotUrl2, screenshotUrl3].filter(url => url);
+    if (screenshotUrls.length > 3) {
+      return m3Alert('最多只能上傳 3 張截圖', '截圖數量超過限制');
+    }
+
     let groupUrl = '';
     let storeUrl = '';
     let testFlightUrl = '';
@@ -135,34 +140,33 @@ export function setupPublish() {
     submitBtn.innerText = '發布中...';
 
     try {
-      const screenshotUrls = [screenshotUrl1, screenshotUrl2, screenshotUrl3].filter(url => url);
-      
-      // Determine store field based on platform for backward compatibility
-      const store = platform === 'ios' ? 'app-store' : 'google-play';
-      
-      await addDoc(collection(db, 'apps'), {
-        name: document.getElementById('app-name').value,
-        platform: platform,
-        store: store,
-        status: 'published',
-        packageName: packageName,
-        iconUrl: iconUrl,
-        screenshotUrls: screenshotUrls,
-        description: document.getElementById('app-desc').value,
-        groupUrl: groupUrl,
-        storeUrl: storeUrl,
-        testFlightUrl: testFlightUrl,
-        isClosed: isClosed,
-        authorName: window.currentUser.displayName,
-        authorUid: window.currentUser.uid,
-        authorEmail: window.currentUser.email,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        likeCount: 0,
-        joinCount: 0,
-        ratingSum: 0,
-        ratingCount: 0
-      });
+          const screenshotUrls = [screenshotUrl1, screenshotUrl2, screenshotUrl3].filter(url => url);
+
+          // Determine store field based on platform for backward compatibility
+          const store = platform === 'ios' ? 'app-store' : 'google-play';
+
+          await addDoc(collection(db, 'apps'), {
+            name: document.getElementById('app-name').value,
+            platform: platform,
+            store: store,
+            status: 'published',
+            packageName: packageName,
+            iconUrl: iconUrl,
+            screenshotUrls: screenshotUrls,
+            description: document.getElementById('app-desc').value,
+            groupUrl: groupUrl,
+            storeUrl: storeUrl,
+            testFlightUrl: testFlightUrl,
+            isClosed: isClosed,
+            authorName: window.currentUser.displayName,
+            authorUid: window.currentUser.uid,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            likeCount: 0,
+            joinCount: 0,
+            ratingSum: 0,
+            ratingCount: 0
+          });
 
       toast.success('App 專案刊登成功！');
       appForm.reset();

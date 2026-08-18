@@ -1,10 +1,11 @@
 // Detail module - app detail view with Google Play style layout
-import { doc, getDoc, collection, query, where, getDocs, updateDoc, deleteDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
+import { doc, getDoc, collection, query, where, getDocs, updateDoc, deleteDoc, setDoc, serverTimestamp, increment } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { db } from './firebase-config.js';
 import { escapeHTML, formatDate } from './utils.js';
 import { getPackageNameFromUrl, getStoreFromUrl, platformToStore } from './router.js';
 import { m3Alert, m3Error, m3Success, m3Confirm } from './m3-dialog.js';
-import { createStepProgress, updateStepProgress, toast } from './utils.js';
+import { createStepProgress, updateStepProgress } from './utils.js';
+// 使用全域 window.toast (由 main.js 註冊)
 
 export function setupDetail() {
   window.openAppDetail = openAppDetail;
@@ -455,7 +456,7 @@ async function openAppDetail(appId, storeFromCard, skipNavigation = false) {
 
 async function handleToggleLikeDetail(appId) {
   if (!window.currentUser) return m3LoginRequired('請先登入才能按讚');
-  
+
   const appRef = doc(db, 'apps', appId);
   const appSnap = await getDoc(appRef);
   const appData = appSnap.data();
@@ -464,34 +465,39 @@ async function handleToggleLikeDetail(appId) {
     m3Alert('開發者無法為自己的專案按讚！', '無法按讚');
     return;
   }
-  
+
   const likeRef = doc(db, 'apps', appId, 'likes', window.currentUser.uid);
   const likeSnap = await getDoc(likeRef);
-  
+
   const btn = document.getElementById(`btn-detail-like-${appId}`);
   const likeText = document.getElementById('detail-like-text');
   const likeCountEl = document.getElementById('detail-like-count');
-  const currentCount = parseInt(likeCountEl?.textContent || '0');
-  
+
   if (likeSnap.exists()) {
+    // Unlike: atomic decrement + delete subdoc
+    await updateDoc(appRef, { likeCount: increment(-1) });
     await deleteDoc(likeRef);
-    // Update UI immediately
+    // Update UI immediately (optimistic)
+    const currentCount = parseInt(likeCountEl?.textContent || '0', 10);
+    if (likeCountEl) likeCountEl.textContent = Math.max(0, currentCount - 1);
     if (btn) btn.classList.remove('btn-like-active');
     if (btn) btn.classList.add('btn-tonal');
     if (likeText) likeText.textContent = '點擊按讚';
-    if (likeCountEl) likeCountEl.textContent = Math.max(0, currentCount - 1);
-    toast('已取消按讚', 'info');
+    window.toast?.info('已取消按讚');
   } else {
+    // Like: atomic increment + create subdoc
+    await updateDoc(appRef, { likeCount: increment(1) });
     await setDoc(likeRef, { createdAt: serverTimestamp() });
-    // Update UI immediately
+    // Update UI immediately (optimistic)
+    const currentCount = parseInt(likeCountEl?.textContent || '0', 10);
+    if (likeCountEl) likeCountEl.textContent = currentCount + 1;
     if (btn) btn.classList.remove('btn-tonal');
     if (btn) btn.classList.add('btn-like-active');
     if (likeText) likeText.textContent = '已按讚';
-    if (likeCountEl) likeCountEl.textContent = currentCount + 1;
-    toast('已加入收藏', 'success');
+    window.toast?.success('已加入收藏');
   }
-  
-  // Sync count with server (background)
+
+  // Sync count with server (background) - keep for consistency
   try {
     const updatedSnap = await getDoc(appRef);
     const serverCount = updatedSnap.data()?.likeCount || 0;
@@ -570,22 +576,22 @@ async function toggleJoinTestDetail(appId, isJoined) {
   }
   
   const testerRef = doc(db, 'apps', appId, 'testers', window.currentUser.uid);
-  
-  try {
-    let newJoinCount;
-    if (isJoined) {
-      await deleteDoc(testerRef);
-      const appSnap = await getDoc(appRef);
-      const currentCount = appSnap.data()?.joinCount || 0;
-      newJoinCount = Math.max(0, currentCount - 1);
-      await updateDoc(appRef, { joinCount: newJoinCount });
-    } else {
-      await setDoc(testerRef, { joinedAt: serverTimestamp() });
-      const appSnap = await getDoc(appRef);
-      const currentCount = appSnap.data()?.joinCount || 0;
-      newJoinCount = currentCount + 1;
-      await updateDoc(appRef, { joinCount: newJoinCount });
-    }
+
+    try {
+      let newJoinCount;
+      if (isJoined) {
+        await deleteDoc(testerRef);
+        // Atomic decrement
+        await updateDoc(appRef, { joinCount: increment(-1) });
+        const appSnap = await getDoc(appRef);
+        newJoinCount = appSnap.data()?.joinCount || 0;
+      } else {
+        await setDoc(testerRef, { joinedAt: serverTimestamp() });
+        // Atomic increment
+        await updateDoc(appRef, { joinCount: increment(1) });
+        const appSnap = await getDoc(appRef);
+        newJoinCount = appSnap.data()?.joinCount || 0;
+      }
     
     // Update UI immediately without page reload
     const newProgressPercent = Math.round((newJoinCount / MAX_TESTERS) * 100);

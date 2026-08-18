@@ -4,6 +4,7 @@ import { loadTemplates } from './template-loader.js';
 import { setupAuth, initAuthPersistence } from './auth.js';
 import { setupTabs } from './tabs.js';
 import { setupLogin } from './auth.js';
+import { setupModals } from './modals.js';
 import { initRouter, navigate } from './router.js';
 import { 
   setupLazyImages, 
@@ -137,6 +138,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupAuth(); // Initialize auth listeners and UI updates
   setupTabs(); // Initialize tab switching
   setupLogin(); // Initialize login page button
+  setupModals(); // Initialize modals (feedback, edit app)
   await initRouter();
   
   // Handle redirect result after router is initialized (navigate is available)

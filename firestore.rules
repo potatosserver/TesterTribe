@@ -36,15 +36,31 @@ service cloud.firestore {
         && request.resource.data.authorUid == request.auth.uid;
 
       allow update: if
-        // 作者：可改內容，但不能改 authorUid
-        (isOwner(resource.data.authorUid)
-          && request.resource.data.authorUid == resource.data.authorUid)
-        ||
-        // 非作者：只允許動計數欄位，其他一律擋
-        (isSignedIn()
-          && request.resource.data.authorUid == resource.data.authorUid
-          && request.resource.data.diff(resource.data).affectedKeys()
-               .hasOnly(['joinCount', 'likeCount', 'ratingCount', 'ratingSum']));
+              // 作者：可改內容，但不能改 authorUid、createdAt、計數欄位
+              (isOwner(resource.data.authorUid)
+                && request.resource.data.authorUid == resource.data.authorUid
+                && request.resource.data.createdAt == resource.data.createdAt
+                && request.resource.data.likeCount == resource.data.likeCount
+                && request.resource.data.joinCount == resource.data.joinCount
+                && request.resource.data.ratingCount == resource.data.ratingCount
+                && request.resource.data.ratingSum == resource.data.ratingSum)
+              ||
+              // 非作者：僅允許點讚/加入/評分的原子操作（檢查受影響欄位）
+              (isSignedIn()
+                && request.resource.data.authorUid == resource.data.authorUid
+                && request.resource.data.createdAt == resource.data.createdAt
+                && (
+                  // 按讚：僅修改 likeCount
+                  (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likeCount']))
+                  ||
+                  // 加入測試：僅修改 joinCount
+                  (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['joinCount']))
+                  ||
+                  // 評分：僅修改 ratingCount, ratingSum, newRatingScore 且分數 1-5
+                  (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['ratingCount', 'ratingSum', 'newRatingScore'])
+                    && request.resource.data.newRatingScore >= 1
+                    && request.resource.data.newRatingScore <= 5)
+                ));
 
       allow delete: if isOwner(resource.data.authorUid);
 

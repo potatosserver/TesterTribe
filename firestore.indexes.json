@@ -1,0 +1,14 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "apps",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "packageName", "order": "ASCENDING" },
+        { "fieldPath": "platform", "order": "ASCENDING" }
+      ],
+      "unique": true
+    }
+  ],
+  "fieldOverrides": []
+}

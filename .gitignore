@@ -1,0 +1,95 @@
+# === Firebase ===
+.firebase/
+.firebase-hosting-cache/
+firebase-debug.log*
+firebase-debug.*.log*
+
+# === Firebase config (可選) ===
+# 若團隊共用同一專案，建議保留 .firebaserc 以便直接部署
+# .firebaserc
+
+# === 依賴與建構產物 ===
+node_modules/
+dist/
+build/
+*.tgz
+
+# === 快取與暫存 ===
+.cache/
+.eslintcache
+.prettiercache
+.stylelintcache
+*.cache
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# === Python ===
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+.tox/
+.venv/
+venv/
+env/
+*.egg-info/
+pip-wheel-metadata/
+
+# === IDE / 編輯器 ===
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.vs/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# === 作業系統 ===
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# === 測試與覆蓋率 ===
+coverage/
+.nyc_output/
+*.lcov
+
+# === 專案特定 ===
+.agents/              # Agent 暫存檔
+skills-lock.json      # 技能鎖定檔 (可重新生成)
+test-dialog.html      # 測試頁面 (非生產代碼)
+
+# === 環境變數 (敏感資訊) ===
+.env
+.env.local
+.env.*.local
+.env.production
+
+# === Firebase Functions (若未來新增) ===
+functions/node_modules/
+functions/.env
+functions/lib/
+functions/.eslintcache
+
+# === 備份與臨時檔 ===
+*.bak
+*.backup
+*.tmp
+*.temp
+*.orig
+
+/__pycache__
+/.agents

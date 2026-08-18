@@ -39,35 +39,27 @@ const marketState = {
 };
 
 export function setupMarket() {
-  // Lazy‑load the market tabs. By default we only initialise the Android tab to avoid
-  // unnecessary Firestore reads for the iOS tab when the user first opens the market.
-  // The iOS platform can be loaded on demand via `window.loadIosMarket()` which is
-  // called from the UI when the iOS tab is selected.
-  setupMarketPlatform('android');
+  // Lazily initialize the market once, then let the route/tab layer request the
+  // specific platform when the corresponding tab is active.
+  if (window.__marketModuleReady) {
+    return;
+  }
+  window.__marketModuleReady = true;
+
+  // Ensure Android is ready as the default market view. This is intentionally gated
+  // by the platform helper so it is not marked as initialized before the DOM exists.
+  window.ensureMarketPlatform = (platformKey) => ensureMarketPlatform(platformKey);
+  window.loadAndroidMarket = () => ensureMarketPlatform('android');
+  window.loadIosMarket = () => ensureMarketPlatform('ios');
+  window.fetchMarketAppsAndroid = () => fetchMarketApps('android', true);
+  window.fetchMarketAppsIos = () => fetchMarketApps('ios', true);
+
+  ensureMarketPlatform('android');
 
   // Ensure detail module is loaded so window.openAppDetail is available for card clicks
   import('./detail.js').then(mod => {
     if (typeof mod.setupDetail === 'function') mod.setupDetail();
   }).catch(err => console.error('[Market] Failed to load detail module:', err));
-
-  // Expose helpers for on‑demand loading
-  window.fetchMarketAppsAndroid = () => fetchMarketApps('android', true);
-  window.fetchMarketAppsIos = () => fetchMarketApps('ios', true);
-  window.loadIosMarket = () => {
-    console.log('[Market Debug] loadIosMarket called, initialised:', marketState.ios.initialised);
-    // Only initialize if not already initialized
-    if (!marketState.ios.initialised) {
-      marketState.ios.initialised = true;
-      setupMarketPlatform('ios');
-    }
-  };
-  window.loadAndroidMarket = () => {
-    console.log('[Market Debug] loadAndroidMarket called, initialised:', marketState.android.initialised);
-    if (!marketState.android.initialised) {
-      marketState.android.initialised = true;
-      setupMarketPlatform('android');
-    }
-  };
 
   // Debug: dump all loaded apps
   window.debugMarketApps = () => {
@@ -78,26 +70,61 @@ export function setupMarket() {
   };
 }
 
+function ensureMarketPlatform(platformKey) {
+  const config = MARKET_CONFIG[platformKey];
+  if (!config) {
+    console.warn('[Market Debug] Unknown platform requested:', platformKey);
+    return false;
+  }
+
+  const state = marketState[platformKey];
+  if (state.initialised) {
+    console.log('[Market Debug] Platform already initialised:', platformKey);
+    return true;
+  }
+
+  const platformList = document.getElementById(config.listId);
+  const btnLoadMore = document.getElementById(config.btnLoadMoreId);
+  const searchInput = document.getElementById(config.searchInputId);
+
+  if (!platformList || !btnLoadMore || !searchInput) {
+    console.warn('[Market Debug] Platform DOM not ready yet:', platformKey, config.listId);
+    return false;
+  }
+
+  setupMarketPlatform(platformKey);
+  return state.initialised;
+}
+
 function setupMarketPlatform(platformKey) {
   console.log('[Market Debug] setupMarketPlatform called:', platformKey);
   const config = MARKET_CONFIG[platformKey];
   const state = marketState[platformKey];
-  
-  // Prevent duplicate initialization
+
+  if (!config) {
+    console.warn('[Market Debug] Unknown platform requested:', platformKey);
+    return;
+  }
+
   if (state.initialised) {
     console.log('[Market Debug] Platform already initialised:', platformKey);
     return;
   }
-  state.initialised = true;
-  
-  // Load more button
+
   const btnLoadMore = document.getElementById(config.btnLoadMoreId);
-  if (btnLoadMore) {
-    btnLoadMore.onclick = () => fetchMarketApps(platformKey, false);
-  }
-  
-  // Search input - debounced Firestore search
   const searchInput = document.getElementById(config.searchInputId);
+
+  if (!btnLoadMore || !searchInput) {
+    console.warn('[Market Debug] Platform DOM not ready yet:', platformKey, config.listId);
+    return;
+  }
+
+  state.initialised = true;
+
+  // Load more button
+  btnLoadMore.onclick = () => fetchMarketApps(platformKey, false);
+
+  // Search input - debounced Firestore search
   if (searchInput) {
     let searchDebounceTimer = null;
     searchInput.addEventListener('input', (e) => {
