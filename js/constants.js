@@ -3,6 +3,15 @@ export const DEFAULT_AVATAR = 'https://www.gravatar.com/avatar/00000000000000000
 export const DEFAULT_ICON = 'https://via.placeholder.com/58?text=App';
 export const PAGE_SIZE = 10;
 
+// Firebase SDK version - centralized for consistency across all modules
+export const FIREBASE_SDK_VERSION = '12.17.1';
+export const FIREBASE_CDN_BASE = `https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}`;
+
+// Platform detection utility - single source of truth
+export function getAppPlatform(appData) {
+  return appData.platform || (appData.store === 'app-store' ? 'ios' : 'android');
+}
+
 // Fallback image URLs (centralized for easy maintenance)
 export const FALLBACK_IMAGES = {
   avatar: DEFAULT_AVATAR,

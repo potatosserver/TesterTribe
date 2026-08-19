@@ -6,7 +6,8 @@ export function escapeHTML(str) {
     .replace(/</g, '<')
     .replace(/>/g, '>')
     .replace(/"/g, '"')
-    .replace(/'/g, '&#039;');
+    .replace(/'/g, '&#039;')
+    .replace(/`/g, '&#96;');
 }
 
 export function formatDate(timestamp) {
@@ -496,7 +497,7 @@ export function setupLazyImages(selector = 'img[loading="lazy"]') {
 /* ========== Mobile Drawer Focus Trap ========== */
 export function trapFocus(element) {
   const focusableElements = element.querySelectorAll(
-    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"]), [contenteditable], summary, audio[controls], video[controls]'
   );
   const firstElement = focusableElements[0];
   const lastElement = focusableElements[focusableElements.length - 1];

@@ -121,7 +121,7 @@ export async function loadTemplates() {
   const loadResults = await Promise.allSettled(
     templates.map(async (name) => {
       try {
-        const response = await fetch(`../templates/${name}.html`);
+        const response = await fetch(`/templates/${name}.html`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }

@@ -5,6 +5,7 @@ import { escapeHTML, formatDate } from './utils.js';
 import { getPackageNameFromUrl, getStoreFromUrl, platformToStore } from './router.js';
 import { m3Alert, m3Error, m3Success, m3Confirm } from './m3-dialog.js';
 import { createStepProgress, updateStepProgress } from './utils.js';
+import { getAppPlatform } from './constants.js';
 // 使用全域 window.toast (由 main.js 註冊)
 
 export function setupDetail() {
@@ -86,7 +87,7 @@ async function openAppDetail(appId, storeFromCard, skipNavigation = false) {
     const MAX_TESTERS = 12;
     const progressPercent = Math.min(100, Math.round((joinCount / MAX_TESTERS) * 100));
     const isCompleted = joinCount >= MAX_TESTERS;
-    const appDataPlatform = appData.platform || (appData.store === 'app-store' ? 'ios' : 'android');
+    const appDataPlatform = getAppPlatform(appData);
     
     // Debug: log platform detection
     console.log('[Detail] App:', appData.name, 'platform field:', appData.platform, 'store field:', appData.store, 'computed platform:', appDataPlatform);

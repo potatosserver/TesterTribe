@@ -5,6 +5,7 @@ import { escapeHTML, formatDate, formatDateOnly } from './utils.js';
 import { getAuthorEmailFromUrl, getAuthorUidFromUrl } from './router.js';
 import { m3Alert, m3Confirm, m3Error, m3Success } from './m3-dialog.js';
 import { createEmptyState, showSkeleton, hideSkeleton, toast } from './utils.js';
+import { getAppPlatform } from './constants.js';
 
 // Ensure detail module is loaded for openAppDetail
 import { setupDetail } from './detail.js';
@@ -176,7 +177,7 @@ async function openDevProfile() {
       const MAX_TESTERS = 12;
       const progressPercent = Math.min(100, Math.round((joinCount / MAX_TESTERS) * 100));
       const isCompleted = joinCount >= MAX_TESTERS;
-      const platform = appData.platform || (appData.store === 'app-store' ? 'ios' : 'android');
+      const platform = getAppPlatform(appData);
       
       // Debug: log platform detection
       console.log('[DevProfile] App:', appData.name, 'platform field:', appData.platform, 'store field:', appData.store, 'computed platform:', platform);

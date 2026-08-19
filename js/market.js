@@ -2,6 +2,7 @@
 import { collection, query, orderBy, startAfter, limit, getDocs, where } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { db } from './firebase-config.js';
 import { PAGE_SIZE } from './constants.js';
+import { getAppPlatform } from './constants.js';
 import { escapeHTML, formatDate } from './utils.js';
 import { cachedGetDocs, invalidateCache } from './cache.js';
 import { showSkeleton, hideSkeleton, createEmptyState, toast } from './utils.js';
@@ -517,7 +518,7 @@ function renderMarketApps(platformKey, appsList) {
     const MAX_TESTERS = 12;
     const progressPercent = Math.min(100, Math.round((joinCount / MAX_TESTERS) * 100));
     const isCompleted = joinCount >= MAX_TESTERS;
-    const platform = appData.platform || (appData.store === 'app-store' ? 'ios' : 'android');
+    const platform = getAppPlatform(appData);
     
     // Debug: log platform detection
     console.log('[Market] App:', appData.name, 'platform field:', appData.platform, 'store field:', appData.store, 'computed platform:', platform);

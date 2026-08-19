@@ -2,7 +2,7 @@
 import { initializeApp } from './app.js';
 import { loadTemplates } from './template-loader.js';
 import { setupAuth, initAuthPersistence } from './auth.js';
-import { setupTabs } from './tabs.js';
+import { setupTabs, switchTab } from './tabs.js';
 import { setupLogin } from './auth.js';
 import { setupModals } from './modals.js';
 import { initRouter, navigate } from './router.js';
@@ -22,6 +22,21 @@ window.PAGE_SIZE = PAGE_SIZE;
 
 // Make toast globally available
 window.toast = toast;
+
+// Make switchTab globally available for templates
+window.switchTab = switchTab;
+
+// Global error handlers
+window.addEventListener('error', (event) => {
+  console.error('[Global Error]', event.error || event.message);
+  // Optionally send to error reporting service
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('[Unhandled Rejection]', event.reason);
+  event.preventDefault(); // Prevent default browser behavior
+  // Optionally send to error reporting service
+});
 
 // Initialize auth persistence early (before any auth operations)
 initAuthPersistence();

@@ -3,6 +3,7 @@ import { addDoc, updateDoc, doc, getDoc, collection, serverTimestamp, deleteDoc,
 import { db } from './firebase-config.js';
 import { m3Alert, m3Error, m3Success, m3Confirm } from './m3-dialog.js';
 import { escapeHTML, toast } from './utils.js';
+import { getAppPlatform } from './constants.js';
 
 export function setupModals() {
   // Feedback modal
@@ -121,9 +122,6 @@ async function submitFeedback() {
               <span style="font-weight: 600; font-size: 0.9rem;">${escapeHTML(window.currentUser.displayName)}</span>
               ${type === 'review' ? `<span style="color:#f59e0b;">${starsHtml}</span>` : typeBadge}
             </div>
-            <div style="display:flex; gap:8px;">
-              ${window.currentUser.uid === window.currentUser.uid ? '' : ''}
-            </div>
           </div>
           <div style="font-size:0.92rem; line-height:1.5; white-space:pre-line;">${escapeHTML(content)}</div>
         </div>
@@ -188,7 +186,7 @@ async function loadAppDataForEdit(docId) {
     if (!appSnap.exists()) return;
     const appData = appSnap.data();
 
-    const platform = appData.platform || (appData.store === 'app-store' ? 'ios' : 'android');
+    const platform = getAppPlatform(appData);
     console.log('[Modals] App:', appData.name, 'platform field:', appData.platform, 'store field:', appData.store, 'computed platform:', platform);
     
     document.getElementById('edit-app-platform').value = platform;

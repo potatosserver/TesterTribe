@@ -51,13 +51,22 @@ service cloud.firestore {
                 && request.resource.data.createdAt == resource.data.createdAt
                 && (
                   // 按讚：僅修改 likeCount
-                  (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likeCount']))
+                  (request.resource.data.likeCount != resource.data.likeCount
+                    && request.resource.data.joinCount == resource.data.joinCount
+                    && request.resource.data.ratingCount == resource.data.ratingCount
+                    && request.resource.data.ratingSum == resource.data.ratingSum)
                   ||
                   // 加入測試：僅修改 joinCount
-                  (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['joinCount']))
+                  (request.resource.data.joinCount != resource.data.joinCount
+                    && request.resource.data.likeCount == resource.data.likeCount
+                    && request.resource.data.ratingCount == resource.data.ratingCount
+                    && request.resource.data.ratingSum == resource.data.ratingSum)
                   ||
                   // 評分：僅修改 ratingCount, ratingSum, newRatingScore 且分數 1-5
-                  (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['ratingCount', 'ratingSum', 'newRatingScore'])
+                  (request.resource.data.ratingCount != resource.data.ratingCount
+                    && request.resource.data.ratingSum != resource.data.ratingSum
+                    && request.resource.data.likeCount == resource.data.likeCount
+                    && request.resource.data.joinCount == resource.data.joinCount
                     && request.resource.data.newRatingScore >= 1
                     && request.resource.data.newRatingScore <= 5)
                 ));
