@@ -18,7 +18,13 @@ export function setupDetail() {
 }
 
 function getStepChecks(appId) {
-  if (!window.currentUser) return {};
+  if (!window.currentUser) {
+    // Anonymous users: use sessionStorage with a shared key per app
+    try {
+      const key = `stepChecks_${appId}_anon`;
+      return JSON.parse(sessionStorage.getItem(key) || '{}');
+    } catch { return {}; }
+  }
   try {
     const key = `stepChecks_${appId}_${window.currentUser.uid}`;
     return JSON.parse(localStorage.getItem(key) || '{}');
@@ -26,7 +32,14 @@ function getStepChecks(appId) {
 }
 
 function setStepCheck(appId, stepNum, checked) {
-  if (!window.currentUser) return;
+  if (!window.currentUser) {
+    // Anonymous users: use sessionStorage
+    const key = `stepChecks_${appId}_anon`;
+    const checks = getStepChecks(appId);
+    checks[stepNum] = checked;
+    sessionStorage.setItem(key, JSON.stringify(checks));
+    return;
+  }
   const key = `stepChecks_${appId}_${window.currentUser.uid}`;
   const checks = getStepChecks(appId);
   checks[stepNum] = checked;
@@ -34,7 +47,12 @@ function setStepCheck(appId, stepNum, checked) {
 }
 
 function clearStepChecks(appId) {
-  if (!window.currentUser) return;
+  if (!window.currentUser) {
+    // Anonymous users: clear sessionStorage
+    const key = `stepChecks_${appId}_anon`;
+    sessionStorage.removeItem(key);
+    return;
+  }
   const key = `stepChecks_${appId}_${window.currentUser.uid}`;
   localStorage.removeItem(key);
 }
@@ -231,7 +249,7 @@ async function openAppDetail(appId, storeFromCard, skipNavigation = false) {
                       `}
                     </div>
                     <div class="gp-step-btn" data-step="1" data-url="${escapeHTML(appData.customEmailEnabled ? (appData.customEmailUrl || appData.groupUrl) : appData.groupUrl)}">
-                      <span class="gp-step-indicator" data-step="1">${getStepChecked(1, id) ? '<span class="material-symbols-outlined">check</span>' : '1'}</span>
+                      <span class="gp-step-indicator${getStepChecked(1, id) ? ' checked' : ''}" data-step="1">${getStepChecked(1, id) ? '<span class="material-symbols-outlined">check</span>' : '1'}</span>
                       <span class="gp-step-content">
                         <span class="material-symbols-outlined">${appData.customEmailEnabled ? 'mail' : 'group_add'}</span>
                         <span>${appData.customEmailEnabled ? '提交測試申請' : '加入 Google 測試群組'}</span>
@@ -246,7 +264,7 @@ async function openAppDetail(appId, storeFromCard, skipNavigation = false) {
                       <div>點擊頁面中的「<strong>成為測試人員 (Become a Tester)</strong>」按鈕。</div>
                     </div>
                     <div class="gp-step-btn" data-step="2" data-url="${escapeHTML(testingOptInUrl)}">
-                      <span class="gp-step-indicator" data-step="2">${getStepChecked(2, id) ? '<span class="material-symbols-outlined">check</span>' : '2'}</span>
+                      <span class="gp-step-indicator${getStepChecked(2, id) ? ' checked' : ''}" data-step="2">${getStepChecked(2, id) ? '<span class="material-symbols-outlined">check</span>' : '2'}</span>
                       <span class="gp-step-content">
                         <span class="material-symbols-outlined">person_add</span>
                         <span>成為測試人員 (Opt-in)</span>
@@ -258,7 +276,7 @@ async function openAppDetail(appId, storeFromCard, skipNavigation = false) {
                 ${platform === 'android' ? `
                   <!-- Step 4: Download link (always shown for Android) -->
                   <div class="gp-step-btn" data-step="${!appData.isClosed ? '3' : '1'}" data-url="${escapeHTML(playStoreUrl)}">
-                    <span class="gp-step-indicator" data-step="${!appData.isClosed ? '3' : '1'}">${getStepChecked(!appData.isClosed ? 3 : 1, id) ? '<span class="material-symbols-outlined">check</span>' : (!appData.isClosed ? '3' : '1')}</span>
+                    <span class="gp-step-indicator${getStepChecked(!appData.isClosed ? 3 : 1, id) ? ' checked' : ''}" data-step="${!appData.isClosed ? '3' : '1'}">${getStepChecked(!appData.isClosed ? 3 : 1, id) ? '<span class="material-symbols-outlined">check</span>' : (!appData.isClosed ? '3' : '1')}</span>
                     <span class="gp-step-content">
                       <span class="material-symbols-outlined">download</span>
                       <span>${!appData.isClosed ? '前往 Google Play 商店下載測試版 App' : '前往 Google Play 商店下載 App'}</span>
@@ -266,14 +284,27 @@ async function openAppDetail(appId, storeFromCard, skipNavigation = false) {
                     </span>
                   </div>
                 ` : `
-                  <div class="gp-step-btn" data-step="1" data-url="${escapeHTML(appData.storeUrl || appData.testFlightUrl)}">
-                    <span class="gp-step-indicator" data-step="1">${getStepChecked(1, id) ? '<span class="material-symbols-outlined">check</span>' : '1'}</span>
-                    <span class="gp-step-content">
-                      <span class="material-symbols-outlined">flight_takeoff</span>
-                      <span>加入 TestFlight 測試</span>
-                      <span class="material-symbols-outlined gp-step-link-icon">open_in_new</span>
-                    </span>
-                  </div>
+                  ${!appData.isClosed ? `
+                    <!-- iOS: Not closed test - show TestFlight -->
+                    <div class="gp-step-btn" data-step="1" data-url="${escapeHTML(appData.testFlightUrl || appData.storeUrl)}">
+                      <span class="gp-step-indicator${getStepChecked(1, id) ? ' checked' : ''}" data-step="1">${getStepChecked(1, id) ? '<span class="material-symbols-outlined">check</span>' : '1'}</span>
+                      <span class="gp-step-content">
+                        <span class="material-symbols-outlined">flight_takeoff</span>
+                        <span>加入 TestFlight 測試</span>
+                        <span class="material-symbols-outlined gp-step-link-icon">open_in_new</span>
+                      </span>
+                    </div>
+                  ` : `
+                    <!-- iOS: Closed test - show App Store -->
+                    <div class="gp-step-btn" data-step="1" data-url="${escapeHTML(appData.appStoreUrl || appData.storeUrl)}">
+                      <span class="gp-step-indicator${getStepChecked(1, id) ? ' checked' : ''}" data-step="1">${getStepChecked(1, id) ? '<span class="material-symbols-outlined">check</span>' : '1'}</span>
+                      <span class="gp-step-content">
+                        <span style="font-size: 20px;">🍎</span>
+                        <span>前往 App Store 下載</span>
+                        <span class="material-symbols-outlined gp-step-link-icon">open_in_new</span>
+                      </span>
+                    </div>
+                  `}
                 `}
               </div>
               
@@ -295,7 +326,6 @@ async function openAppDetail(appId, storeFromCard, skipNavigation = false) {
                   
                   <hr class="gp-divider">
                   
-                  ${!appData.isClosed ? `
                   <div class="gp-sidebar-item">
                     <div class="gp-sidebar-label">
                       ${platform === 'ios' ? 'TestFlight 測試進度' : 'Google 封閉測試進度'} 
@@ -311,16 +341,6 @@ async function openAppDetail(appId, storeFromCard, skipNavigation = false) {
                       ${isJoined ? '已加入測試 (點擊退出)' : (isCompleted ? '測試名額已滿' : '回報已加入測試')}
                     </button>
                   </div>
-                  ` : `
-                  <div class="gp-sidebar-item">
-                    <div class="gp-sidebar-label">
-                      ${platform === 'ios' ? 'TestFlight 測試人數' : 'Google 測試人數'} 
-                      <span style="color: var(--md-sys-color-primary); font-weight: 700;">
-                        ${joinCount} 人
-                      </span>
-                    </div>
-                  </div>
-                  `}
                 </div>
                                 </div>
                               </div>
@@ -356,12 +376,14 @@ async function openAppDetail(appId, storeFromCard, skipNavigation = false) {
                     `;
     
     // Initialize step progress indicator
-    const stepLabels = platform === 'android' && !appData.isClosed 
-      ? ['加入群組', '成為測試人員', '下載 App']
-      : platform === 'android'
-        ? ['下載 App']
-        : ['加入 TestFlight'];
-    const stepProgress = createStepProgress(stepLabels);
+        const stepLabels = platform === 'android' && !appData.isClosed
+          ? ['加入群組', '成為測試人員', '下載 App']
+          : platform === 'android'
+            ? ['下載 App']
+            : !appData.isClosed
+              ? ['加入 TestFlight']
+              : ['前往 App Store 下載'];
+        const stepProgress = createStepProgress(stepLabels);
     const container = document.getElementById('step-progress-container');
     if (container) {
       container.appendChild(stepProgress);
@@ -410,11 +432,6 @@ async function openAppDetail(appId, storeFromCard, skipNavigation = false) {
         btn.addEventListener('click', async (e) => {
           console.log('[StepBtn] Click:', { step: stepNum, url, target: e.target.tagName, targetClass: e.target.className });
           
-          if (!window.currentUser) {
-            await m3LoginRequired('請先登入才能操作測試步驟');
-            return;
-          }
-          
           // If already joined, all steps are completed - just open the link
           if (isJoined) {
             console.log('[StepBtn] User already joined, opening URL:', url);
@@ -427,29 +444,43 @@ async function openAppDetail(appId, storeFromCard, skipNavigation = false) {
           
           console.log('[StepBtn] State:', { step: stepNum, completed, isChecked });
           
+          // Validate step order for ALL clicks (except already joined)
+          // Even if step appears checked, previous step must be completed
+          if (stepNum > 1 && !isPrevCompleted()) {
+            await m3Alert(`請先完成步驟 ${stepNum - 1} 再進行此步驟。`, '順序錯誤');
+            return;
+          }
+          
           if (!isChecked) {
-            // Trying to check - also open the link
-            if (!isPrevCompleted()) {
-              await m3Alert(`請先完成步驟 ${stepNum - 1} 再進行此步驟。`, '順序錯誤');
-              return;
-            }
+            // Trying to check - mark as completed
             console.log('[StepBtn] Checking step and opening link', stepNum);
             indicator.classList.add('checked');
             indicator.innerHTML = '<span class="material-symbols-outlined">check</span>';
             setStepCheck(id, stepNum, true);
             // Update progress indicator
             updateStepProgress(stepProgress, stepNum);
-            // Open the link
-            if (url) {
-              console.log('[StepBtn] Opening URL:', url);
-              window.open(url, '_blank');
-            }
-          } else if (completed && url) {
-            // Already checked and step completed - open the link
+          }
+          
+          // Open the link (for both newly checked and already completed steps)
+          if (url) {
             console.log('[StepBtn] Opening URL:', url);
             window.open(url, '_blank');
-          } else {
-            console.log('[StepBtn] No action - checked but not completed');
+            
+            // For download step (step 3 for open test, step 1 for closed test), show login prompt after navigation
+            const isDownloadStep = (!appData.isClosed && stepNum === 3) || (appData.isClosed && stepNum === 1);
+            if (isDownloadStep && !window.currentUser) {
+              // Small delay to let the navigation start
+              setTimeout(() => {
+                m3Alert(
+                  '測試步驟已完成。\n\n建議登入後點擊「回報已加入測試」，即可記錄測試進度並獲得完整體驗。',
+                  '登入提示',
+                  { confirmText: '前往登入' }
+                ).then(() => {
+                  // Navigate to login page
+                  if (window.navigate) window.navigate('login');
+                });
+              }, 500);
+            }
           }
         });
       });
@@ -649,10 +680,6 @@ async function toggleJoinTestDetail(appId, isJoined) {
           const stepNum = parseInt(step);
           
           btn.addEventListener('click', async (e) => {
-            if (!window.currentUser) {
-              await m3LoginRequired('請先登入才能操作測試步驟');
-              return;
-            }
             // If already joined, all steps are completed - just open the link
             window.open(url, '_blank');
           });
@@ -678,8 +705,9 @@ async function toggleJoinTestDetail(appId, isJoined) {
           indicator.classList.remove('checked');
           
           btn.addEventListener('click', async (e) => {
-            if (!window.currentUser) {
-              await m3LoginRequired('請先登入才能操作測試步驟');
+            // If already joined, all steps are completed - just open the link
+            if (isJoined) {
+              window.open(url, '_blank');
               return;
             }
             
@@ -693,9 +721,39 @@ async function toggleJoinTestDetail(appId, isJoined) {
               indicator.innerHTML = '<span class="material-symbols-outlined">check</span>';
               indicator.classList.add('checked');
               window.open(url, '_blank');
+              
+              // For download step, show login prompt after navigation (for non-logged-in users)
+              const isDownloadStep = (!appData.isClosed && stepNum === 3) || (appData.isClosed && stepNum === 1);
+              if (isDownloadStep && !window.currentUser) {
+                setTimeout(() => {
+                  m3Alert(
+                    '測試步驟已完成。\n\n建議登入後點擊「回報已加入測試」，即可記錄測試進度並獲得完整體驗。',
+                    '登入提示',
+                    { confirmText: '前往登入' }
+                  ).then(() => {
+                    // Navigate to login page
+                    if (window.navigate) window.navigate('login');
+                  });
+                }, 500);
+              }
             } else if (isCompleted) {
               // Already completed, just open link
               window.open(url, '_blank');
+              
+              // For download step, show login prompt after navigation (for non-logged-in users)
+              const isDownloadStep = (!appData.isClosed && stepNum === 3) || (appData.isClosed && stepNum === 1);
+              if (isDownloadStep && !window.currentUser) {
+                setTimeout(() => {
+                  m3Alert(
+                    '測試步驟已完成。\n\n建議登入後點擊「回報已加入測試」，即可記錄測試進度並獲得完整體驗。',
+                    '登入提示',
+                    { confirmText: '前往登入' }
+                  ).then(() => {
+                    // Navigate to login page
+                    if (window.navigate) window.navigate('login');
+                  });
+                }, 500);
+              }
             } else {
               // Previous step not completed
               m3Alert(`請先完成步驟 ${stepNum - 1}`, '步驟順序錯誤');

@@ -391,6 +391,21 @@ export function setupFormValidation(form, fieldRules) {
       });
       return isValid;
     },
+    getErrors: () => {
+      const errors = [];
+      fields.forEach(fieldName => {
+        const field = form.querySelector(`[name="${fieldName}"]`);
+        if (field && field.classList.contains('error')) {
+          const formGroup = field.closest('.form-group');
+          const errorEl = formGroup?.querySelector('.form-error');
+          errors.push({
+            field: fieldName,
+            message: errorEl?.textContent || '驗證失敗'
+          });
+        }
+      });
+      return errors;
+    },
     reset: () => {
       fields.forEach(fieldName => {
         const field = form.querySelector(`[name="${fieldName}"]`);

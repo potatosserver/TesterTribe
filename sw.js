@@ -1,5 +1,5 @@
 // Service Worker for TesterTribe PWA
-const CACHE_NAME = 'testertribe-v1';
+const CACHE_NAME = 'testertribe-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

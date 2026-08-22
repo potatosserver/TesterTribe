@@ -1,95 +1,611 @@
 <div id="view-publish" class="tab-content">
-  <div class="card" style="max-width: 680px; margin: 0 auto;">
-    <h2 style="display: flex; align-items: center; gap: 8px; margin-top: 0;">
-      <span class="material-symbols-outlined" style="color: var(--md-sys-color-primary);">add_circle</span>
-      刊登新測試 App 專案
-    </h2>
+  <div class="card publish-wizard-card" style="max-width: 680px; margin: 0 auto;">
+    <!-- Wizard Header -->
+    <div id="publish-wizard-header" class="wizard-header">
+      <div class="wizard-title-row">
+        <span class="material-symbols-outlined" style="color: var(--md-sys-color-primary);">add_circle</span>
+        <h2 class="wizard-title">刊登新測試 App 專案</h2>
+      </div>
+      <div class="wizard-progress" role="navigation" aria-label="發布步驟進度">
+        <div class="wizard-step" data-step="1" role="button" tabindex="0" aria-label="步驟 1：選擇平台">
+          <div class="wizard-step-circle" aria-hidden="true">1</div>
+          <span class="wizard-step-label">選擇平台</span>
+        </div>
+        <div class="wizard-step" data-step="2" role="button" tabindex="0" aria-label="步驟 2：基本資訊">
+          <div class="wizard-step-circle" aria-hidden="true">2</div>
+          <span class="wizard-step-label">基本資訊</span>
+        </div>
+        <div class="wizard-step" data-step="3" role="button" tabindex="0" aria-label="步驟 3：測試連結">
+          <div class="wizard-step-circle" aria-hidden="true">3</div>
+          <span class="wizard-step-label">測試連結</span>
+        </div>
+        <div class="wizard-step" data-step="4" role="button" tabindex="0" aria-label="步驟 4：圖片設定">
+          <div class="wizard-step-circle" aria-hidden="true">4</div>
+          <span class="wizard-step-label">圖片設定</span>
+        </div>
+        <div class="wizard-step" data-step="5" role="button" tabindex="0" aria-label="步驟 5：描述內容">
+          <div class="wizard-step-circle" aria-hidden="true">5</div>
+          <span class="wizard-step-label">描述內容</span>
+        </div>
+      </div>
+    </div>
 
     <form id="app-form" novalidate>
-      <div class="form-group">
-        <label>選擇 App 平台</label>
-        <select id="app-platform" name="platform" class="form-control" onchange="togglePlatformFields('publish')">
-          <option value="android">Android App</option>
-          <option value="ios">iOS App (TestFlight)</option>
-        </select>
-        <div class="form-error" aria-live="polite"></div>
-      </div>
-
-      <div class="form-group">
-        <label>App 名稱</label>
-        <input type="text" id="app-name" name="name" class="form-control" placeholder="例如：記帳小助手 Beta" required>
-        <div class="form-error" aria-live="polite"></div>
-      </div>
-
-      <div class="form-group">
-        <label id="label-package-name">Android 應用程式包名 (Package Name)</label>
-        <input type="text" id="app-package-name" name="packageName" class="form-control" placeholder="例如：com.example.myapp" required>
-        <div class="form-error" aria-live="polite"></div>
-      </div>
-
-      <div id="android-fields">
+      <!-- Step 1: Platform Selection -->
+      <div id="wizard-step-1" class="wizard-step-content" data-step="1">
         <div class="form-group">
-          <label>Google 群組連結</label>
-          <input type="url" id="group-url" name="groupUrl" class="form-control" placeholder="https://groups.google.com/g/...">
+          <label>選擇 App 平台</label>
+          <div class="platform-selector">
+            <button type="button" class="platform-btn" data-platform="android" aria-label="選擇 Android 平台">
+              <span class="platform-icon" aria-hidden="true"><span class="material-symbols-outlined">android</span></span>
+              <span class="platform-name">Android</span>
+              <span class="platform-desc">Google Play 測試版</span>
+            </button>
+            <button type="button" class="platform-btn" data-platform="ios" aria-label="選擇 iOS 平台">
+              <span class="platform-icon" aria-hidden="true">🍎</span>
+              <span class="platform-name">iOS</span>
+              <span class="platform-desc">TestFlight / App Store</span>
+            </button>
+          </div>
+          <input type="hidden" id="app-platform" name="platform" required>
           <div class="form-error" aria-live="polite"></div>
         </div>
-        <div class="form-group" style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-          <input type="checkbox" id="app-custom-email-enabled" name="customEmailEnabled" style="width: 20px; height: 20px;">
-          <label style="margin: 0; font-weight: 500;">使用自訂 Email 收集方式 (替換 Google 群組)</label>
+        <div class="wizard-nav wizard-nav--single">
+          <button type="button" id="wizard-next-1" class="btn btn-primary btn--full" disabled>下一步</button>
         </div>
-        <div id="custom-email-fields" style="display: none; border-left: 3px solid var(--md-sys-color-primary); padding-left: 12px; margin-bottom: 16px;">
-          <div class="form-group">
-            <label>填寫說明</label>
-            <input type="text" id="custom-email-instruction" name="customEmailInstruction" class="form-control" placeholder="例如：請填寫 Google 表單，或點擊 Thread 主頁頂貼文連結">
-            <div class="form-error" aria-live="polite"></div>
-          </div>
-          <div class="form-group">
-            <label>自訂網址</label>
-            <input type="url" id="custom-email-url" name="customEmailUrl" class="form-control" placeholder="https://forms.gle/...">
-            <div class="form-error" aria-live="polite"></div>
-          </div>
-        </div>
-        <p style="font-size: 0.8rem; color: var(--md-sys-color-primary); margin-top: -10px; margin-bottom: 16px;">
-          成為測試人員與 Google Play 商店連結將根據包名自動生成！
-        </p>
       </div>
 
-      <div id="ios-fields" style="display: none;">
+      <!-- Step 2: Basic Info -->
+      <div id="wizard-step-2" class="wizard-step-content" data-step="2" style="display: none;">
         <div class="form-group">
-          <label>TestFlight 加入測試連結</label>
-          <input type="url" id="testflight-url" name="testflightUrl" class="form-control" placeholder="https://testflight.apple.com/join/...">
+          <label for="app-name">App 名稱</label>
+          <input type="text" id="app-name" name="name" class="form-control" placeholder="例如：記帳小助手 Beta" required autocomplete="off">
           <div class="form-error" aria-live="polite"></div>
         </div>
+        <div class="form-group">
+          <label for="app-package-name" id="label-package-name">Android 應用程式包名 (Package Name)</label>
+          <input type="text" id="app-package-name" name="packageName" class="form-control" placeholder="例如：com.example.myapp" required autocomplete="off">
+          <div class="form-error" aria-live="polite"></div>
+        </div>
+        <div class="wizard-nav">
+          <button type="button" id="wizard-back-2" class="btn btn-outline">上一步</button>
+          <button type="button" id="wizard-next-2" class="btn btn-primary" disabled>下一步</button>
+        </div>
       </div>
 
-      <div class="form-group">
-        <label>1. App 圖示網址 (必填)</label>
-        <input type="url" id="app-icon-url" name="iconUrl" class="form-control" placeholder="https://example.com/icon.png" required>
-        <div class="form-error" aria-live="polite"></div>
+      <!-- Step 3: Platform-specific Links -->
+      <div id="wizard-step-3" class="wizard-step-content" data-step="3" style="display: none;">
+        <div id="android-fields">
+          <!-- 已完成封閉測試勾選框 -->
+          <fieldset class="form-group form-group--card">
+            <legend>已完成封閉測試</legend>
+            <div class="checkbox-row">
+              <input type="checkbox" id="app-is-closed" name="isClosed" class="checkbox-input">
+              <label for="app-is-closed" class="checkbox-label">勾選後隱藏測試群組連結，僅保留基本資訊與圖片</label>
+            </div>
+          </fieldset>
+
+          <!-- Google 群組連結區塊 -->
+          <div id="publish-group-section">
+            <!-- 自訂 Email 勾選框 -->
+            <fieldset class="form-group form-group--card">
+              <legend>收集方式</legend>
+              <div class="checkbox-row">
+                <input type="checkbox" id="app-custom-email-enabled" name="customEmailEnabled" class="checkbox-input">
+                <label for="app-custom-email-enabled" class="checkbox-label">使用自訂 Email 收集方式 (替換 Google 群組)</label>
+              </div>
+            </fieldset>
+
+            <div class="form-group" id="group-url-field">
+              <label for="group-url">Google 群組連結</label>
+              <input type="url" id="group-url" name="groupUrl" class="form-control" placeholder="https://groups.google.com/g/..." autocomplete="url">
+              <div class="form-error" aria-live="polite"></div>
+            </div>
+
+            <div id="custom-email-fields" style="display: none;">
+              <div class="form-group">
+                <label for="custom-email-instruction">填寫說明</label>
+                <input type="text" id="custom-email-instruction" name="customEmailInstruction" class="form-control" placeholder="例如：請填寫 Google 表單，或點擊 Thread 主頁頂貼文連結" autocomplete="off">
+                <div class="form-error" aria-live="polite"></div>
+              </div>
+              <div class="form-group">
+                <label for="custom-email-url">自訂網址</label>
+                <input type="url" id="custom-email-url" name="customEmailUrl" class="form-control" placeholder="https://forms.gle/..." autocomplete="url">
+                <div class="form-error" aria-live="polite"></div>
+              </div>
+            </div>
+            <p class="form-hint">成為測試人員與 Google Play 商店連結將根據包名自動生成！</p>
+          </div>
+        </div>
+
+        <div id="ios-fields" style="display: none;">
+          <fieldset class="form-group form-group--card">
+            <legend>已完成封閉測試</legend>
+            <div class="checkbox-row">
+              <input type="checkbox" id="app-is-closed-ios" name="isClosed" class="checkbox-input">
+              <label for="app-is-closed-ios" class="checkbox-label">勾選後需填寫 App Store 連結，而非 TestFlight</label>
+            </div>
+          </fieldset>
+
+          <div id="ios-testflight-section">
+            <div class="form-group">
+              <label for="testflight-url">TestFlight 加入測試連結</label>
+              <input type="url" id="testflight-url" name="testflightUrl" class="form-control" placeholder="https://testflight.apple.com/join/..." autocomplete="url">
+              <div class="form-error" aria-live="polite"></div>
+            </div>
+          </div>
+
+          <div id="ios-appstore-section" style="display: none;">
+            <div class="form-group">
+              <label for="appstore-url">App Store 連結 (必填)</label>
+              <input type="url" id="appstore-url" name="appStoreUrl" class="form-control" placeholder="https://apps.apple.com/app/id..." required autocomplete="url">
+              <div class="form-error" aria-live="polite"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="wizard-nav">
+          <button type="button" id="wizard-back-3" class="btn btn-outline">上一步</button>
+          <button type="button" id="wizard-next-3" class="btn btn-primary" disabled>下一步</button>
+        </div>
       </div>
 
-      <div class="form-group">
-        <label>2. App 畫面截圖網址 (最多 3 張)</label>
-        <input type="url" id="app-screenshot-url-1" name="screenshotUrl1" class="form-control" placeholder="https://example.com/screenshot1.png (選填)" style="margin-top: 8px;">
-        <div class="form-error" aria-live="polite"></div>
-        <input type="url" id="app-screenshot-url-2" name="screenshotUrl2" class="form-control" placeholder="https://example.com/screenshot2.png (選填)" style="margin-top: 8px;">
-        <div class="form-error" aria-live="polite"></div>
-        <input type="url" id="app-screenshot-url-3" name="screenshotUrl3" class="form-control" placeholder="https://example.com/screenshot3.png (選填)" style="margin-top: 8px;">
-        <div class="form-error" aria-live="polite"></div>
+      <!-- Step 4: Images -->
+      <div id="wizard-step-4" class="wizard-step-content" data-step="4" style="display: none;">
+        <div class="form-group">
+          <label for="app-icon-url">1. App 圖示網址 (必填)</label>
+          <input type="url" id="app-icon-url" name="iconUrl" class="form-control" placeholder="https://example.com/icon.png" required autocomplete="url">
+          <div class="form-error" aria-live="polite"></div>
+        </div>
+        <div class="form-group">
+          <label>2. App 畫面截圖網址 (最多 3 張)</label>
+          <div class="screenshot-inputs">
+            <div class="form-group">
+              <input type="url" id="app-screenshot-url-1" name="screenshotUrl1" class="form-control" placeholder="截圖 1：https://example.com/screenshot1.png (選填)" autocomplete="url">
+              <div class="form-error" aria-live="polite"></div>
+            </div>
+            <div class="form-group">
+              <input type="url" id="app-screenshot-url-2" name="screenshotUrl2" class="form-control" placeholder="截圖 2：https://example.com/screenshot2.png (選填)" autocomplete="url">
+              <div class="form-error" aria-live="polite"></div>
+            </div>
+            <div class="form-group">
+              <input type="url" id="app-screenshot-url-3" name="screenshotUrl3" class="form-control" placeholder="截圖 3：https://example.com/screenshot3.png (選填)" autocomplete="url">
+              <div class="form-error" aria-live="polite"></div>
+            </div>
+          </div>
+        </div>
+        <div class="wizard-nav">
+          <button type="button" id="wizard-back-4" class="btn btn-outline">上一步</button>
+          <button type="button" id="wizard-next-4" class="btn btn-primary" disabled>下一步</button>
+        </div>
       </div>
 
-      <div class="form-group">
-        <label>簡介與測試需求</label>
-        <textarea id="app-desc" name="description" class="form-control" rows="4" placeholder="詳細描述您的 App 特色與測試需求..." required></textarea>
-        <div class="form-error" aria-live="polite"></div>
+      <!-- Step 5: Description -->
+      <div id="wizard-step-5" class="wizard-step-content" data-step="5" style="display: none;">
+        <div class="form-group">
+          <label for="app-desc">簡介與測試需求</label>
+          <textarea id="app-desc" name="description" class="form-control" rows="6" placeholder="詳細描述您的 App 特色與測試需求...&#10;&#10;建議包含：&#10;• App 核心功能&#10;• 測試重點項目&#10;• 回報 Bug 的方式&#10;• 測試期限與名額" required></textarea>
+          <div class="form-error" aria-live="polite"></div>
+        </div>
+        <div class="wizard-nav">
+          <button type="button" id="wizard-back-5" class="btn btn-outline">上一步</button>
+          <button type="button" id="btn-submit" class="btn btn-primary">發布 App 至市集</button>
+        </div>
       </div>
-
-      <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
-        <input type="checkbox" id="app-is-closed" name="isClosed" style="width: 20px; height: 20px;">
-        <label style="margin: 0; font-weight: 500;">結束封閉測試（隱藏測試步驟連結的前兩步）</label>
-      </div>
-
-      <button type="button" id="btn-submit" class="btn btn-primary" style="width: 100%;">發布 App 至市集</button>
     </form>
   </div>
 </div>
+
+<style>
+/* ========== Publish Wizard Mobile Optimizations ========== */
+.publish-wizard-card {
+  padding: 16px;
+  margin: 8px;
+  border-radius: 16px;
+  box-shadow: var(--md-sys-elevation-level1);
+}
+
+.wizard-header {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.wizard-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.wizard-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--md-sys-color-on-surface);
+}
+
+/* Progress bar - horizontal scroll on mobile */
+.wizard-progress {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 8px 4px 4px;
+  margin: 0 -12px;
+  padding-left: 12px;
+  padding-right: 12px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.wizard-progress::-webkit-scrollbar {
+  display: none;
+}
+
+.wizard-step {
+  flex: 0 0 auto;
+  min-width: 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  scroll-snap-align: center;
+  transition: transform 0.2s ease;
+}
+
+.wizard-step:active {
+  transform: scale(0.98);
+}
+
+.wizard-step-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface-variant);
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.wizard-step-label {
+  font-size: 0.6875rem;
+  color: var(--md-sys-color-on-surface-variant);
+  text-align: center;
+  white-space: nowrap;
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.2s ease;
+}
+
+/* Completed steps */
+.wizard-step[data-completed="true"] .wizard-step-circle {
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  border-color: var(--md-sys-color-primary);
+}
+.wizard-step[data-completed="true"] .wizard-step-label {
+  color: var(--md-sys-color-primary);
+  font-weight: 600;
+}
+
+/* Current step */
+.wizard-step[data-current="true"] .wizard-step-circle {
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  border-color: var(--md-sys-color-primary);
+}
+.wizard-step[data-current="true"] .wizard-step-label {
+  color: var(--md-sys-color-primary);
+  font-weight: 600;
+}
+
+/* Platform Selector - stacked on mobile */
+.platform-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.platform-btn {
+  padding: 20px 14px;
+  border: 2px solid var(--md-sys-color-outline-variant);
+  border-radius: 14px;
+  background: var(--md-sys-color-surface);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.2s ease;
+  min-height: 120px;
+}
+
+.platform-btn:active {
+  transform: scale(0.98);
+}
+
+.platform-btn[data-selected="true"] {
+  border-color: var(--md-sys-color-primary);
+  background: var(--md-sys-color-primary-container);
+  box-shadow: 0 0 0 2px var(--md-sys-color-primary);
+}
+
+.platform-icon {
+  font-size: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.platform-icon .material-symbols-outlined {
+  font-size: 40px;
+  color: #3DDC84;
+}
+
+.platform-name {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--md-sys-color-on-surface);
+}
+
+.platform-desc {
+  font-size: 0.75rem;
+  color: var(--md-sys-color-on-surface-variant);
+  text-align: center;
+}
+
+/* Form groups */
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface);
+}
+
+.form-control {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 1rem;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 10px;
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  -webkit-appearance: none;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--md-sys-color-primary);
+  box-shadow: 0 0 0 2px var(--md-sys-color-primary-container);
+}
+
+.form-control::placeholder {
+  color: var(--md-sys-color-on-surface-variant);
+  opacity: 0.7;
+}
+
+.form-error {
+  min-height: 20px;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: var(--md-sys-color-error);
+}
+
+.form-hint {
+  margin: -6px 0 16px;
+  font-size: 0.75rem;
+  color: var(--md-sys-color-primary);
+}
+
+/* Card-style form groups for checkboxes */
+.form-group--card {
+  padding: 10px 12px;
+  background: var(--md-sys-color-surface-container);
+  border-radius: 8px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  margin-bottom: 10px;
+}
+
+.form-group--card legend {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: var(--md-sys-color-on-surface);
+  margin-bottom: 8px;
+  padding: 0 4px;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.checkbox-input {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  accent-color: var(--md-sys-color-primary);
+}
+
+.checkbox-label {
+  font-size: 0.8125rem;
+  color: var(--md-sys-color-on-surface-variant);
+  line-height: 1.5;
+  margin: 0;
+  cursor: pointer;
+}
+
+/* Wizard Navigation */
+.wizard-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 12px;
+  border-top: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.wizard-nav--single {
+  justify-content: flex-end;
+}
+
+.wizard-nav .btn {
+  flex: 1;
+  min-width: 0;
+  padding: 14px 24px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  border-radius: 10px;
+  min-height: 48px;
+  touch-action: manipulation;
+}
+
+.wizard-nav .btn:active {
+  transform: scale(0.98);
+}
+
+.btn--full {
+  width: 100%;
+}
+
+/* Mobile-first: buttons stack on very small screens */
+@media (max-width: 360px) {
+  .wizard-nav {
+    flex-direction: column-reverse;
+  }
+  .wizard-nav .btn {
+    width: 100%;
+  }
+}
+
+/* Desktop: side-by-side platform buttons, wider progress */
+@media (min-width: 600px) {
+  .publish-wizard-card {
+    padding: 24px;
+    margin: 16px auto;
+  }
+  
+  .wizard-progress {
+    gap: 12px;
+    margin: 0;
+    padding: 4px 0;
+    overflow-x: visible;
+    scroll-snap-type: none;
+  }
+  
+  .wizard-step {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .wizard-step-circle {
+    width: 36px;
+    height: 36px;
+    font-size: 0.9375rem;
+  }
+  
+  .wizard-step-label {
+    font-size: 0.8125rem;
+    max-width: none;
+  }
+  
+  .platform-btn {
+    padding: 28px 20px;
+    min-height: 140px;
+    gap: 14px;
+  }
+  
+  .platform-icon {
+    font-size: 56px;
+  }
+  
+  .platform-icon .material-symbols-outlined {
+    font-size: 56px;
+  }
+  
+  .platform-name {
+    font-size: 1.125rem;
+  }
+  
+  .platform-desc {
+    font-size: 0.8125rem;
+  }
+  
+  .form-control {
+    padding: 16px;
+  }
+  
+  .wizard-nav .btn {
+    padding: 16px 32px;
+  }
+}
+
+/* Large desktop */
+@media (min-width: 900px) {
+  .publish-wizard-card {
+    max-width: 720px;
+  }
+}
+
+/* High contrast / reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .wizard-step,
+  .platform-btn,
+  .wizard-step-circle,
+  .wizard-nav .btn {
+    transition: none;
+  }
+  .wizard-step:active,
+  .platform-btn:active,
+  .wizard-nav .btn:active {
+    transform: none;
+  }
+}
+
+/* Focus visible for accessibility */
+.wizard-step:focus-visible,
+.platform-btn:focus-visible,
+.form-control:focus-visible,
+.btn:focus-visible {
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: 2px;
+}
+
+/* Screenshot inputs layout */
+.screenshot-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.screenshot-inputs .form-group {
+  margin-bottom: 0;
+}
+
+.screenshot-inputs .form-control {
+  width: 100%;
+}
+
+/* Disabled state */
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+</style>
