@@ -2107,11 +2107,6 @@ header { background: var(--md-sys-color-surface-container-low); position: sticky
   color: var(--md-sys-color-on-surface-variant);
 }
 
-.platform-btn {
-  width: 100%;
-  justify-content: center;
-}
-
 /* CTA Section */
 .home-cta {
   background: linear-gradient(135deg, var(--md-sys-color-primary) 0%, #004b77 100%);
